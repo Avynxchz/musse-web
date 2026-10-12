@@ -42,6 +42,56 @@ h1, h2 {
   font-family: var(--font-pixel), monospace;
 }
 
+/* Headline hero: teks 3D ekstrusi indigo */
+.headline-3d {
+  color: #111111;
+  text-shadow:
+    1px 1px 0 #4F46E5,
+    2px 2px 0 #4F46E5,
+    3px 3px 0 #4F46E5,
+    4px 4px 0 #4F46E5,
+    5px 5px 0 #4F46E5,
+    0 12px 24px rgba(17, 17, 17, 0.2);
+}
+@media (max-width: 639px) {
+  .headline-3d {
+    text-shadow:
+      1px 1px 0 #4F46E5,
+      2px 2px 0 #4F46E5,
+      3px 3px 0 #4F46E5,
+      0 12px 24px rgba(17, 17, 17, 0.2);
+  }
+}
+
+/* Blok "SIAP TEMPUR": papan tebal 3D */
+.stamp-block {
+  display: inline-block;
+  background: #B6FF00;
+  color: #111111;
+  padding: 10px 18px;
+  border: 3px solid #111111;
+  border-radius: 12px;
+  transform: rotate(-1.5deg);
+  box-shadow:
+    1px 1px 0 #111111,
+    2px 2px 0 #111111,
+    3px 3px 0 #111111,
+    4px 4px 0 #111111,
+    5px 5px 0 #111111,
+    0 14px 24px rgba(17, 17, 17, 0.25);
+  animation: stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes stamp-in {
+  from {
+    transform: rotate(-1.5deg) scale(1.15);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-1.5deg) scale(1);
+    opacity: 1;
+  }
+}
+
 /* Kartu berbingkai: border 1.5px #111 + bayangan bawah 0 4px 0 #111 */
 .card-framed {
   border: 1.5px solid #111111;
