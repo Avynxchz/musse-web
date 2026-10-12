@@ -19,7 +19,7 @@
   --font-sans: var(--font-body);
   --font-heading: var(--font-heading);
   --font-pixel: var(--font-pixel);
-  --font-londrina: var(--font-londrina);
+  --font-bubble: var(--font-bubble);
 }
 
 body {
@@ -43,9 +43,9 @@ h1, h2 {
   font-family: var(--font-pixel), monospace;
 }
 
-/* Headline hero baris 1-2: Londrina Outline (font outline alami, tanpa stroke tambahan) */
+/* Headline hero baris 1-2: Titan One retro bubble */
 .headline-3d {
-  font-family: var(--font-londrina), sans-serif;
+  font-family: var(--font-bubble), sans-serif;
   color: #111111;
 }
 @media (max-width: 639px) {
