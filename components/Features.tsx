@@ -1,4 +1,4 @@
-import { FeatureVisual } from './Mockups'
+import AnimatedIcon from './AnimatedIcon'
 
 const features = [
   {
@@ -78,7 +78,7 @@ export default function Features() {
               key={f.title}
               className="group rounded-xl border border-[#EAEAEA] p-5 transition-all hover:-translate-y-1 hover:border-[#004a2a]/30 hover:shadow-lg"
             >
-              <FeatureVisual type={f.visual} />
+              <AnimatedIcon type={f.visual} />
               <h3 className="mt-4 text-base font-bold text-neutral-900">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-neutral-600">{f.desc}</p>
             </div>
