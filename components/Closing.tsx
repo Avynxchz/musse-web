@@ -1,15 +1,9 @@
 'use client'
 
-import { createClient } from '@/lib/supabase'
+import { useGoogleLogin } from '@/lib/useGoogleLogin'
 
 export function FinalCta() {
-  const handleLogin = async () => {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
+  const handleLogin = useGoogleLogin()
 
   return (
     <section id="closing-cta" className="border-b border-[#111111] bg-[#111111]">
