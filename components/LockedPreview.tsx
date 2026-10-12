@@ -158,7 +158,7 @@ export default function LockedPreview() {
                         Lihat pembahasan →
                       </button>
                     ) : (
-                      <div className="relative mt-3 overflow-hidden rounded-2xl border border-[#111111] bg-[var(--musse-section)] p-4 text-center">
+                      <div className="relative mt-3 overflow-hidden card-framed rounded-2xl p-6 text-center">
                         <div className="pointer-events-none select-none blur-[5px] opacity-60" aria-hidden="true"><p className="text-left text-xs leading-6 text-[var(--musse-text)]">Langkah berikutnya: substitusi nilai ke persamaan utama. Dari sini kita bisa menemukan nilai variabel dan memastikan jawaban akhir.</p></div>
                         <div className="relative mt-3"><p className="text-sm font-bold text-[var(--musse-text)]">Pembahasan lengkap terkunci</p><button onClick={handleLogin} className="mt-3 rounded-full bg-[var(--musse-lime)] px-5 py-2.5 text-xs font-extrabold text-[#10150b] transition hover:-translate-y-0.5">Login dengan Google untuk buka semua</button></div>
                       </div>
@@ -173,7 +173,7 @@ export default function LockedPreview() {
         <p className="mt-3 text-center text-sm font-bold text-[var(--musse-muted)] md:hidden">Soal {activeQuestion + 1}/3</p>
 
         {/* Demo AI Chat: 1x gratis */}
-        <div className="mt-8 rounded-3xl border border-[#111111] bg-[var(--musse-card)] p-5 md:p-6">
+        <div className="mt-8 card-framed card-hover rounded-2xl p-6 transition-transform">
           <h3 className="font-bold text-[var(--musse-text)]">Coba AI Tutor — 1x gratis</h3>
           {!showAiDemo ? (
             <button
