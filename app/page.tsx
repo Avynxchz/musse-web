@@ -2,7 +2,10 @@ import Hero from '@/components/Hero'
 import LoginReasons from '@/components/LoginReasons'
 import LockedPreview from '@/components/LockedPreview'
 import Features from '@/components/Features'
-import { Steps, Testimonials, Pricing, Faq } from '@/components/Sections'
+import Steps from '@/components/sections/Steps'
+import Testimonials from '@/components/sections/Testimonials'
+import Pricing from '@/components/sections/Pricing'
+import Faq from '@/components/sections/Faq'
 import { FinalCta, Footer } from '@/components/Closing'
 
 export const metadata = {
