@@ -104,6 +104,31 @@ h1, h2 {
   }
 }
 
+/* Kartu invert: putih normal, jadi hitam pas hover (pakai CSS murni biar nggak kalah spesifisitas) */
+.card-invert {
+  background: #FFFFFF;
+  transition: background-color 0.25s ease, transform 0.25s ease;
+}
+.card-invert .inv-t {
+  color: var(--musse-text);
+  transition: color 0.25s ease;
+}
+.card-invert .inv-d {
+  color: var(--musse-muted);
+  transition: color 0.25s ease;
+}
+@media (hover: hover) {
+  .card-invert:hover {
+    background: #111111;
+  }
+  .card-invert:hover .inv-t {
+    color: #FFFFFF;
+  }
+  .card-invert:hover .inv-d {
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
 button, a { -webkit-tap-highlight-color: transparent; }
 
 /* Marquee untuk pita mapel */
