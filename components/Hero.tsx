@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '@/lib/supabase'
+import { useGoogleLogin } from '@/lib/useGoogleLogin'
 import { useEffect, useState } from 'react'
 import { QuizPhoneMockup, TutorPhoneMockup } from './Mockups'
 import StatsStrip from './StatsStrip'
@@ -9,14 +9,7 @@ const avatars = ['A', 'R', 'N', 'F', 'D']
 
 export default function Hero() {
   const [showStickyCta, setShowStickyCta] = useState(false)
-
-  const handleLogin = async () => {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
+  const handleLogin = useGoogleLogin()
 
   useEffect(() => {
     const hero = document.getElementById('hero')
