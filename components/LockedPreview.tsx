@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { previewQuestions, aiDemoConversation } from '@/lib/preview-questions'
-import { createClient } from '@/lib/supabase'
+import { useGoogleLogin } from '@/lib/useGoogleLogin'
 
 // Typing effect untuk demo AI
 function TypingText({ text, speed = 15 }: { text: string; speed?: number }) {
@@ -80,14 +80,7 @@ export default function LockedPreview() {
   const [aiUsed, setAiUsed] = useState(false)
   const [showAiDemo, setShowAiDemo] = useState(false)
   const [activeQuestion, setActiveQuestion] = useState(0)
-
-  const handleLogin = async () => {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
+  const handleLogin = useGoogleLogin()
 
   const answer = (qid: number, key: string) => {
     if (answers[qid]) return // kunci setelah jawab
