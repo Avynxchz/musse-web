@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Bitcount_Prop_Single } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -8,10 +8,17 @@ const jakartaSans = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const bitcountDisplay = Bitcount_Prop_Single({
-  variable: "--font-display",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-heading",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+// Press Start 2P: cuma buat teks gede yang penting, jangan dipakai sembarangan
+const pressStart = Press_Start_2P({
+  variable: "--font-pixel",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -23,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${jakartaSans.variable} ${bitcountDisplay.variable} h-full antialiased`}
+      className={`${jakartaSans.variable} ${spaceGrotesk.variable} ${pressStart.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
