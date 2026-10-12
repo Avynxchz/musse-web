@@ -1,9 +1,15 @@
 'use client'
 
 import { createClient } from '@/lib/supabase'
-import { QuizPhoneMockup } from './Mockups'
+import { useEffect, useState } from 'react'
+import { QuizPhoneMockup, TutorPhoneMockup } from './Mockups'
+import StatsStrip from './StatsStrip'
+
+const avatars = ['A', 'R', 'N', 'F', 'D']
 
 export default function Hero() {
+  const [showStickyCta, setShowStickyCta] = useState(false)
+
   const handleLogin = async () => {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
@@ -12,52 +18,56 @@ export default function Hero() {
     })
   }
 
+  useEffect(() => {
+    const hero = document.getElementById('hero')
+    const closing = document.getElementById('closing-cta')
+    if (!hero || !closing) return
+    const observer = new IntersectionObserver(([entry]) => setShowStickyCta(!entry.isIntersecting), { threshold: 0.1 })
+    const closingObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setShowStickyCta(false) }, { threshold: 0.1 })
+    observer.observe(hero)
+    closingObserver.observe(closing)
+    return () => { observer.disconnect(); closingObserver.disconnect() }
+  }, [])
+
   return (
-    <header className="border-b border-[#EAEAEA] bg-white">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        <div className="text-xl font-extrabold tracking-tight text-[#004a2a]">musse</div>
-        <button
-          onClick={handleLogin}
-          className="rounded-md bg-[#004a2a] px-4 py-2 text-sm font-bold text-white hover:bg-[#003a22]"
-        >
-          Masuk
-        </button>
-      </nav>
-
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 md:py-24">
-        <div>
-          <span className="inline-block rounded-md border border-[#EAEAEA] bg-[#F7F7F9] px-3 py-1 text-xs font-bold text-[#004a2a]">
-            GRATIS SELAMA BETA
-          </span>
-          <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight text-neutral-900 md:text-5xl">
-            TKA? Santai.
-            <br />
-            Latihan di Sini, Siap Tempur.
-          </h1>
-          <p className="mt-4 text-lg text-neutral-600">
-            990+ soal sesuai kisi-kisi 2026, pembahasan AI langkah per langkah, plus analisis
-            kelemahan otomatis. Gratis.
-          </p>
-          <button
-            onClick={handleLogin}
-            className="mt-8 flex items-center gap-3 rounded-md bg-[#004a2a] px-6 py-4 text-base font-bold text-white hover:bg-[#003a22]"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" opacity=".9" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" opacity=".8" />
-              <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" opacity=".7" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" opacity=".6" />
-            </svg>
-            Masuk dengan Google — Gratis
+    <>
+      <header id="hero" className="relative overflow-hidden border-b border-[#111111] bg-[var(--musse-bg)]">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
+        <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-5 lg:px-8">
+          <div className="text-xl font-extrabold tracking-[-0.08em] text-[var(--musse-ink)]">musse<span className="text-[#111111]">.</span></div>
+          <button onClick={handleLogin} className="rounded-full bg-[var(--musse-lime)] px-4 py-2.5 text-xs font-extrabold text-[#10150b] shadow-[0_8px_24px_rgba(182,255,0,0.18)] transition hover:-translate-y-0.5 hover:bg-[#c5ff3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--musse-lime)]">
+            Masuk dengan Google
           </button>
-          <p className="mt-3 text-sm text-neutral-500">10 detik, tanpa password, tanpa kartu kredit.</p>
-        </div>
+        </nav>
 
-        {/* Mockup HP realistis */}
-        <div className="flex justify-center">
-          <QuizPhoneMockup />
+        <div className="relative mx-auto grid max-w-6xl gap-8 px-5 pb-12 pt-10 sm:gap-12 sm:pb-16 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-20">
+          <div className="max-w-xl animate-[fadeIn_0.7s_ease-out]">
+            <span className="inline-flex rounded-full border border-[var(--musse-lime)]/25 bg-[var(--musse-lime)]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--musse-ink)]">Latihan TKA untuk SMA/SMK</span>
+            <h1 className="mt-5 text-[2.35rem] leading-[1.04] sm:text-[2.75rem] font-extrabold leading-[1.05] tracking-[-0.06em] text-[var(--musse-text)] sm:text-6xl">TKA? <span className="bg-[var(--musse-lime)] px-2 text-[#111111]">Santai.</span><br />Latihan di Sini,<br />Siap Tempur.</h1>
+            <p className="mt-6 max-w-lg text-base leading-7 text-[var(--musse-muted)]">990+ soal sesuai kisi-kisi 2026, pembahasan AI langkah per langkah, plus analisis kelemahan otomatis. Gratis.</p>
+            <button onClick={handleLogin} className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-full bg-[var(--musse-lime)] px-6 py-4 text-sm font-extrabold text-[#10150b] shadow-[0_12px_35px_rgba(182,255,0,0.2)] transition hover:-translate-y-1 hover:bg-[#c5ff3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--musse-lime)] sm:w-auto">Masuk dengan Google — Gratis <span aria-hidden="true">↗</span></button>
+            <p className="mt-3 text-xs text-[var(--musse-muted)]">10 detik, tanpa password, tanpa kartu kredit.</p>
+            <div className="mt-8 flex items-center gap-3">
+              <div className="flex -space-x-2" aria-hidden="true">{avatars.map((avatar, index) => <span key={avatar} className="flex size-8 items-center justify-center rounded-full border-2 border-[var(--musse-bg)] text-[10px] font-bold text-[#10150b]" style={{ backgroundColor: ['#B6FF00', '#8DE7FF', '#A78BFA', '#FFB86B', '#F9A8D4'][index] }}>{avatar}</span>)}</div>
+              <p className="text-sm font-semibold text-[var(--musse-text)]">100+ <span className="font-normal text-[var(--musse-muted)]">pelajar sudah mulai</span></p>
+            </div>
+          </div>
+          <div className="relative flex min-h-[330px] items-center justify-center sm:min-h-[500px]">
+            <div className="absolute size-72 rounded-full bg-indigo-600/10 blur-3xl sm:size-96" />
+            <div className="pointer-events-none absolute inset-8 rounded-[50%] border border-[#111111]/25 -rotate-12" />
+            <div className="pointer-events-none absolute inset-16 rounded-[50%] border border-[#111111]/15 rotate-12" />
+            <span className="absolute left-2 top-14 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111] sm:left-0"><span className="mr-1 text-indigo-600">✓</span>Benar</span>
+            <span className="absolute right-0 top-24 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">Streak 14 hari</span>
+            <span className="hidden absolute bottom-10 left-8 sm:block rounded-xl border border-[#111111] bg-[var(--musse-lime)] px-3 py-2 text-[10px] font-bold text-[#111111] shadow-[0_4px_0_#111111]">AI Tutor</span>
+            <div className="relative flex w-[300px] items-center justify-center gap-[-20px] scale-[0.78] sm:w-full sm:max-w-[430px] sm:scale-100">
+              <QuizPhoneMockup />
+              <TutorPhoneMockup />
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <StatsStrip />
+      {showStickyCta && <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:hidden"><button onClick={handleLogin} className="min-h-12 w-full rounded-full bg-[var(--musse-lime)] px-5 text-sm font-extrabold text-[#111111] shadow-[0_4px_0_#111111]">Masuk dengan Google — Gratis</button></div>}
+    </>
   )
 }
