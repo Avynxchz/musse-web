@@ -17,7 +17,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --font-heading: var(--font-heading);
+  --font-pixel: var(--font-pixel);
 }
 
 body {
@@ -26,16 +27,19 @@ body {
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
 
-/* Display font: semua heading, judul kartu, angka, label tombol, link navbar, chip, label uppercase */
-h1, h2, h3, h4, h5, h6,
-.font-display {
-  font-family: var(--font-display), var(--font-body), sans-serif;
+/* Heading: Space Grotesk (font sebelumnya, udah bagus) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), var(--font-body), sans-serif;
 }
 
 /* Heading besar: letter-spacing -0.02em */
-h1, h2,
-.heading-tight {
+h1, h2 {
   letter-spacing: -0.02em;
+}
+
+/* .font-pixel: Press Start 2P — CUMA buat teks gede yang penting, jangan dipakai sembarangan */
+.font-pixel {
+  font-family: var(--font-pixel), monospace;
 }
 
 /* Kartu berbingkai: border 1.5px #111 + bayangan bawah 0 4px 0 #111 */
