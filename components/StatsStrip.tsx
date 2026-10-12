@@ -56,7 +56,7 @@ function StatNumber({ value, suffix }: { value: number; suffix: string }) {
   }, [])
   const count = useCountUp(value, started)
   return (
-    <span ref={ref} className="font-display text-[32px] font-bold leading-none text-white sm:text-6xl md:text-7xl">
+    <span ref={ref} className="font-pixel text-[22px] leading-none text-white sm:text-4xl md:text-5xl">
       {count.toLocaleString('id-ID')}
       <span className="text-[var(--musse-lime)]">{suffix}</span>
     </span>
@@ -84,7 +84,7 @@ export default function StatsStrip() {
                 <div className="mt-4">
                   <StatNumber value={stat.value} suffix={stat.suffix} />
                 </div>
-                <p className="font-display mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/60 md:text-xs">{stat.label}</p>
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/60 md:text-xs">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -93,7 +93,7 @@ export default function StatsStrip() {
           <div className="marquee-paused relative mt-8 overflow-hidden md:mt-10" aria-hidden="true">
             <div className="marquee-track flex w-max gap-3">
               {[...mapelChips, ...mapelChips].map((mapel, i) => (
-                <span key={i} className="font-display whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-bold text-white/80">
+                <span key={i} className="whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-bold text-white/80">
                   {mapel}
                 </span>
               ))}
