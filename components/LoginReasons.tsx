@@ -1,41 +1,9 @@
 const reasons = [
-  {
-    icon: '📱',
-    title: 'Progres ngikutin kamu',
-    desc: 'Ganti HP atau laptop, nilai dan riwayat belajarmu tetap ada. Nggak ada yang hilang.',
-  },
-  {
-    icon: '🧠',
-    title: 'AI yang kenal kamu',
-    desc: 'Makin sering latihan, AI makin paham kelemahanmu dan ngasih latihan yang tepat.',
-  },
-  {
-    icon: '⚡',
-    title: '10 detik, tanpa password',
-    desc: 'Klik, pilih akun Google, langsung masuk. Nggak perlu daftar, nggak perlu ingat password.',
-  },
+  { number: '01.', title: 'Progres ikut ke semua perangkat', desc: 'Ganti HP atau laptop, nilai dan riwayat belajarmu tetap ada. Nggak ada yang hilang.' },
+  { number: '02.', title: 'AI yang makin kenal kamu', desc: 'Makin sering latihan, AI makin paham kelemahanmu dan ngasih latihan yang tepat.' },
+  { number: '03.', title: '10 detik tanpa password', desc: 'Klik, pilih akun Google, langsung masuk. Nggak perlu daftar, nggak perlu ingat password.' },
 ]
 
 export default function LoginReasons() {
-  return (
-    <section className="border-b border-[#EAEAEA] bg-white">
-      <div className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="text-center text-3xl font-extrabold tracking-tight text-neutral-900">
-          Kenapa login?
-        </h2>
-        <p className="mt-2 text-center text-neutral-600">
-          Tiga alasan kenapa 100+ pelajar login pakai Google:
-        </p>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {reasons.map((r) => (
-            <div key={r.title} className="rounded-lg border border-[#EAEAEA] bg-white p-6">
-              <div className="text-3xl">{r.icon}</div>
-              <h3 className="mt-3 text-lg font-bold text-neutral-900">{r.title}</h3>
-              <p className="mt-2 text-sm text-neutral-600">{r.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+  return <section className="border-b border-white/[0.08] bg-[var(--musse-bg)]"><div className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-24"><div className="max-w-xl"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--musse-lime)]">Kenapa login?</p><h2 className="mt-3 text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[var(--musse-text)] sm:text-5xl">Belajar lebih <span className="text-[var(--musse-lime)]">personal</span>, tanpa ribet.</h2><p className="mt-4 text-base leading-7 text-[var(--musse-muted)]">Tiga alasan kenapa 100+ pelajar login pakai Google:</p></div><div className="mt-10 grid gap-3 md:grid-cols-3 md:gap-0">{reasons.map((reason, index) => <article key={reason.number} className={`min-h-[220px] rounded-2xl border p-6 ${index === 1 ? 'border-[var(--musse-lime)] bg-[var(--musse-lime)] text-[#11160a] shadow-[0_18px_50px_rgba(182,255,0,0.16)] md:-mt-5 md:mb-5' : 'border-white/[0.08] bg-[var(--musse-card)] text-[var(--musse-text)]'}`}><p className={`text-sm font-extrabold ${index === 1 ? 'text-[#476900]' : 'text-[var(--musse-lime)]'}`}>{reason.number}</p><h3 className="mt-10 text-lg font-extrabold leading-snug">{reason.title}</h3><p className={`mt-3 text-sm leading-6 ${index === 1 ? 'text-[#33420f]' : 'text-[var(--musse-muted)]'}`}>{reason.desc}</p>{index === 1 && <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.14em]">Makin siap, makin pede →</p>}</article>)}</div></div></section>
 }

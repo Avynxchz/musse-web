@@ -1,66 +1,15 @@
 'use client'
 
-// Mockup HP realistis: tampilan kuis asli
+function PhoneFrame({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`relative w-[220px] shrink-0 rounded-[2rem] border-[7px] border-[#252b3b] bg-[#f8fafc] p-1 shadow-[0_24px_60px_rgba(0,0,0,0.45)] ${className}`}><div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-xl bg-[#252b3b]" /><div className="overflow-hidden rounded-[1.45rem]">{children}</div></div>
+}
+
 export function QuizPhoneMockup() {
-  return (
-    <div className="w-[280px] rounded-[2rem] border-[6px] border-neutral-900 bg-white shadow-xl">
-      <div className="overflow-hidden rounded-[1.6rem]">
-        {/* Status bar */}
-        <div className="flex items-center justify-between bg-white px-5 pt-3 text-[10px] font-bold">
-          <span>09:41</span>
-          <div className="h-4 w-16 rounded-full bg-neutral-900" />
-          <span>🔋</span>
-        </div>
-        {/* App header */}
-        <div className="border-b border-[#EAEAEA] px-4 py-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-neutral-500">Matematika · Paket 1</span>
-            <span className="rounded bg-red-50 px-2 py-0.5 text-xs font-bold text-red-500">45:00</span>
-          </div>
-          <div className="mt-2 h-1 rounded bg-[#EAEAEA]">
-            <div className="h-1 w-1/4 rounded bg-[#004a2a]" />
-          </div>
-        </div>
-        {/* Soal */}
-        <div className="px-4 py-3">
-          <p className="text-[11px] font-bold text-neutral-400">SOAL 12 / 46</p>
-          <p className="mt-1 text-xs leading-relaxed text-neutral-800">
-            Harga 3 buku dan 2 penggaris Rp18.000. Jika buku Rp1.000 lebih mahal dari penggaris,
-            harga 2 buku dan 5 penggaris adalah....
-          </p>
-          <div className="mt-3 space-y-1.5">
-            {['A. Rp19.000', 'B. Rp23.000', 'C. Rp25.000'].map((o, i) => (
-              <div
-                key={o}
-                className={`rounded-md border px-2.5 py-2 text-[11px] ${
-                  i === 1
-                    ? 'border-green-500 bg-green-50 font-bold'
-                    : 'border-[#EAEAEA] text-neutral-600'
-                }`}
-              >
-                {o} {i === 1 && '✅'}
-              </div>
-            ))}
-          </div>
-          {/* Pembahasan teaser */}
-          <div className="mt-3 rounded-md bg-[#F7F7F9] p-2.5">
-            <p className="text-[10px] font-bold text-[#004a2a]">💡 Pembahasan</p>
-            <p className="mt-1 text-[10px] leading-relaxed text-neutral-600">
-              Misal buku = x, penggaris = y. Substitusi x = y + 1000 ke 3x + 2y = 18000...
-            </p>
-          </div>
-        </div>
-        {/* Bottom nav */}
-        <div className="flex justify-around border-t border-[#EAEAEA] px-4 py-2.5">
-          {['🏠', '📝', '🤖', '👤'].map((icon, i) => (
-            <span key={i} className={`text-base ${i === 1 ? 'opacity-100' : 'opacity-40'}`}>
-              {icon}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+  return <PhoneFrame className="-rotate-6 transition-transform duration-500 hover:-translate-y-2 hover:-rotate-3"><div className="min-h-[360px] bg-[#f8fafc] text-slate-900"><div className="flex justify-between px-4 pb-3 pt-6 text-[9px] font-bold"><span>09:41</span><span className="text-slate-400">musse</span></div><div className="border-b border-slate-200 px-4 pb-3"><div className="flex justify-between text-[10px] font-bold"><span>Matematika</span><span className="text-indigo-600">12 / 46</span></div><div className="mt-2 h-1 rounded bg-slate-200"><div className="h-1 w-1/4 rounded bg-indigo-600" /></div></div><div className="px-4 py-4"><p className="text-[9px] font-bold text-slate-400">SOAL 12</p><p className="mt-2 text-[11px] font-semibold leading-relaxed">Harga 3 buku dan 2 penggaris Rp18.000. Harga 2 buku dan 5 penggaris adalah...</p><div className="mt-4 flex flex-col gap-2">{['Rp19.000', 'Rp23.000', 'Rp25.000'].map((option, index) => <div key={option} className={`rounded-lg border px-3 py-2 text-[10px] ${index === 1 ? 'border-indigo-600 bg-indigo-50 font-bold' : 'border-slate-200'}`}><span className="mr-2 text-slate-400">{String.fromCharCode(65 + index)}</span>{option}{index === 1 && <span className="float-right text-indigo-600">✓</span>}</div>)}</div><div className="mt-4 rounded-xl bg-indigo-50 p-3"><p className="text-[9px] font-bold text-indigo-700">Pembahasan tersedia</p><p className="mt-1 text-[9px] leading-relaxed text-slate-500">Substitusi x = y + 1000 ke persamaan utama...</p></div></div><div className="mt-2 flex justify-around border-t border-slate-200 px-4 py-3 text-[10px] text-slate-400"><span>⌂</span><span className="font-bold text-indigo-600">▦</span><span>?</span><span>◯</span></div></div></PhoneFrame>
+}
+
+export function TutorPhoneMockup() {
+  return <PhoneFrame className="-ml-12 translate-y-12 rotate-6 scale-[0.86] sm:-ml-16"><div className="min-h-[360px] bg-[#111827] text-white"><div className="flex items-center gap-2 px-4 pb-4 pt-7"><span className="flex size-7 items-center justify-center rounded-full bg-[var(--musse-lime)] text-xs font-black text-slate-900">AI</span><div><p className="text-[10px] font-bold">AI Tutor</p><p className="text-[8px] text-slate-400">Siap bantu kapan saja</p></div></div><div className="flex flex-col gap-3 px-4 pt-8 text-[10px]"><div className="self-end rounded-2xl rounded-br-sm bg-indigo-600 px-3 py-2">Kenapa jawaban B?</div><div className="rounded-2xl rounded-bl-sm bg-[#20283b] px-3 py-2 leading-relaxed text-slate-200">Karena kita substitusi nilai x ke persamaan. Yuk, lihat langkahnya bersama.</div><div className="self-end rounded-2xl rounded-br-sm bg-indigo-600 px-3 py-2">Oh, sekarang paham!</div></div><div className="mx-4 mt-20 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[9px] text-slate-500">Tanya apa saja tentang soal...</div></div></PhoneFrame>
 }
 
 // Mockup mini untuk kartu fitur
@@ -123,7 +72,7 @@ export function FeatureVisual({ type }: { type: string }) {
         <div className={base}>
           <div className="w-full rounded border border-[#EAEAEA] bg-white p-2">
             <p className="text-[10px] font-bold">🧠 Insight minggu ini</p>
-            <p className="mt-1 text-[9px] text-neutral-500">"Aljabarmu naik 23%. Fokus ke geometri ya!"</p>
+            <p className="mt-1 text-[9px] text-neutral-500">&quot;Aljabarmu naik 23%. Fokus ke geometri ya!&quot;</p>
           </div>
         </div>
       )

@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --musse-bg: #0B0F1A;
+  --musse-card: #131A2B;
+  --musse-lime: #B6FF00;
+  --musse-indigo: #4F46E5;
+  --musse-text: #E5E7EB;
+  --musse-muted: #9CA3AF;
+  --background: var(--musse-bg);
+  --foreground: var(--musse-text);
 }
 
 @theme inline {
@@ -12,17 +18,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--musse-bg);
+  color: var(--musse-text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+button, a { -webkit-tap-highlight-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
 
 @keyframes fadeIn {
