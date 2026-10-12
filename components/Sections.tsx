@@ -51,14 +51,14 @@ const faqs = [
 
 export function Steps() {
   return (
-    <section className="border-b border-white/10 bg-[var(--musse-bg)]">
+    <section className="border-b border-[#111111] bg-[var(--musse-bg)]">
       <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">3 langkah</span>
         <h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Mulai dari sini.</h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {steps.map((s) => (
-            <div key={s.n} className={`rounded-3xl border p-6 ${s.n === '2' ? 'border-[var(--musse-lime)] bg-[var(--musse-lime)] text-[#10150b]' : 'border-white/10 bg-[var(--musse-card)] text-[var(--musse-text)]'}`}>
-              <div className={`text-4xl font-black ${s.n === '2' ? 'text-[#10150b]' : 'text-[var(--musse-lime)]'}`}>{s.n}</div>
+            <div key={s.n} className={`rounded-3xl border p-6 ${s.n === '2' ? 'border-[var(--musse-lime)] bg-[var(--musse-lime)] text-[#10150b]' : 'border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] text-[var(--musse-text)]'}`}>
+              <div className={`text-4xl font-black ${s.n === '2' ? 'text-[#10150b]' : 'text-[var(--musse-indigo)]'}`}>{s.n}</div>
               <h3 className="mt-10 font-bold">{s.title}</h3>
               <p className={`mt-2 text-sm leading-6 ${s.n === '2' ? 'text-[#26320c]' : 'text-[var(--musse-muted)]'}`}>{s.desc}</p>
             </div>
@@ -71,13 +71,13 @@ export function Steps() {
 
 export function Testimonials() {
   return (
-    <section className="border-b border-white/10 bg-[#0d1322]">
+    <section className="border-b border-[#111111] bg-[var(--musse-section)]">
       <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Kata mereka</span>
-        <h2 className="mt-4 max-w-xl text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Belajar jadi lebih <span className="text-[var(--musse-lime)]">terarah.</span></h2>
+        <h2 className="mt-4 max-w-xl text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Belajar jadi lebih <span className="text-[var(--musse-indigo)]">terarah.</span></h2>
         <p className="mt-3 text-sm text-[var(--musse-muted)]">Dipercaya 100+ pelajar SMA/SMK</p>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.map((t, i) => <div key={i} className="rounded-3xl border border-white/10 bg-[var(--musse-card)] p-6"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-[var(--musse-lime)] text-sm font-black text-[#10150b]">{t.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</div><div><p className="text-sm font-bold text-[var(--musse-text)]">{t.name}</p><p className="text-xs text-[var(--musse-muted)]">{t.detail}</p></div></div><p className="mt-6 text-sm leading-7 text-[var(--musse-text)]">&quot;{t.text}&quot;</p></div>)}
+          {testimonials.map((t, i) => <div key={i} className="rounded-3xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] p-6"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-[var(--musse-lime)] text-sm font-black text-[#10150b]">{t.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</div><div><p className="text-sm font-bold text-[var(--musse-text)]">{t.name}</p><p className="text-xs text-[var(--musse-muted)]">{t.detail}</p></div></div><p className="mt-6 text-sm leading-7 text-[var(--musse-text)]">&quot;{t.text}&quot;</p></div>)}
         </div>
       </div>
     </section>
@@ -89,12 +89,12 @@ export function Pricing() {
   const proFeatures = ['100 tanya AI Tutor per hari', 'Semua fitur Gratis', 'Analisis Autopsi lengkap']
 
   return (
-    <section id="harga" className="border-b border-white/10 bg-[var(--musse-bg)]">
+    <section id="harga" className="border-b border-[#111111] bg-[var(--musse-bg)]">
       <div className="mx-auto max-w-5xl px-5 py-16 md:py-24">
-        <div className="max-w-xl"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Harga sederhana</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Mulai gratis. <span className="text-[var(--musse-lime)]">Naik level</span> kapan saja.</h2></div>
+        <div className="max-w-xl"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Harga sederhana</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Mulai gratis. <span className="text-[var(--musse-indigo)]">Naik level</span> kapan saja.</h2></div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-[var(--musse-card)] p-6 md:p-8"><p className="text-xs font-bold uppercase tracking-widest text-[var(--musse-muted)]">Untuk mulai latihan</p><h3 className="mt-5 text-xl font-bold text-[var(--musse-text)]">Gratis</h3><p className="mt-3"><span className="text-4xl font-black text-[var(--musse-text)]">Rp0</span><span className="text-sm text-[var(--musse-muted)]">/selamanya</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[var(--musse-muted)]">{freeFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="text-[var(--musse-lime)]" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
-          <div className="relative overflow-hidden rounded-3xl border-2 border-[var(--musse-lime)] bg-[var(--musse-lime)] p-6 text-[#10150b] shadow-[0_20px_60px_rgba(182,255,0,0.12)] md:p-8"><span className="absolute right-5 top-5 rounded-full bg-[#10150b] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--musse-lime)]">Gratis selama beta</span><p className="text-xs font-bold uppercase tracking-widest text-[#42520d]">Untuk latihan lebih dalam</p><h3 className="mt-5 text-xl font-bold">Pro</h3><p className="mt-3"><span className="text-lg font-bold text-[#53631d] line-through">Rp14.900</span><span className="ml-2 text-4xl font-black">Rp0</span><span className="text-sm text-[#42520d]">/bulan</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[#26320c]">{proFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="font-black" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
+          <div className="rounded-3xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] p-6 md:p-8"><p className="text-xs font-bold uppercase tracking-widest text-[var(--musse-muted)]">Untuk mulai latihan</p><h3 className="mt-5 text-xl font-bold text-[var(--musse-text)]">Gratis</h3><p className="mt-3"><span className="text-4xl font-black text-[var(--musse-text)]">Rp0</span><span className="text-sm text-[var(--musse-muted)]">/selamanya</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[var(--musse-muted)]">{freeFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="text-[var(--musse-indigo)]" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
+          <div className="relative overflow-hidden rounded-3xl border-2 border-[var(--musse-lime)] bg-[var(--musse-lime)] p-6 text-[#10150b] shadow-[0_20px_60px_rgba(182,255,0,0.12)] md:p-8"><span className="absolute right-5 top-5 rounded-full bg-[#10150b] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--musse-indigo)]">Gratis selama beta</span><p className="text-xs font-bold uppercase tracking-widest text-[#42520d]">Untuk latihan lebih dalam</p><h3 className="mt-5 text-xl font-bold">Pro</h3><p className="mt-3"><span className="text-lg font-bold text-[#53631d] line-through">Rp14.900</span><span className="ml-2 text-4xl font-black">Rp0</span><span className="text-sm text-[#42520d]">/bulan</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[#26320c]">{proFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="font-black" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
         </div>
       </div>
     </section>
@@ -103,8 +103,8 @@ export function Pricing() {
 
 export function Faq() {
   return (
-    <section id="faq" className="border-b border-white/10 bg-[#0d1322]">
-      <div className="mx-auto max-w-3xl px-5 py-16 md:py-24"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">FAQ</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Pertanyaan yang sering muncul.</h2><div className="mt-10 flex flex-col gap-3">{faqs.map((f) => <details key={f.q} className="group rounded-2xl border border-white/10 bg-[var(--musse-card)] px-5 py-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-[var(--musse-text)] marker:hidden">{f.q}<span className="float-right text-xl font-normal text-[var(--musse-lime)] transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--musse-muted)]">{f.a}</p></details>)}</div></div>
+    <section id="faq" className="border-b border-[#111111] bg-[var(--musse-section)]">
+      <div className="mx-auto max-w-3xl px-5 py-16 md:py-24"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">FAQ</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Pertanyaan yang sering muncul.</h2><div className="mt-10 flex flex-col gap-3">{faqs.map((f) => <details key={f.q} className="group rounded-2xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] px-5 py-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-[var(--musse-text)] marker:hidden">{f.q}<span className="float-right text-xl font-normal text-[var(--musse-indigo)] transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--musse-muted)]">{f.a}</p></details>)}</div></div>
     </section>
   )
 }

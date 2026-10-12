@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --musse-bg: #0B0F1A;
-  --musse-card: #131A2B;
+  --musse-bg: #FAFAF7;
+  --musse-section: #FFFFFF;
+  --musse-card: #FFFFFF;
+  --musse-ink: #111111;
   --musse-lime: #B6FF00;
   --musse-indigo: #4F46E5;
-  --musse-text: #E5E7EB;
-  --musse-muted: #9CA3AF;
+  --musse-text: #111111;
+  --musse-muted: #4B5563;
   --background: var(--musse-bg);
   --foreground: var(--musse-text);
 }
@@ -14,15 +16,19 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--musse-bg);
   color: var(--musse-text);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
 }
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading), var(--font-jakarta), sans-serif; }
+
+.shadow-bento { box-shadow: 0 4px 0 #111111; }
 
 button, a { -webkit-tap-highlight-color: transparent; }
 

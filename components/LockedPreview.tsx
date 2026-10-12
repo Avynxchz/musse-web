@@ -94,7 +94,7 @@ export default function LockedPreview() {
   }
 
   return (
-    <section className="border-b border-white/10 bg-[#0d1322]">
+    <section className="border-b border-[#111111] bg-[var(--musse-section)]">
       <div className="mx-auto max-w-4xl px-5 py-16 md:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Coba dulu</span>
@@ -109,7 +109,7 @@ export default function LockedPreview() {
             const showPem = showPembahasan[q.id]
 
             return (
-              <div key={q.id} className="rounded-3xl border border-white/10 bg-[var(--musse-card)] p-5 shadow-2xl shadow-black/10 md:p-6">
+              <div key={q.id} className="rounded-3xl border border-[#111111] bg-[var(--musse-card)] p-5 shadow-2xl shadow-black/10 md:p-6">
                 <p className="text-xs font-bold text-neutral-400">SOAL {idx + 1} / 3</p>
                 <p className="mt-2 font-medium text-neutral-900">{q.pertanyaan}</p>
 
@@ -157,7 +157,7 @@ export default function LockedPreview() {
                         Lihat pembahasan →
                       </button>
                     ) : (
-                      <div className="relative mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#0d1322] p-4 text-center">
+                      <div className="relative mt-3 overflow-hidden rounded-2xl border border-[#111111] bg-[var(--musse-section)] p-4 text-center">
                         <div className="pointer-events-none select-none blur-[5px] opacity-60" aria-hidden="true"><p className="text-left text-xs leading-6 text-[var(--musse-text)]">Langkah berikutnya: substitusi nilai ke persamaan utama. Dari sini kita bisa menemukan nilai variabel dan memastikan jawaban akhir.</p></div>
                         <div className="relative mt-3"><p className="text-sm font-bold text-[var(--musse-text)]">Pembahasan lengkap terkunci</p><button onClick={handleLogin} className="mt-3 rounded-full bg-[var(--musse-lime)] px-5 py-2.5 text-xs font-extrabold text-[#10150b] transition hover:-translate-y-0.5">Login dengan Google untuk buka semua</button></div>
                       </div>
@@ -170,7 +170,7 @@ export default function LockedPreview() {
         </div>
 
         {/* Demo AI Chat: 1x gratis */}
-        <div className="mt-8 rounded-3xl border border-white/10 bg-[var(--musse-card)] p-5 md:p-6">
+        <div className="mt-8 rounded-3xl border border-[#111111] bg-[var(--musse-card)] p-5 md:p-6">
           <h3 className="font-bold text-[var(--musse-text)]">Coba AI Tutor — 1x gratis</h3>
           {!showAiDemo ? (
             <button

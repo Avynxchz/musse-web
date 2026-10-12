@@ -17,10 +17,10 @@ export default function Hero() {
 
   return (
     <>
-      <header className="relative overflow-hidden border-b border-white/[0.08] bg-[var(--musse-bg)]">
+      <header className="relative overflow-hidden border-b border-[#111111] bg-[var(--musse-bg)]">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
         <nav className="relative mx-auto flex max-w-6xl items-center justify-between px-5 py-5 lg:px-8">
-          <div className="text-xl font-extrabold tracking-[-0.08em] text-[var(--musse-lime)]">musse<span className="text-white">.</span></div>
+          <div className="text-xl font-extrabold tracking-[-0.08em] text-[var(--musse-ink)]">musse<span className="text-[#111111]">.</span></div>
           <button onClick={handleLogin} className="rounded-full bg-[var(--musse-lime)] px-4 py-2.5 text-xs font-extrabold text-[#10150b] shadow-[0_8px_24px_rgba(182,255,0,0.18)] transition hover:-translate-y-0.5 hover:bg-[#c5ff3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--musse-lime)]">
             Masuk dengan Google
           </button>
@@ -28,8 +28,8 @@ export default function Hero() {
 
         <div className="relative mx-auto grid max-w-6xl gap-12 px-5 pb-16 pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-20">
           <div className="max-w-xl animate-[fadeIn_0.7s_ease-out]">
-            <span className="inline-flex rounded-full border border-[var(--musse-lime)]/25 bg-[var(--musse-lime)]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--musse-lime)]">Latihan TKA untuk SMA/SMK</span>
-            <h1 className="mt-5 text-[2.75rem] font-extrabold leading-[1.05] tracking-[-0.06em] text-[var(--musse-text)] sm:text-6xl">TKA? <span className="text-[var(--musse-lime)]">Santai.</span><br />Latihan di Sini,<br />Siap Tempur.</h1>
+            <span className="inline-flex rounded-full border border-[var(--musse-lime)]/25 bg-[var(--musse-lime)]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--musse-ink)]">Latihan TKA untuk SMA/SMK</span>
+            <h1 className="mt-5 text-[2.75rem] font-extrabold leading-[1.05] tracking-[-0.06em] text-[var(--musse-text)] sm:text-6xl">TKA? <span className="bg-[var(--musse-lime)] px-2 text-[#111111]">Santai.</span><br />Latihan di Sini,<br />Siap Tempur.</h1>
             <p className="mt-6 max-w-lg text-base leading-7 text-[var(--musse-muted)]">990+ soal sesuai kisi-kisi 2026, pembahasan AI langkah per langkah, plus analisis kelemahan otomatis. Gratis.</p>
             <button onClick={handleLogin} className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-full bg-[var(--musse-lime)] px-6 py-4 text-sm font-extrabold text-[#10150b] shadow-[0_12px_35px_rgba(182,255,0,0.2)] transition hover:-translate-y-1 hover:bg-[#c5ff3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--musse-lime)] sm:w-auto">Masuk dengan Google — Gratis <span aria-hidden="true">↗</span></button>
             <p className="mt-3 text-xs text-[var(--musse-muted)]">10 detik, tanpa password, tanpa kartu kredit.</p>
@@ -39,7 +39,12 @@ export default function Hero() {
             </div>
           </div>
           <div className="relative flex min-h-[430px] items-center justify-center sm:min-h-[500px]">
-            <div className="absolute size-72 rounded-full bg-indigo-600/20 blur-3xl sm:size-96" />
+            <div className="absolute size-72 rounded-full bg-indigo-600/10 blur-3xl sm:size-96" />
+            <div className="pointer-events-none absolute inset-8 rounded-[50%] border border-[#111111]/25 -rotate-12" />
+            <div className="pointer-events-none absolute inset-16 rounded-[50%] border border-[#111111]/15 rotate-12" />
+            <span className="absolute left-2 top-14 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111] sm:left-0"><span className="mr-1 text-indigo-600">✓</span>Benar</span>
+            <span className="absolute right-0 top-24 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">Streak 14 hari</span>
+            <span className="absolute bottom-10 left-8 rounded-xl border border-[#111111] bg-[var(--musse-lime)] px-3 py-2 text-[10px] font-bold text-[#111111] shadow-[0_4px_0_#111111]">AI Tutor</span>
             <div className="relative flex w-full max-w-[430px] items-center justify-center gap-[-20px]">
               <QuizPhoneMockup />
               <TutorPhoneMockup />
