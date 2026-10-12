@@ -43,7 +43,7 @@ export default function Hero() {
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 pb-12 pt-10 sm:gap-12 sm:pb-16 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-20">
           <div className="max-w-xl animate-[fadeIn_0.7s_ease-out]">
             <span className="inline-flex rounded-full border border-[var(--musse-lime)]/25 bg-[var(--musse-lime)]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--musse-ink)]">Latihan TKA untuk SMA/SMK</span>
-            <h1 aria-label="TKA? Santai. Latihan di Sini, Siap Tempur." className="mt-5 font-bold leading-[1.15]">
+            <h1 aria-label="TKA? Santai. Latihan di Sini, Siap Tempur." className="mt-5 leading-[1.15]">
               <span className="headline-3d block text-[clamp(30px,8.5vw,64px)]" aria-hidden="true">TKA? Santai.</span>
               <span className="headline-3d mt-1 block text-[clamp(30px,8.5vw,64px)]" aria-hidden="true"><span className="mr-2">—</span>Latihan di Sini,</span>
               <span className="mt-3 block" aria-hidden="true"><span className="stamp-block font-pixel whitespace-nowrap text-[clamp(18px,5vw,44px)] leading-snug">SIAP TEMPUR</span></span>
