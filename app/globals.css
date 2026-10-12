@@ -42,24 +42,15 @@ h1, h2 {
   font-family: var(--font-pixel), monospace;
 }
 
-/* Headline hero: teks 3D ekstrusi lime (warna musse) */
+/* Headline hero: teks putih + outline hitam (tanpa shadow) */
 .headline-3d {
-  color: #111111;
-  text-shadow:
-    1px 1px 0 #B6FF00,
-    2px 2px 0 #B6FF00,
-    3px 3px 0 #B6FF00,
-    4px 4px 0 #B6FF00,
-    5px 5px 0 #B6FF00,
-    0 12px 24px rgba(17, 17, 17, 0.2);
+  color: #FFFFFF;
+  -webkit-text-stroke: 2px #111111;
+  paint-order: stroke fill;
 }
 @media (max-width: 639px) {
   .headline-3d {
-    text-shadow:
-      1px 1px 0 #B6FF00,
-      2px 2px 0 #B6FF00,
-      3px 3px 0 #B6FF00,
-      0 12px 24px rgba(17, 17, 17, 0.2);
+    -webkit-text-stroke: 1.5px #111111;
   }
 }
 
