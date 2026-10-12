@@ -280,21 +280,21 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Grid kecil — putih, jadi hitam pas hover */}
-        <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 lg:mt-6 lg:grid-cols-4 lg:gap-5">
+        {/* Grid kecil — 7 kartu, baris terakhir auto-center */}
+        <div className="mt-5 flex flex-wrap justify-center gap-4 lg:mt-6 lg:gap-5">
           {smallCards.map((card) => (
             <article
               key={card.title}
-              className="card-framed card-hover group rounded-2xl bg-white p-5 transition-all hover:bg-[#111111]"
+              className="card-framed card-invert card-hover group w-[calc(50%-0.5rem)] rounded-2xl p-5 md:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)]"
             >
               <AnimatedIcon type={card.visual} />
-              <h3 className="mt-3 text-sm font-bold leading-tight text-[var(--musse-text)] transition-colors group-hover:text-white">
+              <h3 className="inv-t mt-3 text-sm font-bold leading-tight">
                 {card.title}
               </h3>
-              <p className="mt-1 text-[13px] leading-5 text-[var(--musse-muted)] transition-colors group-hover:text-white/60">
+              <p className="inv-d mt-1 text-[13px] leading-5">
                 {card.desc}
               </p>
-              <div className="transition-colors group-hover:text-white">
+              <div className="inv-t">
                 {card.mini}
               </div>
             </article>
