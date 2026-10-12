@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Space_Grotesk, Press_Start_2P } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk, Press_Start_2P, Londrina_Outline } from "next/font/google";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -21,6 +21,13 @@ const pressStart = Press_Start_2P({
   weight: ["400"],
 });
 
+// Londrina Outline: buat headline hero baris 1-2
+const londrinaOutline = Londrina_Outline({
+  variable: "--font-londrina",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
 export const metadata: Metadata = {
   title: "musse — Latihan TKA",
   description: "Latihan TKA dengan AI. Santai latihan di sini, siap tempur.",
@@ -30,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${jakartaSans.variable} ${spaceGrotesk.variable} ${pressStart.variable} h-full antialiased`}
+      className={`${jakartaSans.variable} ${spaceGrotesk.variable} ${pressStart.variable} ${londrinaOutline.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
