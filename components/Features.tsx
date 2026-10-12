@@ -1,4 +1,6 @@
-import AnimatedIcon from './AnimatedIcon'
+'use client'
+
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Chip } from './ui'
 
 function CheckRow({ text, circleBg }: { text: string; circleBg: string }) {
@@ -14,7 +16,7 @@ function CheckRow({ text, circleBg }: { text: string; circleBg: string }) {
   )
 }
 
-/* ---------- Mini UI kartu utama ---------- */
+/* ---------- Mini UI kartu 1 & 2 ---------- */
 
 function PembahasanVisual() {
   const steps = [
@@ -72,93 +74,172 @@ function AiChatVisual() {
   )
 }
 
-function AutopsiVisual() {
-  const bars = [
-    { label: 'Salah konsep', pct: 62, color: '#F97316' },
-    { label: 'Salah hitung', pct: 12, color: '#0EA5E9' },
-  ]
-  return (
-    <div className="rounded-2xl border-[1.5px] border-[#111111] bg-[#FFEDD5] p-4">
-      <div className="space-y-3">
-        {bars.map((b) => (
-          <div key={b.label}>
-            <div className="flex items-center justify-between text-xs font-bold text-[#111111]">
-              <span>{b.label}</span>
-              <span>{b.pct}%</span>
-            </div>
-            <div className="mt-1 h-3 overflow-hidden rounded-full border-[1.5px] border-[#111111] bg-white">
-              <div className="h-full rounded-full" style={{ width: `${b.pct}%`, backgroundColor: b.color }} />
-            </div>
-          </div>
-        ))}
-      </div>
-      <span className="mt-3 inline-block rounded-full border-[1.5px] border-[#111111] bg-[var(--musse-lime)] px-3 py-1 text-xs font-bold text-[#111111]">
-        💡 Fokus ke geometri
-      </span>
-    </div>
+/* ---------- Kartu 3: animasi Ruang AI & Pendamping (loop ~8.5s) ---------- */
+
+const MAPEL_CHIPS = ['MTK', 'FIS', 'KIM', 'BIO']
+
+function RuangAiVisual() {
+  const [step, setStep] = useState(0)
+  const [cycle, setCycle] = useState(0)
+  const [running, setRunning] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const reduced = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    []
   )
-}
 
-/* ---------- Mini visual kartu kecil ---------- */
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(([e]) => setRunning(e.isIntersecting), { threshold: 0.3 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
 
-function MisiVisual() {
-  const items = [
-    { t: 'Kerjakan 10 soal', done: true },
-    { t: 'Baca pembahasan', done: true },
-    { t: 'Tryout mini', done: false },
-  ]
+  useEffect(() => {
+    if (!running) {
+      setStep(0)
+      return
+    }
+    if (reduced) {
+      setStep(5) // frame akhir statis
+      return
+    }
+    let cancelled = false
+    const timers: ReturnType<typeof setTimeout>[] = []
+    const run = () => {
+      const seq: [number, number][] = [
+        [0, 1], // chip mapel pop berurutan
+        [1000, 2], // FIS terpilih + kartu ruang slide-in
+        [2500, 3], // bubble pertanyaan + mengetik
+        [3400, 4], // balasan AI
+        [4500, 5], // kartu insight + bar terisi
+        [6500, 6], // fade out semua
+      ]
+      timers.push(setTimeout(() => { if (!cancelled) setCycle((c) => c + 1) }, 0))
+      seq.forEach(([t, s]) => timers.push(setTimeout(() => { if (!cancelled) setStep(s) }, t)))
+      timers.push(setTimeout(() => { if (!cancelled) run() }, 8000)) // jeda 1.5s lalu loop
+    }
+    run()
+    return () => {
+      cancelled = true
+      timers.forEach(clearTimeout)
+    }
+  }, [running, reduced])
+
+  const fade = step === 6 ? 'opacity-0' : 'opacity-100'
+
   return (
-    <div className="mt-3 space-y-1.5">
-      {items.map((it) => (
-        <div key={it.t} className="flex items-center gap-2 text-xs">
-          <span className={`flex size-4 items-center justify-center rounded border-[1.5px] border-[#111111] ${it.done ? 'bg-[var(--musse-lime)]' : 'bg-white'}`}>
-            {it.done && (
-              <svg aria-hidden="true" className="size-3" fill="none" stroke="#111111" strokeWidth="3" viewBox="0 0 24 24">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            )}
-          </span>
-          <span className={it.done ? 'opacity-60 line-through' : ''}>{it.t}</span>
+    <div ref={wrapRef} className="ruang-anim rounded-2xl border-[1.5px] border-[#111111] bg-[#FFEDD5] p-4">
+      <div className={`${fade} min-h-[330px] transition-opacity duration-500`}>
+        {/* 1. Chip mapel */}
+        <div className="flex flex-wrap gap-2" style={{ visibility: step >= 1 ? 'visible' : 'hidden' }}>
+          {MAPEL_CHIPS.map((c, i) => (
+            <span
+              key={`${cycle}-${c}`}
+              className={`rounded-full border-[1.5px] border-[#111111] px-3 py-1 text-xs font-bold ${
+                step >= 2 && c === 'FIS' ? 'bg-[var(--musse-lime)] text-[#111111]' : 'bg-white text-[#111111]'
+              } ${step >= 1 && !reduced ? 'anim-pop' : ''}`}
+              style={step >= 1 && !reduced ? { animationDelay: `${i * 0.15}s` } : undefined}
+            >
+              {c}
+            </span>
+          ))}
         </div>
-      ))}
+
+        {/* 2. Kartu ruang */}
+        <div className="mt-3" style={{ visibility: step >= 2 ? 'visible' : 'hidden' }}>
+          {step >= 2 && (
+            <div key={`room-${cycle}`} className={`flex items-center gap-3 rounded-2xl border-[1.5px] border-[#111111] bg-white p-3 ${!reduced ? 'anim-slide' : ''}`}>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#111111] bg-[#0EA5E9] text-sm font-bold text-white">
+                F
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-[#111111]">Ruang Fisika</p>
+                <p className="text-xs text-[var(--musse-muted)]">128 diskusi aktif</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Chat */}
+        <div className="mt-3 min-h-[104px]" style={{ visibility: step >= 3 ? 'visible' : 'hidden' }}>
+          {step >= 3 && (
+            <div key={`q-${cycle}`} className={`flex justify-end ${!reduced ? 'anim-pop' : ''}`}>
+              <p className="max-w-[85%] rounded-2xl rounded-br-sm border-[1.5px] border-[#111111] bg-[#111111] px-3 py-2 text-sm text-white">
+                Kak, kenapa pakai rumus itu?
+              </p>
+            </div>
+          )}
+          {step === 3 && (
+            <div className="mt-2 flex items-center gap-1.5" aria-hidden="true">
+              <span className="size-2 animate-bounce rounded-full bg-[#111111]" />
+              <span className="size-2 animate-bounce rounded-full bg-[#111111] [animation-delay:0.15s]" />
+              <span className="size-2 animate-bounce rounded-full bg-[#111111] [animation-delay:0.3s]" />
+            </div>
+          )}
+          {step >= 4 && (
+            <div key={`a-${cycle}`} className={`mt-2 flex justify-start ${!reduced ? 'anim-pop' : ''}`}>
+              <p className="max-w-[85%] rounded-2xl rounded-bl-sm border-[1.5px] border-[#111111] bg-white px-3 py-2 text-sm text-[#111111]">
+                Karena soalnya tentang gerak lurus — rumusnya cocok buat Fisika.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Kartu insight */}
+        <div className="mt-3" style={{ visibility: step >= 5 ? 'visible' : 'hidden' }}>
+          {step >= 5 && (
+            <div key={`ins-${cycle}`} className={`rounded-2xl border-[1.5px] border-[#111111] bg-[var(--musse-lime)] p-3 ${!reduced ? 'anim-pop-big' : ''}`}>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#111111]">Insight minggu ini</p>
+              <p className="mt-1 text-sm font-medium leading-5 text-[#111111]">
+                Aljabarmu naik 23%. Fokus ke geometri ya!
+              </p>
+              <div className="mt-2 h-2.5 overflow-hidden rounded-full border border-[#111111] bg-white">
+                <div
+                  className="h-full rounded-full bg-[#F97316]"
+                  style={{ width: step >= 5 ? '72%' : '0%', transition: reduced ? 'none' : 'width 1.2s ease 0.3s' }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
 
-function StreakVisual() {
+/* ---------- Ikon Lucide buat balok ---------- */
+
+const balokIconPaths: Record<string, string> = {
+  book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z',
+  check: 'M20 6 9 17l-5-5',
+  search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM21 21l-4.3-4.3',
+  chart: 'M3 3v18h18M7 16l3-4 3 2 5-7',
+  target: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12ZM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
+  clipboard: 'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6v4H9V2Z',
+  flame: 'M12 22c4 0 7-2.7 7-6.5 0-3.2-2-5.4-4.2-7.5.1 2.2-1 3.5-2 4.2.3-4.2-1.8-7-4.2-9.2.2 4-3.6 6.4-3.6 10.5C5 18.9 8.1 22 12 22Z',
+  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2',
+  layers: 'm12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5',
+}
+
+function BalokIcon({ name, bg }: { name: string; bg: string }) {
   return (
-    <div className="mt-3 flex gap-1.5" aria-hidden="true">
-      {Array.from({ length: 7 }).map((_, i) => (
-        <span
-          key={i}
-          className={`size-3.5 rounded-full border-[1.5px] border-[#111111] ${i < 5 ? 'bg-[#F97316]' : 'bg-white/20'}`}
-        />
-      ))}
-    </div>
+    <span className={`flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#111111] ${bg}`}>
+      <svg aria-hidden="true" className="size-5" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+        <path d={balokIconPaths[name]} />
+      </svg>
+    </span>
   )
 }
 
-function ProgresVisual() {
-  return (
-    <svg aria-hidden="true" className="mt-3 h-10 w-full" viewBox="0 0 120 40" fill="none">
-      <polyline
-        points="2,34 22,30 42,32 62,22 82,24 102,10 118,6"
-        stroke="#4F46E5"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="118" cy="6" r="4" fill="#B6FF00" stroke="#111111" strokeWidth="1.5" />
-    </svg>
-  )
-}
+/* ---------- Mini visual balok (maks ~96px) ---------- */
 
-function MapelVisual() {
-  const chips = ['MTK', 'FIS', 'KIM', 'BIO', 'IND', 'ING']
+function BMapel() {
   return (
-    <div className="mt-3 flex flex-wrap gap-1.5">
-      {chips.map((c) => (
-        <span key={c} className="rounded-md border-[1.5px] border-[#111111] bg-[var(--musse-lime)] px-2 py-0.5 text-[11px] font-bold text-[#111111]">
+    <div className="flex gap-1">
+      {['MTK', 'FIS', 'KIM'].map((c) => (
+        <span key={c} className="rounded-md border border-[#111111] bg-[var(--musse-lime)] px-1.5 py-0.5 text-[10px] font-bold text-[#111111]">
           {c}
         </span>
       ))}
@@ -166,37 +247,98 @@ function MapelVisual() {
   )
 }
 
-function BenarSalahVisual() {
+function BBenarSalah() {
   return (
-    <div className="mt-3 space-y-1.5">
-      <div className="flex items-center justify-between rounded-lg border-[1.5px] border-[#111111] bg-green-100 px-2.5 py-1.5 text-xs font-bold">
-        <span>A. 42</span>
-        <svg aria-hidden="true" className="size-4 text-green-700" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+    <div className="flex items-center gap-1.5" aria-hidden="true">
+      <span className="flex size-5 items-center justify-center rounded-full bg-green-500">
+        <svg className="size-3" fill="none" stroke="#fff" strokeWidth="3.5" viewBox="0 0 24 24">
           <path d="M20 6 9 17l-5-5" />
         </svg>
-      </div>
-      <div className="flex items-center justify-between rounded-lg border-[1.5px] border-[#111111] bg-white px-2.5 py-1.5 text-xs">
-        <span>B. 38</span>
-      </div>
-    </div>
-  )
-}
-
-function RuangAiVisual() {
-  return (
-    <div className="mt-3 flex items-center gap-2">
-      <span className="flex size-8 items-center justify-center rounded-full border-[1.5px] border-[#111111] bg-[#0EA5E9] text-xs font-bold text-white">
-        F
       </span>
-      <span className="text-xs font-bold">Ruang Fisika</span>
+      <span className="size-5 rounded-full border-[1.5px] border-[#111111] bg-white" />
     </div>
   )
 }
 
-function PendampingVisual() {
+function BAutopsi({ dark }: { dark: boolean }) {
   return (
-    <div className="mt-3 rounded-lg border-[1.5px] border-[#111111] bg-[#E0E7FF] p-2.5 text-xs leading-5">
-      <span className="font-bold">Insight:</span> kamu sering salah di soal cerita.
+    <div className="w-20 space-y-1.5" aria-hidden="true">
+      <div className={`h-2 overflow-hidden rounded-full ${dark ? 'bg-white/20' : 'bg-[#111111]/10'}`}>
+        <div className="h-full w-[62%] rounded-full bg-red-500" />
+      </div>
+      <div className={`h-2 overflow-hidden rounded-full ${dark ? 'bg-white/20' : 'bg-[#111111]/10'}`}>
+        <div className="h-full w-[35%] rounded-full bg-[#F97316]" />
+      </div>
+    </div>
+  )
+}
+
+function BProgres({ dark }: { dark: boolean }) {
+  return (
+    <svg aria-hidden="true" className="h-8 w-20" viewBox="0 0 80 32" fill="none">
+      <polyline
+        points="2,28 16,24 30,26 44,18 58,20 72,8 78,5"
+        stroke={dark ? '#818CF8' : '#4F46E5'}
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="78" cy="5" r="3.5" fill="#B6FF00" stroke="#111111" strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+function BMisi({ dark }: { dark: boolean }) {
+  const items = [true, true, false]
+  return (
+    <div className="space-y-1" aria-hidden="true">
+      {items.map((done, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <span className={`flex size-3.5 items-center justify-center rounded border border-[#111111] ${done ? 'bg-[var(--musse-lime)]' : dark ? 'bg-transparent' : 'bg-white'}`}>
+            {done && (
+              <svg className="size-2.5" fill="none" stroke="#111111" strokeWidth="3.5" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            )}
+          </span>
+          <span className={`h-1.5 rounded-full ${dark ? 'bg-white/25' : 'bg-[#111111]/15'}`} style={{ width: 28 - i * 6 }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function BTryout({ dark }: { dark: boolean }) {
+  return (
+    <p className={`font-mono text-lg font-bold tracking-widest ${dark ? 'text-white' : 'text-[#111111]'}`}>
+      59:59
+    </p>
+  )
+}
+
+function BStreak() {
+  return (
+    <div className="flex gap-1" aria-hidden="true">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span key={i} className="size-3 rounded-full border border-[#111111] bg-[#F97316]" />
+      ))}
+    </div>
+  )
+}
+
+function BCountdown({ dark }: { dark: boolean }) {
+  return (
+    <p className={`text-sm font-bold ${dark ? 'text-white' : 'text-[#111111]'}`}>
+      14 <span className={`text-xs font-medium ${dark ? 'text-white/60' : 'text-[var(--musse-muted)]'}`}>hari</span>
+    </p>
+  )
+}
+
+function BMode() {
+  return (
+    <div className="flex w-20 rounded-full border-[1.5px] border-[#111111] bg-white p-0.5 text-[10px] font-bold" aria-hidden="true">
+      <span className="flex-1 rounded-full bg-[#111111] px-1 py-0.5 text-center text-white">Lthn</span>
+      <span className="flex-1 px-1 py-0.5 text-center text-[var(--musse-muted)]">Sim</span>
     </div>
   )
 }
@@ -219,32 +361,48 @@ const mainCards = [
     circleBg: 'bg-[#F0FFB8]',
   },
   {
-    title: 'Autopsi kelemahan',
-    desc: 'AI bedah hasil tryout-mu: salah karena terburu-buru, salah konsep, atau apa.',
-    visual: <AutopsiVisual />,
-    checks: ['Tahu salahmu di mana', 'Dibedah otomatis dari hasil tryout', 'Ada saran perbaikan'],
+    title: 'Ruang AI & Pendamping Belajar TKA',
+    desc: 'Diskusi di ruang tiap mapel, sementara AI nyatet pola belajarmu otomatis dan ngasih tau apa yang perlu diperbaiki.',
+    visual: <RuangAiVisual />,
+    checks: ['Ruang diskusi khusus tiap mapel', 'AI nyatet pola belajarmu otomatis', 'Dikasih tahu apa yang perlu diperbaiki'],
     circleBg: 'bg-[#FFEDD5]',
   },
 ]
 
-const smallCards: {
+const circleBgs = ['bg-[var(--musse-lime)]', 'bg-[#E0E7FF]', 'bg-[#FFEDD5]', 'bg-[#E0F2FE]']
+const iconNames = ['book', 'check', 'search', 'chart', 'target', 'clipboard', 'flame', 'clock', 'layers']
+
+const baloks: {
   title: string
   desc: string
-  visual: string
-  mini: React.ReactNode
+  mini: (dark: boolean) => React.ReactNode
 }[] = [
-  { title: 'Benar/salah langsung', desc: 'Tahu hasil tanpa menunggu.', visual: 'benar-salah', mini: <BenarSalahVisual /> },
-  { title: 'Ruang AI per mapel', desc: 'Diskusi khusus tiap mapel.', visual: 'ai-room', mini: <RuangAiVisual /> },
-  { title: 'Pendamping Belajar TKA dengan AI', desc: 'Pola belajarmu dibaca otomatis.', visual: 'pendamping', mini: <PendampingVisual /> },
-  { title: 'Progres belajar', desc: 'Perkembanganmu selalu terlihat.', visual: 'progres', mini: <ProgresVisual /> },
-  { title: 'Streak', desc: 'Jaga ritme belajar beruntun.', visual: 'streak', mini: <StreakVisual /> },
-  { title: 'Misi harian', desc: 'Tantangan fokus setiap hari.', visual: 'misi', mini: <MisiVisual /> },
-  { title: '27 mapel', desc: 'SMA sampai mapel kejuruan SMK.', visual: 'mapel', mini: <MapelVisual /> },
+  { title: '27 mapel', desc: 'SMA sampai mapel kejuruan SMK.', mini: () => <BMapel /> },
+  { title: 'Benar/salah langsung', desc: 'Tahu hasil tanpa menunggu.', mini: () => <BBenarSalah /> },
+  { title: 'Autopsi kelemahan', desc: 'AI bedah hasil tryout-mu: salah karena terburu-buru, salah konsep, atau apa.', mini: (d) => <BAutopsi dark={d} /> },
+  { title: 'Progres belajar', desc: 'Perkembanganmu selalu terlihat.', mini: (d) => <BProgres dark={d} /> },
+  { title: 'Misi harian', desc: 'Tantangan fokus setiap hari.', mini: (d) => <BMisi dark={d} /> },
+  { title: 'Tryout simulasi', desc: 'Latihan persis seperti hari-H.', mini: (d) => <BTryout dark={d} /> },
+  { title: 'Streak', desc: 'Jaga ritme belajar beruntun.', mini: () => <BStreak /> },
+  { title: 'Countdown TKA', desc: 'Tahu berapa hari menuju hari-H.', mini: (d) => <BCountdown dark={d} /> },
+  { title: 'Mode latihan vs simulasi', desc: 'Santai belajar atau uji mental.', mini: () => <BMode /> },
 ]
 
 /* ---------- Section ---------- */
 
 export default function Features() {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [activeDot, setActiveDot] = useState(0)
+
+  const onTrackScroll = () => {
+    const el = trackRef.current
+    if (!el) return
+    const card = el.querySelector('article')
+    if (!card) return
+    const w = card.getBoundingClientRect().width + 16
+    setActiveDot(Math.min(2, Math.max(0, Math.round(el.scrollLeft / w))))
+  }
+
   return (
     <section id="fitur" className="border-b border-[#111111] bg-[var(--musse-bg)]">
       <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
@@ -258,8 +416,12 @@ export default function Features() {
           </p>
         </div>
 
-        {/* 3 kartu utama */}
-        <div className="core-features-carousel mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible">
+        {/* BAGIAN A: 3 kartu utama */}
+        <div
+          ref={trackRef}
+          onScroll={onTrackScroll}
+          className="core-features-carousel mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-5 lg:overflow-visible"
+        >
           {mainCards.map((card, index) => (
             <article
               key={card.title}
@@ -280,25 +442,52 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Grid kecil — 7 kartu, baris terakhir auto-center */}
-        <div className="mt-5 flex flex-wrap justify-center gap-4 lg:mt-6 lg:gap-5">
-          {smallCards.map((card) => (
-            <article
-              key={card.title}
-              className="card-framed card-invert card-hover group w-[calc(50%-0.5rem)] rounded-2xl p-5 md:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)]"
-            >
-              <AnimatedIcon type={card.visual} />
-              <h3 className="inv-t mt-3 text-sm font-bold leading-tight">
-                {card.title}
-              </h3>
-              <p className="inv-d mt-1 text-[13px] leading-5">
-                {card.desc}
-              </p>
-              <div className="inv-t">
-                {card.mini}
-              </div>
-            </article>
+        {/* Indikator titik carousel (mobile) */}
+        <div className="mt-2 flex justify-center gap-2 lg:hidden" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className={`size-2 rounded-full border border-[#111111] transition-colors ${i === activeDot ? 'bg-[#111111]' : 'bg-white'}`}
+            />
           ))}
+        </div>
+
+        {/* BAGIAN B: balok fitur lain */}
+        <div className="mt-14 lg:mt-20">
+          <h3 className="text-xl font-extrabold text-[var(--musse-text)] md:text-2xl">
+            <span className="inline-block -rotate-1 rounded-lg border-[1.5px] border-[#111111] bg-[var(--musse-lime)] px-3 py-1">
+              Dan masih banyak lagi
+            </span>
+          </h3>
+
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+            {baloks.map((b, i) => {
+              const dark = i % 2 === 1
+              return (
+                <article
+                  key={b.title}
+                  className={`flex h-[80px] items-center gap-3 rounded-[14px] p-3 transition-transform hover:-translate-y-0.5 ${
+                    dark
+                      ? 'border-[1.5px] border-white bg-[#111111] shadow-[0_4px_0_#B6FF00]'
+                      : 'border-[1.5px] border-[#111111] bg-white shadow-[0_4px_0_#111111]'
+                  }`}
+                >
+                  <BalokIcon name={iconNames[i]} bg={circleBgs[i % circleBgs.length]} />
+                  <div className="min-w-0 flex-1">
+                    <h4 className={`truncate text-[15px] font-bold leading-tight ${dark ? 'text-white' : 'text-[var(--musse-text)]'}`}>
+                      {b.title}
+                    </h4>
+                    <p className={`truncate text-sm leading-5 ${dark ? 'text-white/60' : 'text-[var(--musse-muted)]'}`}>
+                      {b.desc}
+                    </p>
+                  </div>
+                  <div className="hidden min-[400px]:block shrink-0">
+                    {b.mini(dark)}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
         </div>
       </div>
     </section>
