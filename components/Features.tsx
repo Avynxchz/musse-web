@@ -16,69 +16,16 @@ function CheckRow({ text, circleBg }: { text: string; circleBg: string }) {
   )
 }
 
-/* ---------- Mini UI kartu 1 & 2 ---------- */
+/* ---------- Hook animasi loop (dipakai ketiga kartu besar) ---------- */
 
-function PembahasanVisual() {
-  const steps = [
-    'Tulis harga yang diketahui',
-    'Buat persamaan dari soal',
-    'Selesaikan persamaan',
-    'Cek kembali jawaban',
-  ]
-  const active = 1
-  return (
-    <div className="rounded-2xl border-[1.5px] border-[#111111] bg-[#E0E7FF] p-4">
-      <p className="text-xs font-bold uppercase tracking-widest text-[#4F46E5]">Langkah 2/5</p>
-      <ol className="mt-3 space-y-2">
-        {steps.map((s, i) => (
-          <li
-            key={s}
-            className={`rounded-xl border-[1.5px] border-[#111111] px-3 py-2 text-sm font-medium ${
-              i === active ? 'bg-[var(--musse-lime)] text-[#111111]' : 'bg-white text-[var(--musse-text)]'
-            }`}
-          >
-            <span className="mr-2 font-bold">{i + 1}.</span>
-            {s}
-          </li>
-        ))}
-      </ol>
-      <span className="mt-3 inline-block rounded-full border-[1.5px] border-[#111111] bg-white px-3 py-1 text-xs font-bold text-[#111111]">
-        Jawaban: B
-      </span>
-    </div>
-  )
-}
+const TL_PEMBAHASAN: [number, number][] = [[0, 1], [1600, 2], [3200, 3], [4800, 4], [6400, 5], [8000, 6], [10000, 7]]
+const LOOP_PEMBAHASAN = 11500
+const TL_CHAT: [number, number][] = [[0, 1], [800, 2], [2200, 3], [3400, 4], [6500, 5]]
+const LOOP_CHAT = 8000
+const TL_RUANG: [number, number][] = [[0, 1], [1000, 2], [2500, 3], [3400, 4], [4500, 5], [6500, 6]]
+const LOOP_RUANG = 8000
 
-function AiChatVisual() {
-  return (
-    <div className="rounded-2xl border-[1.5px] border-[#111111] bg-[#F0FFB8] p-4">
-      <span className="inline-block rounded-full border-[1.5px] border-[#111111] bg-white px-3 py-1 text-xs font-bold text-[#111111]">
-        Soal 12 · Matematika
-      </span>
-      <div className="mt-3 flex justify-end">
-        <p className="max-w-[80%] rounded-2xl rounded-br-sm border-[1.5px] border-[#111111] bg-[#111111] px-3 py-2 text-sm text-white">
-          Kenapa jawabannya B?
-        </p>
-      </div>
-      <div className="mt-2 flex justify-start">
-        <p className="max-w-[85%] rounded-2xl rounded-bl-sm border-[1.5px] border-[#111111] bg-white px-3 py-2 text-sm text-[#111111]">
-          Karena substitusi x = 4 memenuhi kedua persamaan di soal 12.
-        </p>
-      </div>
-      <div className="mt-2 flex items-center gap-1.5 pl-1" aria-hidden="true">
-        <span className="size-2 animate-bounce rounded-full bg-[#111111]" />
-        <span className="size-2 animate-bounce rounded-full bg-[#111111] [animation-delay:0.15s]" />
-        <span className="size-2 animate-bounce rounded-full bg-[#111111] [animation-delay:0.3s]" />
-      </div>
-    </div>
-  )
-}
-
-/* ---------- Kartu 3: animasi Ruang AI & Pendamping (loop ~8.5s) ---------- */
-
-const MAPEL_CHIPS = ['MTK', 'FIS', 'KIM', 'BIO']
-
-function RuangAiVisual() {
+function useLoopAnimation(timeline: [number, number][], loopMs: number) {
   const [step, setStep] = useState(0)
   const [cycle, setCycle] = useState(0)
   const [running, setRunning] = useState(false)
@@ -102,31 +49,130 @@ function RuangAiVisual() {
       return
     }
     if (reduced) {
-      setStep(5) // frame akhir statis
+      setStep(timeline[timeline.length - 1][1]) // frame akhir statis
       return
     }
     let cancelled = false
     const timers: ReturnType<typeof setTimeout>[] = []
     const run = () => {
-      const seq: [number, number][] = [
-        [0, 1], // chip mapel pop berurutan
-        [1000, 2], // FIS terpilih + kartu ruang slide-in
-        [2500, 3], // bubble pertanyaan + mengetik
-        [3400, 4], // balasan AI
-        [4500, 5], // kartu insight + bar terisi
-        [6500, 6], // fade out semua
-      ]
       timers.push(setTimeout(() => { if (!cancelled) setCycle((c) => c + 1) }, 0))
-      seq.forEach(([t, s]) => timers.push(setTimeout(() => { if (!cancelled) setStep(s) }, t)))
-      timers.push(setTimeout(() => { if (!cancelled) run() }, 8000)) // jeda 1.5s lalu loop
+      timeline.forEach(([t, s]) => timers.push(setTimeout(() => { if (!cancelled) setStep(s) }, t)))
+      timers.push(setTimeout(() => { if (!cancelled) run() }, loopMs))
     }
     run()
     return () => {
       cancelled = true
       timers.forEach(clearTimeout)
     }
-  }, [running, reduced])
+  }, [running, reduced, timeline, loopMs])
 
+  return { step, cycle, wrapRef, reduced }
+}
+
+/* ---------- Mini UI kartu 1 & 2 ---------- */
+
+function PembahasanVisual() {
+  const { step, cycle, wrapRef, reduced } = useLoopAnimation(TL_PEMBAHASAN, LOOP_PEMBAHASAN)
+  const active = step === 0 ? 1 : Math.min(step, 5)
+  const done = step >= 6
+  const fade = step === 7 ? 'opacity-0' : 'opacity-100'
+  const steps = [
+    'Tulis harga yang diketahui',
+    'Buat persamaan dari soal',
+    'Selesaikan persamaan',
+    'Cek kembali jawaban',
+    'Tulis jawaban akhir',
+  ]
+  return (
+    <div ref={wrapRef} className="ruang-anim rounded-2xl border-[1.5px] border-[#111111] bg-[#E0E7FF] p-4">
+      <div className={`${fade} transition-opacity duration-500`}>
+        <p className="text-xs font-bold uppercase tracking-widest text-[#4F46E5]">
+          Langkah {done ? 5 : active}/5
+        </p>
+        <ol className="mt-3 space-y-2">
+          {steps.map((s, i) => {
+            const idx = i + 1
+            const isActive = done ? idx === 5 : idx === active
+            return (
+              <li
+                key={s}
+                className={`rounded-xl border-[1.5px] border-[#111111] px-3 py-2 text-sm font-medium transition-colors duration-700 ${
+                  isActive ? 'bg-[var(--musse-lime)] text-[#111111]' : 'bg-white text-[var(--musse-text)]'
+                }`}
+              >
+                <span className="mr-2 font-bold">{idx}.</span>
+                {s}
+              </li>
+            )
+          })}
+        </ol>
+        <div className="mt-3 min-h-[30px]">
+          {step >= 6 && (
+            <span
+              key={`jb-${cycle}`}
+              className={`inline-block rounded-full border-[1.5px] border-[#111111] bg-white px-3 py-1 text-xs font-bold text-[#111111] ${!reduced ? 'anim-pop' : ''}`}
+            >
+              Jawaban: B
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AiChatVisual() {
+  const { step, cycle, wrapRef, reduced } = useLoopAnimation(TL_CHAT, LOOP_CHAT)
+  const fade = step === 5 ? 'opacity-0' : 'opacity-100'
+  return (
+    <div ref={wrapRef} className="ruang-anim rounded-2xl border-[1.5px] border-[#111111] bg-[#F0FFB8] p-4">
+      <div className={`${fade} min-h-[268px] transition-opacity duration-500`}>
+        <div className="min-h-[28px]">
+          {step >= 1 && (
+            <span
+              key={`ctx-${cycle}`}
+              className={`inline-block rounded-full border-[1.5px] border-[#111111] bg-white px-3 py-1 text-xs font-bold text-[#111111] ${!reduced ? 'anim-pop' : ''}`}
+            >
+              Soal 12 · Matematika
+            </span>
+          )}
+        </div>
+        <div className="min-h-[52px]">
+          {step >= 2 && (
+            <div key={`uq-${cycle}`} className={`mt-3 flex justify-end ${!reduced ? 'anim-pop' : ''}`}>
+              <p className="max-w-[80%] rounded-2xl rounded-br-sm border-[1.5px] border-[#111111] bg-[#111111] px-3 py-2 text-sm text-white">
+                Kenapa jawabannya B?
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="min-h-[64px]">
+          {step === 3 && (
+            <div className="mt-2 flex items-center gap-1.5 pl-1" aria-hidden="true">
+              <span className="size-2 animate-bounce rounded-full bg-[#111111]" />
+              <span className="size-2 animate-bounce rounded-full bg-[#111111] [animation-delay:0.15s]" />
+              <span className="size-2 animate-bounce rounded-full bg-[#111111] [animation-delay:0.3s]" />
+            </div>
+          )}
+          {step >= 4 && (
+            <div key={`aq-${cycle}`} className={`mt-2 flex justify-start ${!reduced ? 'anim-pop' : ''}`}>
+              <p className="max-w-[85%] rounded-2xl rounded-bl-sm border-[1.5px] border-[#111111] bg-white px-3 py-2 text-sm text-[#111111]">
+                Karena substitusi x = 4 memenuhi kedua persamaan di soal 12.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------- Kartu 3: animasi Ruang AI & Pendamping (loop ~8s) ---------- */
+
+const MAPEL_CHIPS = ['MTK', 'FIS', 'KIM', 'BIO']
+
+function RuangAiVisual() {
+  const { step, cycle, wrapRef, reduced } = useLoopAnimation(TL_RUANG, LOOP_RUANG)
   const fade = step === 6 ? 'opacity-0' : 'opacity-100'
 
   return (
