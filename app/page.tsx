@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white font-sans text-neutral-900 antialiased">
+    <main className="min-h-screen bg-[var(--musse-bg)] font-sans text-[var(--musse-text)] antialiased">
       <Hero />
       <LoginReasons />
       <LockedPreview />
