@@ -1,28 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --musse-bg: #FAFAF7;
+  --musse-section: #FFFFFF;
+  --musse-card: #FFFFFF;
+  --musse-ink: #111111;
+  --musse-lime: #B6FF00;
+  --musse-indigo: #4F46E5;
+  --musse-text: #111111;
+  --musse-muted: #4B5563;
+  --background: var(--musse-bg);
+  --foreground: var(--musse-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--musse-bg);
+  color: var(--musse-text);
+  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading), var(--font-jakarta), sans-serif; }
+
+.shadow-bento { box-shadow: 0 4px 0 #111111; }
+
+button, a { -webkit-tap-highlight-color: transparent; }
+
+@media (max-width: 639px) {
+  .animate-\[fadeIn_0\.7s_ease-out\], .animate-\[fadeIn_0\.4s_ease-in\] { animation: none !important; }
+  .question-carousel, .core-features-carousel, .reasons-carousel, .testimonials-carousel { scrollbar-width: none; }
+  .question-carousel::-webkit-scrollbar, .core-features-carousel::-webkit-scrollbar, .reasons-carousel::-webkit-scrollbar, .testimonials-carousel::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
 
 @keyframes fadeIn {
