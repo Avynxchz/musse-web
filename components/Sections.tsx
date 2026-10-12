@@ -52,12 +52,12 @@ const faqs = [
 export function Steps() {
   return (
     <section className="border-b border-[#111111] bg-[var(--musse-bg)]">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-6xl px-5 py-12 md:py-24">
         <span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">3 langkah</span>
         <h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Mulai dari sini.</h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {steps.map((s) => (
-            <div key={s.n} className={`rounded-3xl border p-6 ${s.n === '2' ? 'border-[var(--musse-lime)] bg-[var(--musse-lime)] text-[#10150b]' : 'border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] text-[var(--musse-text)]'}`}>
+            <div key={s.n} className={`relative rounded-3xl border p-5 md:p-6 ${s.n === '2' ? 'border-[var(--musse-lime)] bg-[var(--musse-lime)] text-[#10150b]' : 'border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] text-[var(--musse-text)]'}`}>
               <div className={`text-4xl font-black ${s.n === '2' ? 'text-[#10150b]' : 'text-[var(--musse-indigo)]'}`}>{s.n}</div>
               <h3 className="mt-10 font-bold">{s.title}</h3>
               <p className={`mt-2 text-sm leading-6 ${s.n === '2' ? 'text-[#26320c]' : 'text-[var(--musse-muted)]'}`}>{s.desc}</p>
@@ -72,12 +72,12 @@ export function Steps() {
 export function Testimonials() {
   return (
     <section className="border-b border-[#111111] bg-[var(--musse-section)]">
-      <div className="mx-auto max-w-6xl px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-6xl px-5 py-12 md:py-24">
         <span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Kata mereka</span>
         <h2 className="mt-4 max-w-xl text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Belajar jadi lebih <span className="text-[var(--musse-indigo)]">terarah.</span></h2>
         <p className="mt-3 text-sm text-[var(--musse-muted)]">Dipercaya 100+ pelajar SMA/SMK</p>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.map((t, i) => <div key={i} className="rounded-3xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] p-6"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-[var(--musse-lime)] text-sm font-black text-[#10150b]">{t.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</div><div><p className="text-sm font-bold text-[var(--musse-text)]">{t.name}</p><p className="text-xs text-[var(--musse-muted)]">{t.detail}</p></div></div><p className="mt-6 text-sm leading-7 text-[var(--musse-text)]">&quot;{t.text}&quot;</p></div>)}
+          {testimonials.map((t, i) => <div key={i} className="min-w-[88%] snap-center rounded-3xl md:min-w-0 border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] p-6"><div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-[var(--musse-lime)] text-sm font-black text-[#10150b]">{t.name.split(' ').map((word) => word[0]).join('').slice(0, 2)}</div><div><p className="text-sm font-bold text-[var(--musse-text)]">{t.name}</p><p className="text-xs text-[var(--musse-muted)]">{t.detail}</p></div></div><p className="mt-6 text-sm leading-7 text-[var(--musse-text)]">&quot;{t.text}&quot;</p></div>)}
         </div>
       </div>
     </section>
@@ -90,7 +90,7 @@ export function Pricing() {
 
   return (
     <section id="harga" className="border-b border-[#111111] bg-[var(--musse-bg)]">
-      <div className="mx-auto max-w-5xl px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-5xl px-5 py-12 md:py-24">
         <div className="max-w-xl"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Harga sederhana</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Mulai gratis. <span className="text-[var(--musse-indigo)]">Naik level</span> kapan saja.</h2></div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <div className="rounded-3xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] p-6 md:p-8"><p className="text-xs font-bold uppercase tracking-widest text-[var(--musse-muted)]">Untuk mulai latihan</p><h3 className="mt-5 text-xl font-bold text-[var(--musse-text)]">Gratis</h3><p className="mt-3"><span className="text-4xl font-black text-[var(--musse-text)]">Rp0</span><span className="text-sm text-[var(--musse-muted)]">/selamanya</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[var(--musse-muted)]">{freeFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="text-[var(--musse-indigo)]" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
@@ -104,7 +104,7 @@ export function Pricing() {
 export function Faq() {
   return (
     <section id="faq" className="border-b border-[#111111] bg-[var(--musse-section)]">
-      <div className="mx-auto max-w-3xl px-5 py-16 md:py-24"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">FAQ</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Pertanyaan yang sering muncul.</h2><div className="mt-10 flex flex-col gap-3">{faqs.map((f) => <details key={f.q} className="group rounded-2xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] px-5 py-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-[var(--musse-text)] marker:hidden">{f.q}<span className="float-right text-xl font-normal text-[var(--musse-indigo)] transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--musse-muted)]">{f.a}</p></details>)}</div></div>
+      <div className="mx-auto max-w-3xl px-5 py-12 md:py-24"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">FAQ</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Pertanyaan yang sering muncul.</h2><div className="mt-10 flex flex-col gap-3">{faqs.map((f) => <details key={f.q} className="group rounded-2xl border border-[#111111] bg-[var(--musse-card)] shadow-[0_4px_0_#111111] px-5 py-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-[var(--musse-text)] marker:hidden">{f.q}<span className="float-right text-xl font-normal text-[var(--musse-indigo)] transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--musse-muted)]">{f.a}</p></details>)}</div></div>
     </section>
   )
 }

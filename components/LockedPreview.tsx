@@ -79,6 +79,7 @@ export default function LockedPreview() {
   const [showPembahasan, setShowPembahasan] = useState<Record<number, boolean>>({})
   const [aiUsed, setAiUsed] = useState(false)
   const [showAiDemo, setShowAiDemo] = useState(false)
+  const [activeQuestion, setActiveQuestion] = useState(0)
 
   const handleLogin = async () => {
     const supabase = createClient()
@@ -102,14 +103,14 @@ export default function LockedPreview() {
           <p className="mt-3 text-[var(--musse-muted)]">3 soal Matematika asli. Jawab, lihat benar/salahnya langsung — tanpa daftar.</p>
         </div>
 
-        <div className="mt-10 space-y-6">
+        <div className="question-carousel mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:mt-10 md:block md:space-y-6 md:overflow-visible">
           {previewQuestions.map((q, idx) => {
             const userAns = answers[q.id]
             const isCorrect = userAns === q.kunci
             const showPem = showPembahasan[q.id]
 
             return (
-              <div key={q.id} className="rounded-3xl border border-[#111111] bg-[var(--musse-card)] p-5 shadow-2xl shadow-black/10 md:p-6">
+              <div key={q.id} className={'min-w-full snap-center rounded-3xl border md:min-w-0 ' + (idx === activeQuestion ? '' : 'hidden md:block') + ' border-[#111111] bg-[var(--musse-card)] p-5 shadow-2xl shadow-black/10 md:p-6'}>
                 <p className="text-xs font-bold text-neutral-400">SOAL {idx + 1} / 3</p>
                 <p className="mt-2 font-medium text-neutral-900">{q.pertanyaan}</p>
 
@@ -126,7 +127,7 @@ export default function LockedPreview() {
                         key={o.key}
                         onClick={() => answer(q.id, o.key)}
                         disabled={!!userAns}
-                        className={`flex w-full items-center gap-3 rounded-md border p-3 text-left text-sm transition ${cls}`}
+                        className={'flex min-h-12 w-full items-center gap-3 rounded-md border p-3 text-left text-base transition ' + cls}
                       >
                         <span className="font-bold">{o.key}.</span> {o.text}
                         {userAns && o.key === q.kunci && <span className="text-emerald-400" aria-label="Benar">✓</span>}
@@ -139,7 +140,7 @@ export default function LockedPreview() {
                 {userAns && (
                   <div className="mt-4">
                     {isCorrect ? (
-                      <p className="font-bold text-green-600">Benar! 🎉</p>
+                      <p className="font-bold text-green-600">Benar!</p>
                     ) : (
                       <p className="font-bold text-red-500">
                         Kurang tepat. Kunci jawabannya {q.kunci}.
@@ -164,10 +165,12 @@ export default function LockedPreview() {
                     )}
                   </div>
                 )}
+                {idx < previewQuestions.length - 1 && <button onClick={() => setActiveQuestion(idx + 1)} className="mt-5 min-h-12 w-full rounded-full bg-[#111111] px-4 text-sm font-extrabold text-white md:hidden">Lanjut ke soal {idx + 2}</button>}
               </div>
             )
           })}
         </div>
+        <p className="mt-3 text-center text-sm font-bold text-[var(--musse-muted)] md:hidden">Soal {activeQuestion + 1}/3</p>
 
         {/* Demo AI Chat: 1x gratis */}
         <div className="mt-8 rounded-3xl border border-[#111111] bg-[var(--musse-card)] p-5 md:p-6">
@@ -190,9 +193,7 @@ export default function LockedPreview() {
               {aiDemoConversation.map((m, i) => (
                 <div
                   key={i}
-                  className={`rounded-md p-3 text-sm ${
-                    m.role === 'user' ? 'ml-8 bg-[#F7F7F9]' : 'mr-8 border border-[#EAEAEA]'
-                  }`}
+                  className={'rounded-md p-3 text-sm ' + (m.role === 'user' ? 'ml-8 bg-[#F7F7F9]' : 'mr-8 border border-[#EAEAEA]')}
                 >
                   <p className="text-xs font-bold text-neutral-400">
                     {m.role === 'user' ? 'Kamu' : 'AI Tutor'}
