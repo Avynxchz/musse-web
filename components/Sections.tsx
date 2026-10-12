@@ -85,41 +85,16 @@ export function Testimonials() {
 }
 
 export function Pricing() {
+  const freeFeatures = ['Semua soal & pembahasan', '5 tanya AI Tutor per hari', 'Simulasi dengan timer']
+  const proFeatures = ['100 tanya AI Tutor per hari', 'Semua fitur Gratis', 'Analisis Autopsi lengkap']
+
   return (
-    <section className="border-b border-[#EAEAEA] bg-white">
-      <div className="mx-auto max-w-4xl px-5 py-16">
-        <h2 className="text-center text-3xl font-extrabold tracking-tight text-neutral-900">Harga</h2>
+    <section id="harga" className="border-b border-white/10 bg-[var(--musse-bg)]">
+      <div className="mx-auto max-w-5xl px-5 py-16 md:py-24">
+        <div className="max-w-xl"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">Harga sederhana</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Mulai gratis. <span className="text-[var(--musse-lime)]">Naik level</span> kapan saja.</h2></div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-[#EAEAEA] p-6">
-            <h3 className="font-bold text-neutral-900">Gratis</h3>
-            <p className="mt-2">
-              <span className="text-3xl font-extrabold text-neutral-900">Rp0</span>
-              <span className="text-sm text-neutral-500">/selamanya</span>
-            </p>
-            <ul className="mt-4 space-y-2 text-sm text-neutral-700">
-              <li>✅ Semua soal & pembahasan</li>
-              <li>✅ 5 tanya AI Tutor per hari</li>
-              <li>✅ Simulasi dengan timer</li>
-            </ul>
-          </div>
-          <div className="rounded-lg border-2 border-[#004a2a] p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-neutral-900">Pro</h3>
-              <span className="rounded-md bg-[#004a2a] px-2 py-1 text-xs font-bold text-white">
-                Gratis selama beta
-              </span>
-            </div>
-            <p className="mt-2">
-              <span className="text-lg font-bold text-neutral-400 line-through">Rp14.900</span>{' '}
-              <span className="text-3xl font-extrabold text-neutral-900">Rp0</span>
-              <span className="text-sm text-neutral-500">/bulan</span>
-            </p>
-            <ul className="mt-4 space-y-2 text-sm text-neutral-700">
-              <li>✅ 100 tanya AI Tutor per hari</li>
-              <li>✅ Semua fitur Gratis</li>
-              <li>✅ Analisis Autopsi lengkap</li>
-            </ul>
-          </div>
+          <div className="rounded-3xl border border-white/10 bg-[var(--musse-card)] p-6 md:p-8"><p className="text-xs font-bold uppercase tracking-widest text-[var(--musse-muted)]">Untuk mulai latihan</p><h3 className="mt-5 text-xl font-bold text-[var(--musse-text)]">Gratis</h3><p className="mt-3"><span className="text-4xl font-black text-[var(--musse-text)]">Rp0</span><span className="text-sm text-[var(--musse-muted)]">/selamanya</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[var(--musse-muted)]">{freeFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="text-[var(--musse-lime)]" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
+          <div className="relative overflow-hidden rounded-3xl border-2 border-[var(--musse-lime)] bg-[var(--musse-lime)] p-6 text-[#10150b] shadow-[0_20px_60px_rgba(182,255,0,0.12)] md:p-8"><span className="absolute right-5 top-5 rounded-full bg-[#10150b] px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--musse-lime)]">Gratis selama beta</span><p className="text-xs font-bold uppercase tracking-widest text-[#42520d]">Untuk latihan lebih dalam</p><h3 className="mt-5 text-xl font-bold">Pro</h3><p className="mt-3"><span className="text-lg font-bold text-[#53631d] line-through">Rp14.900</span><span className="ml-2 text-4xl font-black">Rp0</span><span className="text-sm text-[#42520d]">/bulan</span></p><ul className="mt-8 flex flex-col gap-3 text-sm text-[#26320c]">{proFeatures.map((feature) => <li key={feature} className="flex gap-3"><span className="font-black" aria-hidden="true">•</span>{feature}</li>)}</ul></div>
         </div>
       </div>
     </section>
@@ -128,20 +103,8 @@ export function Pricing() {
 
 export function Faq() {
   return (
-    <section className="border-b border-[#EAEAEA] bg-white">
-      <div className="mx-auto max-w-3xl px-5 py-16">
-        <h2 className="text-center text-3xl font-extrabold tracking-tight text-neutral-900">
-          Pertanyaan umum
-        </h2>
-        <div className="mt-10 space-y-3">
-          {faqs.map((f) => (
-            <details key={f.q} className="rounded-lg border border-[#EAEAEA] p-4">
-              <summary className="cursor-pointer font-bold text-neutral-900">{f.q}</summary>
-              <p className="mt-2 text-sm text-neutral-600">{f.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
+    <section id="faq" className="border-b border-white/10 bg-[#0d1322]">
+      <div className="mx-auto max-w-3xl px-5 py-16 md:py-24"><span className="inline-block bg-[var(--musse-lime)] px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#10150b]">FAQ</span><h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--musse-text)] md:text-5xl">Pertanyaan yang sering muncul.</h2><div className="mt-10 flex flex-col gap-3">{faqs.map((f) => <details key={f.q} className="group rounded-2xl border border-white/10 bg-[var(--musse-card)] px-5 py-4"><summary className="cursor-pointer list-none pr-8 text-sm font-bold text-[var(--musse-text)] marker:hidden">{f.q}<span className="float-right text-xl font-normal text-[var(--musse-lime)] transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary><p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--musse-muted)]">{f.a}</p></details>)}</div></div>
     </section>
   )
 }

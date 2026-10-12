@@ -33,7 +33,7 @@ export function FeatureVisual({ type }: { type: string }) {
       return (
         <div className={base}>
           <div className="w-full space-y-1.5">
-            <div className="rounded border border-green-500 bg-green-50 px-2 py-1.5 text-[11px] font-bold">B. Rp23.000 ✅</div>
+            <div className="rounded border border-green-500 bg-green-50 px-2 py-1.5 text-[11px] font-bold">B. Rp23.000 ✓</div>
             <div className="rounded border border-[#EAEAEA] bg-white px-2 py-1.5 text-[11px] text-neutral-400">A. Rp19.000</div>
           </div>
         </div>
@@ -101,7 +101,7 @@ export function FeatureVisual({ type }: { type: string }) {
       return (
         <div className={base}>
           <div className="w-full rounded border-2 border-[#004a2a] bg-white p-2">
-            <p className="text-[10px] font-bold">🎯 Misi hari ini</p>
+            <p className="text-[10px] font-bold">Misi hari ini</p>
             <p className="text-[9px] text-neutral-500">Kerjakan 10 soal Aljabar</p>
             <div className="mt-1 h-1 rounded bg-[#EAEAEA]"><div className="h-1 w-2/3 rounded bg-[#004a2a]" /></div>
           </div>
@@ -122,7 +122,7 @@ export function FeatureVisual({ type }: { type: string }) {
           <div className="flex gap-1">
             {['S', 'S', 'R', 'K', 'J', 'S', 'M'].map((d, i) => (
               <div key={i} className={`flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold ${i < 5 ? 'bg-orange-100 text-orange-600' : 'bg-[#EAEAEA] text-neutral-400'}`}>
-                {i < 5 ? '🔥' : d}
+                {i < 5 ? d : d}
               </div>
             ))}
           </div>

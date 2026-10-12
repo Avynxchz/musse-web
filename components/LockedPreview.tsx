@@ -129,8 +129,8 @@ export default function LockedPreview() {
                         className={`flex w-full items-center gap-3 rounded-md border p-3 text-left text-sm transition ${cls}`}
                       >
                         <span className="font-bold">{o.key}.</span> {o.text}
-                        {userAns && o.key === q.kunci && <span>✅</span>}
-                        {userAns && o.key === userAns && o.key !== q.kunci && <span>❌</span>}
+                        {userAns && o.key === q.kunci && <span className="text-emerald-400" aria-label="Benar">✓</span>}
+                        {userAns && o.key === userAns && o.key !== q.kunci && <span className="text-red-400" aria-label="Salah">×</span>}
                       </button>
                     )
                   })}
@@ -195,7 +195,7 @@ export default function LockedPreview() {
                   }`}
                 >
                   <p className="text-xs font-bold text-neutral-400">
-                    {m.role === 'user' ? 'Kamu' : '🤖 AI Tutor'}
+                    {m.role === 'user' ? 'Kamu' : 'AI Tutor'}
                   </p>
                   <p className="mt-1 text-neutral-800">
                     {m.role === 'ai' ? <TypingText text={m.text} /> : m.text}
