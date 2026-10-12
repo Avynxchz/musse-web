@@ -12,39 +12,16 @@ export function FinalCta() {
   }
 
   return (
-    <section className="border-b border-[#EAEAEA] bg-[#004a2a]">
-      <div className="mx-auto max-w-3xl px-5 py-20 text-center">
-        <h2 className="text-3xl font-extrabold tracking-tight text-white">
-          Siap tempur TKA?
-        </h2>
-        <p className="mt-2 text-white/80">
-          100+ pelajar udah mulai. Giliran kamu — gratis.
-        </p>
-        <button
-          onClick={handleLogin}
-          className="mt-8 rounded-md bg-white px-8 py-4 text-base font-bold text-[#004a2a] hover:bg-neutral-100"
-        >
-          Masuk dengan Google — Gratis
-        </button>
-      </div>
+    <section id="closing-cta" className="border-b border-[#111111] bg-[#111111]">
+      <div className="mx-auto max-w-4xl px-5 py-20 text-center md:py-28"><p className="text-xs font-black uppercase tracking-[0.2em] text-white/80">Sudah siap?</p><h2 className="mt-4 text-5xl font-black tracking-[-0.08em] text-white md:text-7xl">Siap tempur TKA?</h2><p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white/80">100+ pelajar udah mulai. Giliran kamu — gratis.</p><button onClick={handleLogin} className="mt-8 rounded-full bg-[var(--musse-lime)] px-7 py-4 text-sm font-extrabold text-[#111111] shadow-[0_4px_0_#111111] transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#10150b]">Masuk dengan Google — Gratis</button></div>
     </section>
   )
 }
 
 export function Footer() {
   return (
-    <footer className="bg-white">
-      <div className="mx-auto max-w-6xl px-5 py-10">
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="text-xl font-extrabold text-[#004a2a]">musse</div>
-          <p className="text-xs text-neutral-500">
-            Sesuai kisi-kisi Kemendikbud 2026. Platform latihan TKA untuk SMA/SMK.
-          </p>
-        </div>
-        <p className="mt-6 text-center text-xs text-neutral-400">
-          © 2026 musse. Dibuat dengan 💚 untuk pelajar Indonesia.
-        </p>
-      </div>
+    <footer className="bg-[var(--musse-bg)]">
+      <div className="mx-auto max-w-6xl px-5 py-10 md:py-14"><div className="flex flex-col gap-6 border-b border-[#111111] pb-8 md:flex-row md:items-start md:justify-between"><div><div className="text-2xl font-black tracking-[-0.08em] text-[#111111]">musse<span className="text-[#111111]">.</span></div><p className="mt-3 max-w-xs text-xs leading-6 text-[var(--musse-muted)]">Platform latihan TKA untuk SMA/SMK sesuai kisi-kisi Kemendikbud 2026.</p></div><nav aria-label="Footer" className="flex gap-5 text-xs text-[var(--musse-muted)]"><a href="#fitur" className="transition hover:text-[#111111]">Fitur</a><a href="#harga" className="transition hover:text-[#111111]">Harga</a><a href="#faq" className="transition hover:text-[#111111]">FAQ</a></nav></div><p className="pt-6 text-xs text-[var(--musse-muted)]">© 2026 musse. Dibuat untuk pelajar Indonesia.</p></div>
     </footer>
   )
 }
