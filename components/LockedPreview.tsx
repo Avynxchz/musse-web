@@ -1,8 +1,78 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { previewQuestions, aiDemoConversation } from '@/lib/preview-questions'
 import { createClient } from '@/lib/supabase'
+
+// Typing effect untuk demo AI
+function TypingText({ text, speed = 15 }: { text: string; speed?: number }) {
+  const [shown, setShown] = useState(0)
+  useEffect(() => {
+    setShown(0)
+    const t = setInterval(() => {
+      setShown((s) => {
+        if (s >= text.length) {
+          clearInterval(t)
+          return s
+        }
+        return s + 3
+      })
+    }, speed)
+    return () => clearInterval(t)
+  }, [text, speed])
+  return (
+    <span>
+      {text.slice(0, shown)}
+      {shown < text.length && <span className="animate-pulse">▊</span>}
+    </span>
+  )
+}
+
+// Pembahasan reveal langkah per langkah
+function PembahasanSteps({ steps }: { steps: string[] }) {
+  const [visible, setVisible] = useState(1)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          const t = setInterval(() => {
+            setVisible((v) => {
+              if (v >= steps.length) {
+                clearInterval(t)
+                return v
+              }
+              return v + 1
+            })
+          }, 600)
+          obs.disconnect()
+        }
+      },
+      { threshold: 0.3 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [steps.length])
+
+  return (
+    <div ref={ref} className="mt-3 rounded-md bg-[#F7F7F9] p-4">
+      <p className="text-sm font-bold text-[#004a2a]">💡 Pembahasan:</p>
+      <ol className="mt-2 space-y-2 text-sm text-neutral-700">
+        {steps.slice(0, visible).map((step, i) => (
+          <li key={i} className="animate-[fadeIn_0.4s_ease-in]">
+            <span className="font-bold text-[#004a2a]">{i + 1}.</span> {step}
+          </li>
+        ))}
+      </ol>
+      {visible < steps.length && (
+        <p className="mt-2 text-xs text-neutral-400">menulis pembahasan...</p>
+      )}
+    </div>
+  )
+}
 
 export default function LockedPreview() {
   const [answers, setAnswers] = useState<Record<number, string>>({})
@@ -79,16 +149,7 @@ export default function LockedPreview() {
 
                     {/* Pembahasan: soal 1 FULL, sisanya terkunci */}
                     {!q.pembahasanTerkunci ? (
-                      <div className="mt-3 rounded-md bg-[#F7F7F9] p-4">
-                        <p className="text-sm font-bold text-[#004a2a]">💡 Pembahasan:</p>
-                        <ol className="mt-2 space-y-1 text-sm text-neutral-700">
-                          {q.pembahasan.map((step, i) => (
-                            <li key={i}>
-                              {i + 1}. {step}
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
+                      <PembahasanSteps steps={q.pembahasan} />
                     ) : !showPem ? (
                       <button
                         onClick={() => setShowPembahasan((p) => ({ ...p, [q.id]: true }))}
@@ -143,7 +204,9 @@ export default function LockedPreview() {
                   <p className="text-xs font-bold text-neutral-400">
                     {m.role === 'user' ? 'Kamu' : '🤖 AI Tutor'}
                   </p>
-                  <p className="mt-1 text-neutral-800">{m.text}</p>
+                  <p className="mt-1 text-neutral-800">
+                    {m.role === 'ai' ? <TypingText text={m.text} /> : m.text}
+                  </p>
                 </div>
               ))}
               <p className="text-center text-xs text-neutral-400">Contoh percakapan</p>

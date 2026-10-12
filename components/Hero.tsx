@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase'
+import { QuizPhoneMockup } from './Mockups'
 
 export default function Hero() {
   const handleLogin = async () => {
@@ -52,28 +53,9 @@ export default function Hero() {
           <p className="mt-3 text-sm text-neutral-500">10 detik, tanpa password, tanpa kartu kredit.</p>
         </div>
 
-        {/* Mockup HP */}
+        {/* Mockup HP realistis */}
         <div className="flex justify-center">
-          <div className="w-64 rounded-2xl border border-[#EAEAEA] bg-white p-4 shadow-sm">
-            <div className="rounded-lg bg-[#004a2a] p-4 text-white">
-              <p className="text-xs opacity-80">Matematika · Paket 1</p>
-              <p className="mt-1 text-2xl font-extrabold">Soal 12/46</p>
-              <div className="mt-2 h-1 rounded bg-white/20">
-                <div className="h-1 w-1/4 rounded bg-white" />
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              <div className="rounded-md border border-[#EAEAEA] p-3">
-                <p className="text-xs font-bold">✅ Benar — 32 soal</p>
-              </div>
-              <div className="rounded-md border border-[#EAEAEA] p-3">
-                <p className="text-xs font-bold">🎯 Autopsi: fokus ke Aljabar</p>
-              </div>
-              <div className="rounded-md bg-[#F7F7F9] p-3">
-                <p className="text-xs text-neutral-500">🤖 AI Tutor: ada yang bisa dibantu?</p>
-              </div>
-            </div>
-          </div>
+          <QuizPhoneMockup />
         </div>
       </div>
     </header>
