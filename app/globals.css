@@ -16,21 +16,60 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-jakarta);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 body {
   background: var(--musse-bg);
   color: var(--musse-text);
-  font-family: var(--font-jakarta), Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading), var(--font-jakarta), sans-serif; }
+/* Display font: semua heading, judul kartu, angka, label tombol, link navbar, chip, label uppercase */
+h1, h2, h3, h4, h5, h6,
+.font-display {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
 
-.shadow-bento { box-shadow: 0 4px 0 #111111; }
+/* Heading besar: letter-spacing -0.02em */
+h1, h2,
+.heading-tight {
+  letter-spacing: -0.02em;
+}
+
+/* Kartu berbingkai: border 1.5px #111 + bayangan bawah 0 4px 0 #111 */
+.card-framed {
+  border: 1.5px solid #111111;
+  box-shadow: 0 4px 0 #111111;
+  background: var(--musse-card);
+}
+.card-framed-lime {
+  border: 1.5px solid #111111;
+  box-shadow: 0 4px 0 #111111;
+  background: var(--musse-lime);
+}
+
+/* Hover kartu di desktop: naik 2px */
+@media (hover: hover) {
+  .card-hover:hover {
+    transform: translateY(-2px);
+  }
+}
 
 button, a { -webkit-tap-highlight-color: transparent; }
+
+/* Marquee untuk pita mapel */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 30s linear infinite;
+}
+.marquee-paused:hover .marquee-track {
+  animation-play-state: paused;
+}
 
 @media (max-width: 639px) {
   .animate-\[fadeIn_0\.7s_ease-out\], .animate-\[fadeIn_0\.4s_ease-in\] { animation: none !important; }
@@ -40,6 +79,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  .marquee-track { animation: none !important; }
 }
 
 @keyframes fadeIn {
