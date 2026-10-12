@@ -42,23 +42,23 @@ h1, h2 {
   font-family: var(--font-pixel), monospace;
 }
 
-/* Headline hero: teks 3D ekstrusi indigo */
+/* Headline hero: teks 3D ekstrusi lime (warna musse) */
 .headline-3d {
   color: #111111;
   text-shadow:
-    1px 1px 0 #4F46E5,
-    2px 2px 0 #4F46E5,
-    3px 3px 0 #4F46E5,
-    4px 4px 0 #4F46E5,
-    5px 5px 0 #4F46E5,
+    1px 1px 0 #B6FF00,
+    2px 2px 0 #B6FF00,
+    3px 3px 0 #B6FF00,
+    4px 4px 0 #B6FF00,
+    5px 5px 0 #B6FF00,
     0 12px 24px rgba(17, 17, 17, 0.2);
 }
 @media (max-width: 639px) {
   .headline-3d {
     text-shadow:
-      1px 1px 0 #4F46E5,
-      2px 2px 0 #4F46E5,
-      3px 3px 0 #4F46E5,
+      1px 1px 0 #B6FF00,
+      2px 2px 0 #B6FF00,
+      3px 3px 0 #B6FF00,
       0 12px 24px rgba(17, 17, 17, 0.2);
   }
 }
