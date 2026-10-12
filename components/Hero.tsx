@@ -43,7 +43,11 @@ export default function Hero() {
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 pb-12 pt-10 sm:gap-12 sm:pb-16 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8 lg:pb-24 lg:pt-20">
           <div className="max-w-xl animate-[fadeIn_0.7s_ease-out]">
             <span className="inline-flex rounded-full border border-[var(--musse-lime)]/25 bg-[var(--musse-lime)]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--musse-ink)]">Latihan TKA untuk SMA/SMK</span>
-            <h1 className="font-pixel mt-5 text-[1.65rem] leading-[1.3] text-[var(--musse-text)] sm:text-4xl">TKA? <span className="bg-[var(--musse-lime)] px-2 text-[#111111]">Santai.</span><br />Latihan di Sini,<br />Siap Tempur.</h1>
+            <h1 aria-label="TKA? Santai. Latihan di Sini, Siap Tempur." className="mt-5 font-bold leading-[1.15] text-[#111111]">
+              <span className="headline-3d block text-[clamp(30px,8.5vw,64px)]" aria-hidden="true">TKA? Santai.</span>
+              <span className="headline-3d mt-1 block text-[clamp(30px,8.5vw,64px)]" aria-hidden="true"><span className="mr-2 text-[#4F46E5]">-</span>Latihan di Sini,</span>
+              <span className="mt-3 block" aria-hidden="true"><span className="stamp-block font-pixel text-[clamp(20px,5.5vw,44px)] leading-snug">SIAP<br className="sm:hidden" /> TEMPUR</span></span>
+            </h1>
             <p className="mt-6 max-w-lg text-base leading-7 text-[var(--musse-muted)]">990+ soal sesuai kisi-kisi 2026, pembahasan AI langkah per langkah, plus analisis kelemahan otomatis. Gratis.</p>
             <button onClick={handleLogin} className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-full bg-[var(--musse-lime)] px-6 py-4 text-sm font-bold text-[#10150b] shadow-[0_12px_35px_rgba(182,255,0,0.2)] transition hover:-translate-y-1 hover:bg-[#c5ff3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--musse-lime)] sm:w-auto">Masuk dengan Google — Gratis <span aria-hidden="true">↗</span></button>
             <p className="mt-3 text-xs text-[var(--musse-muted)]">10 detik, tanpa password, tanpa kartu kredit.</p>
