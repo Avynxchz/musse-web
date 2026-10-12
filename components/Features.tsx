@@ -1,28 +1,5 @@
+import AnimatedIcon from './AnimatedIcon'
 import { Chip } from './ui'
-
-/* ---------- Ikon Lucide mini (stroke hitam 2px) ---------- */
-const iconPaths: Record<string, string> = {
-  target: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12ZM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
-  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2',
-  flame: 'M12 22c4 0 7-2.7 7-6.5 0-3.2-2-5.4-4.2-7.5.1 2.2-1 3.5-2 4.2.3-4.2-1.8-7-4.2-9.2.2 4-3.6 6.4-3.6 10.5C5 18.9 8.1 22 12 22Z',
-  calendar: 'M8 2v4M16 2v4M3 8h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z',
-  chart: 'M3 3v18h18M7 16l3-4 3 2 5-7',
-  book: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z',
-  check: 'M20 6 9 17l-5-5',
-  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
-  sparkles: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3ZM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z',
-  layers: 'm12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5',
-}
-
-function LucideIcon({ name, circleBg }: { name: string; circleBg: string }) {
-  return (
-    <span className={`flex size-10 items-center justify-center rounded-full ${circleBg}`}>
-      <svg aria-hidden="true" className="size-5" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-        <path d={iconPaths[name]} />
-      </svg>
-    </span>
-  )
-}
 
 function CheckRow({ text, circleBg }: { text: string; circleBg: string }) {
   return (
@@ -148,14 +125,6 @@ function MisiVisual() {
   )
 }
 
-function TryoutVisual() {
-  return (
-    <p className="mt-3 font-mono text-2xl font-bold tracking-widest">
-      59:59
-    </p>
-  )
-}
-
 function StreakVisual() {
   return (
     <div className="mt-3 flex gap-1.5" aria-hidden="true">
@@ -166,15 +135,6 @@ function StreakVisual() {
         />
       ))}
     </div>
-  )
-}
-
-function CountdownVisual() {
-  return (
-    <p className="mt-3 text-lg font-bold">
-      14 <span className="text-sm font-medium opacity-60">hari</span>{' '}
-      08 <span className="text-sm font-medium opacity-60">jam</span>
-    </p>
   )
 }
 
@@ -241,15 +201,6 @@ function PendampingVisual() {
   )
 }
 
-function ModeVisual() {
-  return (
-    <div className="mt-3 flex rounded-full border-[1.5px] border-[#111111] bg-white p-1 text-[11px] font-bold">
-      <span className="flex-1 rounded-full bg-[#111111] px-2 py-1 text-center text-white">Latihan</span>
-      <span className="flex-1 px-2 py-1 text-center text-[var(--musse-muted)]">Simulasi</span>
-    </div>
-  )
-}
-
 /* ---------- Data ---------- */
 
 const mainCards = [
@@ -276,24 +227,19 @@ const mainCards = [
   },
 ]
 
-const circleColors = ['bg-[var(--musse-lime)]', 'bg-[#E0E7FF]', 'bg-[#FFEDD5]', 'bg-[#E0F2FE]']
-
 const smallCards: {
   title: string
   desc: string
-  icon: string
-  visual: React.ReactNode
+  visual: string
+  mini: React.ReactNode
 }[] = [
-  { title: 'Misi harian', desc: 'Tantangan fokus setiap hari.', icon: 'target', visual: <MisiVisual /> },
-  { title: 'Tryout simulasi', desc: 'Latihan persis seperti hari-H.', icon: 'clock', visual: <TryoutVisual /> },
-  { title: 'Streak', desc: 'Jaga ritme belajar beruntun.', icon: 'flame', visual: <StreakVisual /> },
-  { title: 'Countdown TKA', desc: 'Tahu berapa hari menuju hari-H.', icon: 'calendar', visual: <CountdownVisual /> },
-  { title: 'Progres belajar', desc: 'Perkembanganmu selalu terlihat.', icon: 'chart', visual: <ProgresVisual /> },
-  { title: '27 mapel', desc: 'SMA sampai mapel kejuruan SMK.', icon: 'book', visual: <MapelVisual /> },
-  { title: 'Benar/salah langsung', desc: 'Tahu hasil tanpa menunggu.', icon: 'check', visual: <BenarSalahVisual /> },
-  { title: 'Ruang AI per mapel', desc: 'Diskusi khusus tiap mapel.', icon: 'users', visual: <RuangAiVisual /> },
-  { title: 'Pendamping Belajar TKA dengan AI', desc: 'Pola belajarmu dibaca otomatis.', icon: 'sparkles', visual: <PendampingVisual /> },
-  { title: 'Mode latihan vs simulasi', desc: 'Santai belajar atau uji mental.', icon: 'layers', visual: <ModeVisual /> },
+  { title: 'Benar/salah langsung', desc: 'Tahu hasil tanpa menunggu.', visual: 'benar-salah', mini: <BenarSalahVisual /> },
+  { title: 'Ruang AI per mapel', desc: 'Diskusi khusus tiap mapel.', visual: 'ai-room', mini: <RuangAiVisual /> },
+  { title: 'Pendamping Belajar TKA dengan AI', desc: 'Pola belajarmu dibaca otomatis.', visual: 'pendamping', mini: <PendampingVisual /> },
+  { title: 'Progres belajar', desc: 'Perkembanganmu selalu terlihat.', visual: 'progres', mini: <ProgresVisual /> },
+  { title: 'Streak', desc: 'Jaga ritme belajar beruntun.', visual: 'streak', mini: <StreakVisual /> },
+  { title: 'Misi harian', desc: 'Tantangan fokus setiap hari.', visual: 'misi', mini: <MisiVisual /> },
+  { title: '27 mapel', desc: 'SMA sampai mapel kejuruan SMK.', visual: 'mapel', mini: <MapelVisual /> },
 ]
 
 /* ---------- Section ---------- */
@@ -334,26 +280,25 @@ export default function Features() {
           ))}
         </div>
 
-        {/* Grid bento kecil */}
-        <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 lg:mt-6 lg:grid-cols-5 lg:gap-5">
-          {smallCards.map((card, i) => {
-            const dark = i % 2 === 1
-            return (
-              <article
-                key={card.title}
-                className={`card-hover rounded-2xl border-[1.5px] border-[#111111] p-5 shadow-[0_4px_0_#111111] transition-transform ${
-                  dark ? 'bg-[#111111] text-white' : 'bg-white text-[var(--musse-text)]'
-                }`}
-              >
-                <LucideIcon name={card.icon} circleBg={circleColors[i % circleColors.length]} />
-                <h3 className="mt-3 text-sm font-bold leading-tight">{card.title}</h3>
-                <p className={`mt-1 text-[13px] leading-5 ${dark ? 'text-white/60' : 'text-[var(--musse-muted)]'}`}>
-                  {card.desc}
-                </p>
-                {card.visual}
-              </article>
-            )
-          })}
+        {/* Grid kecil — putih, jadi hitam pas hover */}
+        <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 lg:mt-6 lg:grid-cols-4 lg:gap-5">
+          {smallCards.map((card) => (
+            <article
+              key={card.title}
+              className="card-framed card-hover group rounded-2xl bg-white p-5 transition-all hover:bg-[#111111]"
+            >
+              <AnimatedIcon type={card.visual} />
+              <h3 className="mt-3 text-sm font-bold leading-tight text-[var(--musse-text)] transition-colors group-hover:text-white">
+                {card.title}
+              </h3>
+              <p className="mt-1 text-[13px] leading-5 text-[var(--musse-muted)] transition-colors group-hover:text-white/60">
+                {card.desc}
+              </p>
+              <div className="transition-colors group-hover:text-white">
+                {card.mini}
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
