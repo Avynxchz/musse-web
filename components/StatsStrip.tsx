@@ -1,14 +1,16 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useCountUp } from '@/lib/useCountUp'
+import { usePauseWhenHidden } from '@/lib/usePauseWhenHidden'
 import { STATS, MARQUEE_MAPEL } from '@/content/stats'
 
-function StatNumber({ value, suffix }: { value: number; suffix: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
+const StatNumber = memo(function StatNumber({ value, suffix }: { value: number; suffix: string }) {
+  const numRef = useRef<HTMLSpanElement>(null)
+  const wrapRef = useRef<HTMLSpanElement>(null)
   const [started, setStarted] = useState(false)
   useEffect(() => {
-    const el = ref.current
+    const el = wrapRef.current
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -22,16 +24,17 @@ function StatNumber({ value, suffix }: { value: number; suffix: string }) {
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
-  const count = useCountUp(value, started)
+  useCountUp(numRef, value, started)
   return (
-    <span ref={ref} className="font-pixel text-[22px] leading-none text-white sm:text-4xl md:text-5xl">
-      {count.toLocaleString('id-ID')}
+    <span ref={wrapRef} className="font-pixel text-[22px] leading-none text-white sm:text-4xl md:text-5xl">
+      <span ref={numRef}>0</span>
       <span className="text-[var(--musse-lime)]">{suffix}</span>
     </span>
   )
-}
+})
 
 export default function StatsStrip() {
+  const marqueeRef = usePauseWhenHidden<HTMLDivElement>()
   return (
     <section aria-label="Statistik musse" className="border-b border-[#111111] bg-[var(--musse-bg)]">
       <div className="mx-auto max-w-6xl px-5 py-10 md:py-16 lg:px-8">
@@ -57,8 +60,8 @@ export default function StatsStrip() {
             ))}
           </div>
 
-          {/* Marquee mapel */}
-          <div className="marquee-paused relative mt-8 overflow-hidden md:mt-10" aria-hidden="true">
+          {/* Marquee mapel — di-pause saat keluar layar/tab tersembunyi */}
+          <div ref={marqueeRef} className="anim-pause-scope marquee-paused relative mt-8 overflow-hidden md:mt-10" aria-hidden="true">
             <div className="marquee-track flex w-max gap-3">
               {[...MARQUEE_MAPEL, ...MARQUEE_MAPEL].map((mapel, i) => (
                 <span key={i} className="whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-bold text-white/80">
