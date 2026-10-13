@@ -1,25 +1,141 @@
 'use client'
 
-import Image from 'next/image'
 import { useGoogleLogin } from '@/lib/useGoogleLogin'
 import { useReducedMotion } from '@/lib/useReducedMotion'
 import { useEffect, useRef, useState } from 'react'
 import StatsStrip from './StatsStrip'
 
 const avatars = ['A', 'R', 'N', 'F', 'D']
+const MAPEL = ['MTK', 'FIS', 'KIM', 'BIO', 'IND']
+const OPTIONS = [
+  { k: 'A', v: 'Rp19.000', sel: false },
+  { k: 'B', v: 'Rp23.000', sel: true },
+  { k: 'C', v: 'Rp25.000', sel: false },
+]
 
-/* Komposisi mockup hero: laptop di belakang + HP miring di depan. */
+/* HP besar — desain dikembalikan seperti hero lama; kartu pembahasan slide-in loop 6 detik. */
+function BigPhone() {
+  return (
+    <div className="relative w-[230px] shrink-0 rounded-[2rem] border-[7px] border-[#252b3b] bg-[#f8fafc] p-1 shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:w-[280px]">
+      {/* notch */}
+      <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-xl bg-[#252b3b]" />
+      <div className="overflow-hidden rounded-[1.45rem]">
+        <div className="bg-[#f8fafc] text-slate-900">
+          <div className="flex justify-between px-4 pb-3 pt-6 text-[9px] font-bold">
+            <span>09:41</span>
+            <span className="text-slate-400">musse</span>
+          </div>
+          <div className="border-b border-slate-200 px-4 pb-3">
+            <div className="flex justify-between text-[10px] font-bold">
+              <span>Matematika</span>
+              <span className="text-indigo-600">12 / 46</span>
+            </div>
+            <div className="mt-2 h-1 rounded bg-slate-200">
+              <div className="h-1 w-1/4 rounded bg-indigo-600" />
+            </div>
+          </div>
+          <div className="px-4 py-4">
+            <p className="text-[9px] font-bold text-slate-400">SOAL 12</p>
+            <p className="mt-2 text-[11px] font-semibold leading-relaxed">
+              Harga 3 buku dan 2 penggaris Rp18.000. Harga 2 buku dan 5 penggaris adalah...
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              {OPTIONS.map((o) => (
+                <div
+                  key={o.k}
+                  className={`rounded-lg border px-3 py-2 text-[10px] ${
+                    o.sel ? 'border-indigo-600 bg-indigo-50 font-bold' : 'border-slate-200'
+                  }`}
+                >
+                  <span className="mr-2 text-slate-400">{o.k}</span>
+                  {o.v}
+                  {o.sel && <span className="float-right text-indigo-600">✓</span>}
+                </div>
+              ))}
+            </div>
+            {/* Kartu pembahasan: selalu di layout (tanpa layout shift), animasi slide-in dari bawah */}
+            <div className="phone-card-loop mt-4 rounded-xl bg-indigo-50 p-3">
+              <p className="text-[9px] font-bold text-indigo-700">Pembahasan tersedia</p>
+              <p className="mt-1 text-[9px] leading-relaxed text-slate-500">
+                Substitusi x = y + 1000 ke persamaan utama...
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-around border-t border-slate-200 px-4 py-3 text-[10px] text-slate-400">
+            <span>⌂</span>
+            <span className="font-bold text-indigo-600">▦</span>
+            <span>?</span>
+            <span>◯</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Jendela desktop kecil (HTML/CSS): browser 16:10 + sidebar mapel + panel AI Tutor. */
+function DesktopWindow() {
+  return (
+    <div className="overflow-hidden rounded-xl border-[5px] border-[#252b3b] bg-white shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+      {/* bar browser */}
+      <div className="flex items-center gap-1.5 bg-[#252b3b] px-3 py-2">
+        <span className="size-2 rounded-full bg-[#FF5F57]" />
+        <span className="size-2 rounded-full bg-[#FEBC2E]" />
+        <span className="size-2 rounded-full bg-[#28C840]" />
+        <span className="ml-1 text-[9px] font-bold text-white/80">musse</span>
+      </div>
+      <div className="flex">
+        {/* sidebar mapel */}
+        <div className="flex w-9 shrink-0 flex-col items-center gap-1.5 bg-slate-100 px-1 py-2">
+          {MAPEL.map((m) => (
+            <span
+              key={m}
+              className="flex size-6 items-center justify-center rounded-md border border-slate-200 bg-white text-[6px] font-bold text-slate-600"
+            >
+              {m}
+            </span>
+          ))}
+        </div>
+        {/* area utama */}
+        <div className="flex flex-1 gap-1.5 p-1.5">
+          {/* kartu soal ringkas */}
+          <div className="w-[44%] rounded-lg border border-slate-200 p-1.5">
+            <p className="text-[6px] font-bold text-slate-400">SOAL 12</p>
+            <p className="mt-0.5 text-[7px] font-semibold leading-snug text-slate-800">
+              Harga 3 buku dan 2 penggaris Rp18.000...
+            </p>
+            <div className="mt-1 space-y-0.5">
+              <div className="rounded border border-indigo-200 bg-indigo-50 px-1 py-0.5 text-[6px] font-bold text-indigo-700">
+                B. Rp23.000 ✓
+              </div>
+              <div className="rounded border border-slate-200 px-1 py-0.5 text-[6px] text-slate-400">
+                A. Rp19.000
+              </div>
+            </div>
+          </div>
+          {/* panel AI Tutor */}
+          <div className="flex flex-1 flex-col rounded-lg bg-indigo-50/60 p-1.5">
+            <p className="text-[7px] font-bold text-indigo-700">✨ AI Tutor</p>
+            <div className="win-chat-1 mt-1 self-end rounded-xl rounded-br-sm bg-purple-600 px-1.5 py-1 text-[7px] font-medium text-white">
+              Kenapa jawabannya B?
+            </div>
+            <div className="win-chat-2 mt-1 rounded-xl rounded-bl-sm bg-[#d9f99d] px-1.5 py-1 text-[7px] leading-snug text-slate-800">
+              Karena substitusi x = y + 1000...
+            </div>
+            <div className="mt-auto rounded-full border border-slate-200 bg-white px-1.5 py-1 text-[6px] text-slate-400">
+              Tanya apa saja tentang soal...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Komposisi mockup hero: HP besar + jendela desktop kecil di depannya. */
 function HeroMockup() {
   const reduced = useReducedMotion()
-  const [showSoal, setShowSoal] = useState(true)
   const wrapRef = useRef<HTMLDivElement>(null)
-
-  /* Layar HP bergantian tiap 3,5 detik (cross-fade). */
-  useEffect(() => {
-    if (reduced) return
-    const t = setInterval(() => setShowSoal((s) => !s), 3500)
-    return () => clearInterval(t)
-  }, [reduced])
 
   /* Parallax halus mengikuti mouse (desktop saja, maks 8px). */
   const onMouseMove = (e: React.MouseEvent) => {
@@ -36,7 +152,7 @@ function HeroMockup() {
 
   return (
     <div
-      className="relative flex min-h-[330px] items-center justify-center sm:min-h-[500px]"
+      className="relative flex min-h-[380px] items-center justify-center sm:min-h-[520px]"
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
@@ -47,57 +163,35 @@ function HeroMockup() {
       <div className="hero-orbit pointer-events-none absolute inset-8" aria-hidden="true">
         <span className="absolute left-1/2 top-0 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--musse-lime)] shadow-[0_0_8px_rgba(182,255,0,0.8)]" />
       </div>
-      {/* Chip melayang */}
-      <span className="absolute left-2 top-14 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111] sm:left-0"><span className="mr-1 text-indigo-600">✓</span>Benar</span>
-      <span className="absolute right-0 top-24 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">Streak 14 hari</span>
-      <span className="hidden absolute bottom-10 left-8 sm:block rounded-xl border border-[#111111] bg-[var(--musse-lime)] px-3 py-2 text-[10px] font-bold text-[#111111] shadow-[0_4px_0_#111111]">AI Tutor</span>
 
-      {/* Komposisi: maks 300px di mobile, di tengah */}
+      {/* Komposisi */}
       <div
         ref={wrapRef}
-        className="relative aspect-[2/1] w-[300px] transition-transform duration-200 ease-out sm:w-[440px] lg:w-[520px]"
+        className="relative h-[430px] w-[300px] transition-transform duration-200 ease-out sm:h-[500px] sm:w-[540px]"
         style={{ willChange: 'transform' }}
       >
-        {/* Laptop (belakang) */}
-        <div className="hero-float absolute right-0 top-0 w-[72%] sm:w-[80%] lg:w-[86%]">
-          <div className="overflow-hidden rounded-xl border-[6px] border-[#111111] bg-[#111111] shadow-[0_4px_0_#111111]">
-            <Image
-              src="/mockups/desktop-dashboard.jpg"
-              alt="Tampilan dashboard aplikasi musse di laptop"
-              width={1440}
-              height={751}
-              priority
-              className="h-auto w-full"
-            />
-          </div>
-          {/* Dasar keyboard sederhana */}
-          <div className="mx-auto h-2.5 w-[104%] -translate-x-[2%] rounded-b-lg border border-[#111111] bg-[#2b2b2b]" />
-        </div>
-
-        {/* HP (depan, sedikit miring, bertumpuk di kiri bawah laptop) */}
-        <div className="hero-float-2 absolute bottom-0 left-0 z-10 w-[30%] sm:w-[30%]">
-          <div className="rounded-[1.8rem] border-[3px] border-[#111111] bg-[#111111] p-1 shadow-[0_4px_0_#111111]">
-            <div className="relative aspect-[640/998] overflow-hidden rounded-[1.35rem] bg-white">
-              <Image
-                src="/mockups/hp-soal.png"
-                alt="Tampilan soal di aplikasi musse (HP)"
-                width={640}
-                height={998}
-                className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ${showSoal ? 'opacity-100' : 'opacity-0'}`}
-              />
-              <Image
-                src="/mockups/hp-pembahasan.png"
-                alt="Tampilan pembahasan di aplikasi musse (HP)"
-                width={640}
-                height={998}
-                loading="lazy"
-                className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ${showSoal ? 'opacity-0' : 'opacity-100'}`}
-              />
-              {/* Notch tipis */}
-              <span className="absolute left-1/2 top-1.5 h-3.5 w-16 -translate-x-1/2 rounded-full bg-[#111111]" aria-hidden="true" />
-            </div>
+        {/* HP besar: tengah di mobile, kiri di desktop */}
+        <div className="absolute left-1/2 top-0 z-[5] -translate-x-1/2 sm:left-6 sm:translate-x-0">
+          <div className="hero-float">
+            <BigPhone />
           </div>
         </div>
+        {/* Jendela desktop kecil: kanan-bawah HP, tumpang tindih sedikit */}
+        <div className="absolute bottom-2 right-0 z-10 w-[150px] sm:bottom-6 sm:w-[320px]">
+          <div className="hero-float-2">
+            <DesktopWindow />
+          </div>
+        </div>
+        {/* Chip melayang — z-20 agar tidak tertutup frame */}
+        <span className="absolute left-0 top-10 z-20 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">
+          <span className="mr-1 text-indigo-600">✓</span>Benar
+        </span>
+        <span className="absolute right-0 top-2 z-20 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">
+          Streak 14 hari
+        </span>
+        <span className="absolute bottom-24 left-2 z-20 hidden rounded-xl border border-[#111111] bg-[var(--musse-lime)] px-3 py-2 text-[10px] font-bold text-[#111111] shadow-[0_4px_0_#111111] min-[400px]:block">
+          AI Tutor
+        </span>
       </div>
     </div>
   )
