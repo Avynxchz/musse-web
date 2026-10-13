@@ -1,11 +1,107 @@
 'use client'
 
+import Image from 'next/image'
 import { useGoogleLogin } from '@/lib/useGoogleLogin'
-import { useEffect, useState } from 'react'
-import { QuizPhoneMockup, TutorPhoneMockup } from './Mockups'
+import { useReducedMotion } from '@/lib/useReducedMotion'
+import { useEffect, useRef, useState } from 'react'
 import StatsStrip from './StatsStrip'
 
 const avatars = ['A', 'R', 'N', 'F', 'D']
+
+/* Komposisi mockup hero: laptop di belakang + HP miring di depan. */
+function HeroMockup() {
+  const reduced = useReducedMotion()
+  const [showSoal, setShowSoal] = useState(true)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  /* Layar HP bergantian tiap 3,5 detik (cross-fade). */
+  useEffect(() => {
+    if (reduced) return
+    const t = setInterval(() => setShowSoal((s) => !s), 3500)
+    return () => clearInterval(t)
+  }, [reduced])
+
+  /* Parallax halus mengikuti mouse (desktop saja, maks 8px). */
+  const onMouseMove = (e: React.MouseEvent) => {
+    const el = wrapRef.current
+    if (reduced || !el || !window.matchMedia('(pointer: fine)').matches) return
+    const r = el.getBoundingClientRect()
+    const x = ((e.clientX - r.left) / r.width - 0.5) * 16
+    const y = ((e.clientY - r.top) / r.height - 0.5) * 16
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
+  }
+  const onMouseLeave = () => {
+    if (wrapRef.current) wrapRef.current.style.transform = 'translate(0, 0)'
+  }
+
+  return (
+    <div
+      className="relative flex min-h-[330px] items-center justify-center sm:min-h-[500px]"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      <div className="absolute size-72 rounded-full bg-indigo-600/10 blur-3xl sm:size-96" />
+      {/* Garis orbit elips + titik lime */}
+      <div className="pointer-events-none absolute inset-8 -rotate-12 rounded-[50%] border border-[#111111]/25" />
+      <div className="pointer-events-none absolute inset-16 rounded-[50%] border border-[#111111]/15 rotate-12" />
+      <div className="hero-orbit pointer-events-none absolute inset-8" aria-hidden="true">
+        <span className="absolute left-1/2 top-0 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--musse-lime)] shadow-[0_0_8px_rgba(182,255,0,0.8)]" />
+      </div>
+      {/* Chip melayang */}
+      <span className="absolute left-2 top-14 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111] sm:left-0"><span className="mr-1 text-indigo-600">✓</span>Benar</span>
+      <span className="absolute right-0 top-24 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">Streak 14 hari</span>
+      <span className="hidden absolute bottom-10 left-8 sm:block rounded-xl border border-[#111111] bg-[var(--musse-lime)] px-3 py-2 text-[10px] font-bold text-[#111111] shadow-[0_4px_0_#111111]">AI Tutor</span>
+
+      {/* Komposisi: maks 300px di mobile, di tengah */}
+      <div
+        ref={wrapRef}
+        className="relative aspect-[2/1] w-[300px] transition-transform duration-200 ease-out sm:w-[440px] lg:w-[520px]"
+        style={{ willChange: 'transform' }}
+      >
+        {/* Laptop (belakang) */}
+        <div className="hero-float absolute right-0 top-0 w-[72%] sm:w-[80%] lg:w-[86%]">
+          <div className="overflow-hidden rounded-xl border-[6px] border-[#111111] bg-[#111111] shadow-[0_4px_0_#111111]">
+            <Image
+              src="/mockups/desktop-dashboard.jpg"
+              alt="Tampilan dashboard aplikasi musse di laptop"
+              width={1440}
+              height={751}
+              priority
+              className="h-auto w-full"
+            />
+          </div>
+          {/* Dasar keyboard sederhana */}
+          <div className="mx-auto h-2.5 w-[104%] -translate-x-[2%] rounded-b-lg border border-[#111111] bg-[#2b2b2b]" />
+        </div>
+
+        {/* HP (depan, sedikit miring, bertumpuk di kiri bawah laptop) */}
+        <div className="hero-float-2 absolute bottom-0 left-0 z-10 w-[30%] sm:w-[30%]">
+          <div className="rounded-[1.8rem] border-[3px] border-[#111111] bg-[#111111] p-1 shadow-[0_4px_0_#111111]">
+            <div className="relative aspect-[640/998] overflow-hidden rounded-[1.35rem] bg-white">
+              <Image
+                src="/mockups/hp-soal.png"
+                alt="Tampilan soal di aplikasi musse (HP)"
+                width={640}
+                height={998}
+                className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ${showSoal ? 'opacity-100' : 'opacity-0'}`}
+              />
+              <Image
+                src="/mockups/hp-pembahasan.png"
+                alt="Tampilan pembahasan di aplikasi musse (HP)"
+                width={640}
+                height={998}
+                loading="lazy"
+                className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700 ${showSoal ? 'opacity-0' : 'opacity-100'}`}
+              />
+              {/* Notch tipis */}
+              <span className="absolute left-1/2 top-1.5 h-3.5 w-16 -translate-x-1/2 rounded-full bg-[#111111]" aria-hidden="true" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function Hero() {
   const [showStickyCta, setShowStickyCta] = useState(false)
@@ -49,18 +145,7 @@ export default function Hero() {
               <p className="text-sm font-bold text-[var(--musse-text)]">100+ <span className="font-normal text-[var(--musse-muted)]">pelajar sudah mulai</span></p>
             </div>
           </div>
-          <div className="relative flex min-h-[330px] items-center justify-center sm:min-h-[500px]">
-            <div className="absolute size-72 rounded-full bg-indigo-600/10 blur-3xl sm:size-96" />
-            <div className="pointer-events-none absolute inset-8 rounded-[50%] border border-[#111111]/25 -rotate-12" />
-            <div className="pointer-events-none absolute inset-16 rounded-[50%] border border-[#111111]/15 rotate-12" />
-            <span className="absolute left-2 top-14 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111] sm:left-0"><span className="mr-1 text-indigo-600">✓</span>Benar</span>
-            <span className="absolute right-0 top-24 rounded-xl border border-[#111111] bg-white px-3 py-2 text-[10px] font-bold shadow-[0_4px_0_#111111]">Streak 14 hari</span>
-            <span className="hidden absolute bottom-10 left-8 sm:block rounded-xl border border-[#111111] bg-[var(--musse-lime)] px-3 py-2 text-[10px] font-bold text-[#111111] shadow-[0_4px_0_#111111]">AI Tutor</span>
-            <div className="relative flex w-[300px] items-center justify-center gap-[-20px] scale-[0.78] sm:w-full sm:max-w-[430px] sm:scale-100">
-              <QuizPhoneMockup />
-              <TutorPhoneMockup />
-            </div>
-          </div>
+          <HeroMockup />
         </div>
       </header>
       <StatsStrip />
