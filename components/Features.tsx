@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Chip } from './ui'
+import { useLoopAnimation } from '@/lib/useLoopAnimation'
 
 function CheckRow({ text, circleBg }: { text: string; circleBg: string }) {
   return (
@@ -24,50 +25,6 @@ const TL_CHAT: [number, number][] = [[0, 1], [800, 2], [2200, 3], [3400, 4], [65
 const LOOP_CHAT = 8000
 const TL_RUANG: [number, number][] = [[0, 1], [1000, 2], [2500, 3], [3400, 4], [4500, 5], [6500, 6]]
 const LOOP_RUANG = 8000
-
-function useLoopAnimation(timeline: [number, number][], loopMs: number) {
-  const [step, setStep] = useState(0)
-  const [cycle, setCycle] = useState(0)
-  const [running, setRunning] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const reduced = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    []
-  )
-
-  useEffect(() => {
-    const el = wrapRef.current
-    if (!el) return
-    const obs = new IntersectionObserver(([e]) => setRunning(e.isIntersecting), { threshold: 0.3 })
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (!running) {
-      setStep(0)
-      return
-    }
-    if (reduced) {
-      setStep(timeline[timeline.length - 1][1]) // frame akhir statis
-      return
-    }
-    let cancelled = false
-    const timers: ReturnType<typeof setTimeout>[] = []
-    const run = () => {
-      timers.push(setTimeout(() => { if (!cancelled) setCycle((c) => c + 1) }, 0))
-      timeline.forEach(([t, s]) => timers.push(setTimeout(() => { if (!cancelled) setStep(s) }, t)))
-      timers.push(setTimeout(() => { if (!cancelled) run() }, loopMs))
-    }
-    run()
-    return () => {
-      cancelled = true
-      timers.forEach(clearTimeout)
-    }
-  }, [running, reduced, timeline, loopMs])
-
-  return { step, cycle, wrapRef }
-}
 
 /* ---------- Primitif visual bersama (dipakai ketiga kartu besar) ---------- */
 
