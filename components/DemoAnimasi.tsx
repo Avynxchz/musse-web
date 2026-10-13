@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
-import { Chip } from './ui'
+import { Chip, CheckIcon } from './ui'
 import { useLoopAnimation } from '@/lib/useLoopAnimation'
 import { useGoogleLogin } from '@/lib/useGoogleLogin'
 import { useReducedMotion } from '@/lib/useReducedMotion'
+import { useStageScale } from '@/lib/useStageScale'
 import { useCursor, type CursorState } from '@/lib/useCursor'
 import {
   CONFETTI,
@@ -20,23 +21,9 @@ import {
 
 /* ── Ikon & primitif kecil ─────────────────────────────────────────── */
 
-/* Ikon centang (dipakai opsi B, baris ringkasan, daftar poin). */
-function CheckIcon({ className = 'size-3.5' }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="#111111"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="3"
-      viewBox="0 0 24 24"
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  )
-}
+/* Jeda berurutan antar opsi jawaban (detik) dan antar partikel confetti. */
+const OPTION_STAGGER = 0.08
+const CONFETTI_STAGGER = 0.02
 
 /* Elemen muncul dengan animasi. key+cycle mengulang animasi tiap loop. */
 function Appear({
@@ -114,22 +101,6 @@ function GoogleG() {
 
 /* ── Hook kecil ────────────────────────────────────────────────────── */
 
-/* Skala panggung mengikuti lebar kolom (mobile). */
-function useStageScale() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(1)
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const update = () => setScale(Math.min(1, el.clientWidth / DESIGN_W))
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-  return { containerRef, scale }
-}
-
 /*
  * Saat pertama dimuat soal langsung terlihat (tidak mulai dari kosong):
  * step 0 dianggap 1 sampai timeline berjalan sekali.
@@ -172,7 +143,7 @@ function OptionRow({ opt, index, rs, cycle, optBRef }: {
         ? 'border-[2.5px] border-[#111111] bg-[#F7F7F9]'
         : 'border-[#111111]/25 bg-white'
   return (
-    <Appear key={opt.key} animKey={`opt-${cycle}-${opt.key}`} anim="anim-rise-10" delay={index * 0.08}>
+    <Appear key={opt.key} animKey={`opt-${cycle}-${opt.key}`} anim="anim-rise-10" delay={index * OPTION_STAGGER}>
       <div
         ref={isB ? optBRef : undefined}
         className={`flex items-center gap-2 rounded-xl border-[1.5px] px-3 py-1.5 text-sm ${bCls}`}
@@ -251,7 +222,7 @@ function SoalCard({ rs, cycle, collapsed, optBRef }: CardProps) {
                       width: p.size,
                       height: p.size,
                       backgroundColor: p.c,
-                      animationDelay: `${i * 0.02}s`,
+                      animationDelay: `${i * CONFETTI_STAGGER}s`,
                       '--dx': `${p.dx}px`,
                       '--dy': `${p.dy}px`,
                     } as CSSProperties
@@ -439,9 +410,7 @@ function DemoInfo({ onLogin }: { onLogin: () => void }) {
         {POINTS.map((p) => (
           <li key={p} className="flex items-start gap-3">
             <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--musse-lime)]">
-              <svg aria-hidden="true" className="size-3.5" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
+              <CheckIcon strokeWidth={2.5} />
             </span>
             <span className="text-[15px] leading-6 text-[var(--musse-text)]">{p}</span>
           </li>
