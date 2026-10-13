@@ -1,22 +1,5 @@
 import { Chip } from '../ui'
-
-const testimonials = [
-  {
-    text: 'Pembahasannya jelas banget, kayak dijelasin temen yang pinter. Autopsinya ngebantu tau aku lemah di mana.',
-    name: 'Siswa SMA',
-    detail: 'Pengguna musse',
-  },
-  {
-    text: 'AI tutor-nya ngerti soal yang aku maksud tanpa harus copy-paste soal. Ngebantu pas belajar malem-malem.',
-    name: 'Siswa SMK',
-    detail: 'Pengguna musse',
-  },
-  {
-    text: 'Tryout-nya bikin nggak kaget pas gladi bersih kemarin. Timer-nya persis kayak aslinya.',
-    name: 'Siswa SMA',
-    detail: 'Pengguna musse',
-  },
-]
+import { TESTIMONIALS } from '@/content/testimonials'
 
 function TestimonialCard({ text, name, detail }: {
   text: string
@@ -50,7 +33,7 @@ export default function Testimonials() {
         </h2>
         <p className="mt-3 text-sm text-[var(--musse-muted)]">Dipercaya 100+ pelajar SMA/SMK</p>
         <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
-          {testimonials.map((t, i) => (
+          {TESTIMONIALS.map((t, i) => (
             <TestimonialCard key={i} text={t.text} name={t.name} detail={t.detail} />
           ))}
         </div>
