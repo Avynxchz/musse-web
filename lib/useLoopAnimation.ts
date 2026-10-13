@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from './useReducedMotion'
 
 /**
  * Hook animasi loop berbasis timeline.
@@ -14,10 +15,7 @@ export function useLoopAnimation(timeline: [number, number][], loopMs: number) {
   const [cycle, setCycle] = useState(0)
   const [running, setRunning] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const reduced = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    []
-  )
+  const reduced = useReducedMotion()
 
   useEffect(() => {
     const el = wrapRef.current
