@@ -158,18 +158,41 @@ h1, h2 {
 }
 .anim-confetti { animation: demo-confetti 0.7s ease-out both; }
 
-/* Mockup hero: laptop + HP melayang dengan fase berbeda, titik lime mengorbit */
+/* Mockup hero: HP besar + jendela desktop melayang beda fase, kartu & chat loop */
 @keyframes hero-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0) rotate(8deg); }
+  50% { transform: translateY(-10px) rotate(8deg); }
 }
-.hero-float { animation: hero-float 7s ease-in-out infinite; }
+.hero-float { animation: hero-float 4s ease-in-out infinite; }
 
 @keyframes hero-float-2 {
-  0%, 100% { transform: translateY(0) rotate(-6deg); }
-  50% { transform: translateY(-14px) rotate(-6deg); }
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-12px) rotate(-4deg); }
 }
-.hero-float-2 { animation: hero-float-2 8.5s ease-in-out infinite; }
+.hero-float-2 { animation: hero-float-2 5s ease-in-out infinite; }
+
+/* Kartu "Pembahasan tersedia": slide-in dari bawah, loop 6 detik (tanpa layout shift) */
+@keyframes phone-card-loop {
+  0%, 30% { opacity: 0; transform: translateY(14px); }
+  42%, 78% { opacity: 1; transform: translateY(0); }
+  90%, 100% { opacity: 0; transform: translateY(10px); }
+}
+.phone-card-loop { animation: phone-card-loop 6s ease-in-out infinite; }
+
+/* Gelembung chat jendela desktop: muncul satu per satu, loop 7 detik */
+@keyframes win-chat-1 {
+  0%, 10% { opacity: 0; transform: translateY(8px); }
+  18%, 72% { opacity: 1; transform: translateY(0); }
+  82%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+.win-chat-1 { animation: win-chat-1 7s ease-in-out infinite; }
+
+@keyframes win-chat-2 {
+  0%, 28% { opacity: 0; transform: translateY(8px); }
+  36%, 72% { opacity: 1; transform: translateY(0); }
+  82%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+.win-chat-2 { animation: win-chat-2 7s ease-in-out infinite; }
 
 @keyframes hero-orbit {
   from { transform: rotate(-12deg); }
