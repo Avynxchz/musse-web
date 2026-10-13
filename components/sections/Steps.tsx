@@ -1,10 +1,5 @@
 import { Chip } from '../ui'
-
-const steps = [
-  { n: '1', title: 'Login pakai Google', desc: '10 detik. Pilih akun, langsung masuk.' },
-  { n: '2', title: 'Kerjain paket soal', desc: 'Pilih mapel, kerjain dengan timer kayak hari-H.' },
-  { n: '3', title: 'Lihat kelemahanmu', desc: 'AI bedah hasilmu dan kasih tau apa yang harus diperbaiki.' },
-]
+import { STEPS } from '@/content/steps'
 
 function StepCard({ n, title, desc }: { n: string; title: string; desc: string }) {
   const highlighted = n === '2'
@@ -34,7 +29,7 @@ export default function Steps() {
           Mulai dari sini.
         </h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
-          {steps.map((s) => (
+          {STEPS.map((s) => (
             <StepCard key={s.n} n={s.n} title={s.title} desc={s.desc} />
           ))}
         </div>
