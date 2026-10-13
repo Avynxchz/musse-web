@@ -1,17 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, type RefObject } from 'react'
 
 /*
  * Angka berhitung naik (count-up) dengan easing ease-out.
+ * Update langsung via textContent (ref) — TIDAK pakai setState per frame,
+ * jadi tidak memicu re-render React selama animasi 1,2 detik.
  * prefers-reduced-motion: langsung lompat ke angka final.
  */
-export function useCountUp(target: number, start: boolean, duration = 1200) {
-  const [count, setCount] = useState(0)
+export function useCountUp(
+  numRef: RefObject<HTMLElement | null>,
+  target: number,
+  start: boolean,
+  duration = 1200
+) {
   useEffect(() => {
-    if (!start) return
+    const el = numRef.current
+    if (!start || !el) return
+    const fmt = (n: number) => Math.round(n).toLocaleString('id-ID')
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setCount(target)
+      el.textContent = fmt(target)
       return
     }
     let raf: number
@@ -19,11 +27,10 @@ export function useCountUp(target: number, start: boolean, duration = 1200) {
     const tick = (now: number) => {
       const p = Math.min((now - t0) / duration, 1)
       const eased = 1 - Math.pow(1 - p, 3) // ease-out
-      setCount(Math.round(target * eased))
+      el.textContent = fmt(target * eased)
       if (p < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [start, target, duration])
-  return count
+  }, [numRef, target, start, duration])
 }
