@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 
 /**
- * Komponen UI bersama — dulunya pola className ini duplikat 6x
- * di Features, LoginReasons, Sections, LockedPreview.
+ * Komponen UI bersama — dulunya pola className ini duplikat
+ * di Features, LoginReasons, dan Sections.
  */
 
 /** Badge lime kecil uppercase, misal: "Fitur inti", "3 langkah", "Coba dulu" */
@@ -14,27 +14,26 @@ export function Chip({ children }: { children: ReactNode }) {
   )
 }
 
-/** Header section standar: chip + judul + deskripsi opsional */
-export function SectionHeader({
-  chip,
-  title,
-  desc,
-  maxWidth = 'max-w-2xl',
+/** Ikon centang — dulunya duplikat di Features, DemoAnimasi (2x). */
+export function CheckIcon({
+  className = 'size-3.5',
+  strokeWidth = 3,
 }: {
-  chip: string
-  title: ReactNode
-  desc?: string
-  maxWidth?: string
+  className?: string
+  strokeWidth?: number
 }) {
   return (
-    <div className={maxWidth}>
-      <Chip>{chip}</Chip>
-      <h2 className="mt-4 text-3xl font-extrabold text-[var(--musse-text)] md:text-5xl">
-        {title}
-      </h2>
-      {desc && (
-        <p className="mt-4 text-[16px] leading-7 text-[var(--musse-muted)]">{desc}</p>
-      )}
-    </div>
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="#111111"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={strokeWidth}
+      viewBox="0 0 24 24"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
   )
 }
