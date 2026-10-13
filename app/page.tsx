@@ -1,6 +1,6 @@
 import Hero from '@/components/Hero'
 import LoginReasons from '@/components/LoginReasons'
-import LockedPreview from '@/components/LockedPreview'
+import DemoAnimasi from '@/components/DemoAnimasi'
 import Features from '@/components/Features'
 import Steps from '@/components/sections/Steps'
 import Testimonials from '@/components/sections/Testimonials'
@@ -19,7 +19,7 @@ export default function Home() {
     <main className="min-h-screen bg-[var(--musse-bg)] font-sans text-[var(--musse-text)] antialiased">
       <Hero />
       <LoginReasons />
-      <LockedPreview />
+      <DemoAnimasi />
       <Features />
       <Steps />
       <Testimonials />
