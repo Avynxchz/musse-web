@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from 'react'
 import StatsStrip from './StatsStrip'
 
 const avatars = ['A', 'R', 'N', 'F', 'D']
+const AVATAR_COLORS = ['#B6FF00', '#8DE7FF', '#A78BFA', '#FFB86B', '#F9A8D4']
+/* Rentang gerak parallax mouse: ±PARALLAX_RANGE/2 px (maks 8px). */
+const PARALLAX_RANGE = 16
 const MAPEL = ['MTK', 'FIS', 'KIM', 'BIO', 'IND']
 const OPTIONS = [
   { k: 'A', v: 'Rp19.000', sel: false },
@@ -142,8 +145,8 @@ function HeroMockup() {
     const el = wrapRef.current
     if (reduced || !el || !window.matchMedia('(pointer: fine)').matches) return
     const r = el.getBoundingClientRect()
-    const x = ((e.clientX - r.left) / r.width - 0.5) * 16
-    const y = ((e.clientY - r.top) / r.height - 0.5) * 16
+    const x = ((e.clientX - r.left) / r.width - 0.5) * PARALLAX_RANGE
+    const y = ((e.clientY - r.top) / r.height - 0.5) * PARALLAX_RANGE
     el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
   }
   const onMouseLeave = () => {
@@ -235,7 +238,7 @@ export default function Hero() {
             <button onClick={handleLogin} className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-full bg-[var(--musse-lime)] px-6 py-4 text-sm font-bold text-[#10150b] shadow-[0_12px_35px_rgba(182,255,0,0.2)] transition hover:-translate-y-1 hover:bg-[#c5ff3d] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--musse-lime)] sm:w-auto">Masuk dengan Google — Gratis <span aria-hidden="true">↗</span></button>
             <p className="mt-3 text-xs text-[var(--musse-muted)]">10 detik, tanpa password, tanpa kartu kredit.</p>
             <div className="mt-8 flex items-center gap-3">
-              <div className="flex -space-x-2" aria-hidden="true">{avatars.map((avatar, index) => <span key={avatar} className="flex size-8 items-center justify-center rounded-full border-2 border-[var(--musse-bg)] text-[10px] font-bold text-[#10150b]" style={{ backgroundColor: ['#B6FF00', '#8DE7FF', '#A78BFA', '#FFB86B', '#F9A8D4'][index] }}>{avatar}</span>)}</div>
+              <div className="flex -space-x-2" aria-hidden="true">{avatars.map((avatar, index) => <span key={avatar} className="flex size-8 items-center justify-center rounded-full border-2 border-[var(--musse-bg)] text-[10px] font-bold text-[#10150b]" style={{ backgroundColor: AVATAR_COLORS[index] }}>{avatar}</span>)}</div>
               <p className="text-sm font-bold text-[var(--musse-text)]">100+ <span className="font-normal text-[var(--musse-muted)]">pelajar sudah mulai</span></p>
             </div>
           </div>
