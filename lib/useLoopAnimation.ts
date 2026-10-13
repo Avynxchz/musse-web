@@ -6,7 +6,8 @@ import { useReducedMotion } from './useReducedMotion'
 /**
  * Hook animasi loop berbasis timeline.
  * - timeline: array [waktu_ms, step] — step berubah sesuai jadwal, lalu mengulang tiap loopMs.
- * - Jalan hanya saat elemen terlihat di layar (IntersectionObserver), berhenti saat keluar.
+ * - Jalan hanya saat elemen terlihat di layar (IntersectionObserver); saat keluar layar,
+ *   animasi di-pause di frame terakhir (tidak direset) supaya tidak kedip saat scroll cepat.
  * - prefers-reduced-motion: langsung lompat ke step terakhir (frame statis).
  * - Mengembalikan cycle (naik tiap loop) untuk me-remount elemen biar animasi CSS keulang.
  */
@@ -26,8 +27,10 @@ export function useLoopAnimation(timeline: [number, number][], loopMs: number) {
   }, [])
 
   useEffect(() => {
+    // Pause saat keluar viewport: timer dihentikan tapi step TERAKHIR dipertahankan
+    // (tidak direset ke 0). Reset ke 0 bikin konten kedip hilang-muncul tiap scroll
+    // cepat melewati section — itu yang terlihat seperti glitch.
     if (!running) {
-      setStep(0)
       return
     }
     if (reduced) {
