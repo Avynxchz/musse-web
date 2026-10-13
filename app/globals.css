@@ -158,6 +158,25 @@ h1, h2 {
 }
 .anim-confetti { animation: demo-confetti 0.7s ease-out both; }
 
+/* Mockup hero: laptop + HP melayang dengan fase berbeda, titik lime mengorbit */
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.hero-float { animation: hero-float 7s ease-in-out infinite; }
+
+@keyframes hero-float-2 {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-14px) rotate(-6deg); }
+}
+.hero-float-2 { animation: hero-float-2 8.5s ease-in-out infinite; }
+
+@keyframes hero-orbit {
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(348deg); }
+}
+.hero-orbit { animation: hero-orbit 22s linear infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .ruang-anim .anim-pop,
   .ruang-anim .anim-slide,
