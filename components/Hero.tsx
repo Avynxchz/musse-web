@@ -2,7 +2,8 @@
 
 import { useGoogleLogin } from '@/lib/useGoogleLogin'
 import { useReducedMotion } from '@/lib/useReducedMotion'
-import { useEffect, useRef, useState } from 'react'
+import { usePauseWhenHidden } from '@/lib/usePauseWhenHidden'
+import { memo, useEffect, useRef, useState } from 'react'
 import StatsStrip from './StatsStrip'
 
 const avatars = ['A', 'R', 'N', 'F', 'D']
@@ -17,7 +18,7 @@ const OPTIONS = [
 ]
 
 /* HP besar — desain dikembalikan seperti hero lama; kartu pembahasan slide-in loop 6 detik. */
-function BigPhone() {
+const BigPhone = memo(function BigPhone() {
   return (
     <div className="relative w-[230px] shrink-0 rounded-[2rem] border-[7px] border-[#252b3b] bg-[#f8fafc] p-1 shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:w-[280px]">
       {/* notch */}
@@ -74,10 +75,10 @@ function BigPhone() {
       </div>
     </div>
   )
-}
+})
 
 /* Jendela desktop kecil (HTML/CSS): browser 16:10 + sidebar mapel + panel AI Tutor. */
-function DesktopWindow() {
+const DesktopWindow = memo(function DesktopWindow() {
   return (
     <div className="overflow-hidden rounded-xl border-[5px] border-[#252b3b] bg-white shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
       {/* bar browser */}
@@ -133,29 +134,52 @@ function DesktopWindow() {
       </div>
     </div>
   )
-}
+})
 
 /* Komposisi mockup hero: HP besar + jendela desktop kecil di depannya. */
-function HeroMockup() {
+const HeroMockup = memo(function HeroMockup() {
   const reduced = useReducedMotion()
   const wrapRef = useRef<HTMLDivElement>(null)
-
-  /* Parallax halus mengikuti mouse (desktop saja, maks 8px). */
+  const pauseRef = usePauseWhenHidden<HTMLDivElement>()
+  /* Bersihkan rAF parallax saat unmount. */
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
+  /* Cache hasil matchMedia: jangan tanya browser tiap mousemove. */
+  const finePointerRef = useRef<boolean | null>(null)
+  /* Parallax halus mengikuti mouse (desktop saja, maks 8px).
+     Di-throttle via requestAnimationFrame + hanya transform (tanpa re-render). */
+  const rafRef = useRef(0)
+  const targetRef = useRef({ x: 0, y: 0 })
   const onMouseMove = (e: React.MouseEvent) => {
     const el = wrapRef.current
-    if (reduced || !el || !window.matchMedia('(pointer: fine)').matches) return
+    if (reduced || !el) return
+    if (finePointerRef.current === null) {
+      finePointerRef.current = window.matchMedia('(pointer: fine)').matches
+    }
+    if (!finePointerRef.current) return
     const r = el.getBoundingClientRect()
-    const x = ((e.clientX - r.left) / r.width - 0.5) * PARALLAX_RANGE
-    const y = ((e.clientY - r.top) / r.height - 0.5) * PARALLAX_RANGE
-    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
+    targetRef.current = {
+      x: ((e.clientX - r.left) / r.width - 0.5) * PARALLAX_RANGE,
+      y: ((e.clientY - r.top) / r.height - 0.5) * PARALLAX_RANGE,
+    }
+    if (rafRef.current) return
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0
+      const t = targetRef.current
+      if (wrapRef.current) {
+        wrapRef.current.style.transform = `translate(${t.x.toFixed(1)}px, ${t.y.toFixed(1)}px)`
+      }
+    })
   }
   const onMouseLeave = () => {
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = 0
     if (wrapRef.current) wrapRef.current.style.transform = 'translate(0, 0)'
   }
 
   return (
     <div
-      className="relative flex min-h-[380px] items-center justify-center sm:min-h-[520px]"
+      ref={pauseRef}
+      className="anim-pause-scope relative flex min-h-[380px] items-center justify-center sm:min-h-[520px]"
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
@@ -198,7 +222,7 @@ function HeroMockup() {
       </div>
     </div>
   )
-}
+})
 
 export default function Hero() {
   const [showStickyCta, setShowStickyCta] = useState(false)
