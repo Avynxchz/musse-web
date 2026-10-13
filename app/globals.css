@@ -133,9 +133,22 @@ h1, h2 {
 }
 .anim-spring { animation: demo-spring 0.8s cubic-bezier(0.25, 1.2, 0.4, 1) both; }
 
+/* Masuk dari bawah (opsi, gelembung chat, baris langkah) — tidak pernah dari kiri */
+@keyframes demo-rise-8 {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-rise-8 { animation: demo-rise-8 0.45s ease-out both; }
+
+@keyframes demo-rise-10 {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-rise-10 { animation: demo-rise-10 0.5s ease-out both; }
+
 @keyframes demo-ripple {
-  0% { transform: translateY(-50%) scale(0.4); opacity: 0.9; }
-  100% { transform: translateY(-50%) scale(3.4); opacity: 0; }
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3.4); opacity: 0; }
 }
 .anim-ripple { animation: demo-ripple 0.6s ease-out both; }
 
@@ -143,7 +156,7 @@ h1, h2 {
   0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
   100% { transform: translate(var(--dx), var(--dy)) rotate(320deg); opacity: 0; }
 }
-.anim-confetti { animation: demo-confetti 0.9s ease-out both; }
+.anim-confetti { animation: demo-confetti 0.7s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
   .ruang-anim .anim-pop,
