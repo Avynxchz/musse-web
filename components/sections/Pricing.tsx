@@ -1,7 +1,5 @@
 import { Chip } from '../ui'
-
-const freeFeatures = ['Semua soal & pembahasan', '5 tanya AI Tutor per hari', 'Simulasi dengan timer']
-const proFeatures = ['100 tanya AI Tutor per hari', 'Semua fitur Gratis', 'Analisis Autopsi lengkap']
+import { FREE_FEATURES, PRO_FEATURES } from '@/content/pricing'
 
 function FeatureList({ features, accentClass }: { features: string[]; accentClass: string }) {
   return (
@@ -39,7 +37,7 @@ export default function Pricing() {
               <span className="text-sm text-[var(--musse-muted)]">/selamanya</span>
             </p>
             <div className="text-[var(--musse-muted)]">
-              <FeatureList features={freeFeatures} accentClass="text-[var(--musse-indigo)]" />
+              <FeatureList features={FREE_FEATURES} accentClass="text-[var(--musse-indigo)]" />
             </div>
           </div>
 
@@ -58,7 +56,7 @@ export default function Pricing() {
               <span className="text-sm text-[#42520d]">/bulan</span>
             </p>
             <div className="text-[#26320c]">
-              <FeatureList features={proFeatures} accentClass="font-bold" />
+              <FeatureList features={PRO_FEATURES} accentClass="font-bold" />
             </div>
           </div>
         </div>
