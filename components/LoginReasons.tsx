@@ -1,22 +1,5 @@
 import { Chip } from './ui'
-
-const reasons = [
-  {
-    number: '01',
-    title: 'Progres ikut ke semua perangkat',
-    desc: 'Ganti HP atau laptop, nilai dan riwayat belajarmu tetap ada. Nggak ada yang hilang.',
-  },
-  {
-    number: '02',
-    title: 'AI yang makin kenal kamu',
-    desc: 'Makin sering latihan, AI makin paham kelemahanmu dan ngasih latihan yang tepat.',
-  },
-  {
-    number: '03',
-    title: '10 detik tanpa password',
-    desc: 'Klik, pilih akun Google, langsung masuk. Nggak perlu daftar, nggak perlu ingat password.',
-  },
-]
+import { REASONS } from '@/content/login-reasons'
 
 function ReasonCard({ number, title, desc, highlighted }: {
   number: string
@@ -63,7 +46,7 @@ export default function LoginReasons() {
         </div>
 
         <div className="reasons-carousel mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 md:mt-10 md:grid md:grid-cols-3 md:gap-5 md:overflow-visible">
-          {reasons.map((reason, index) => (
+          {REASONS.map((reason, index) => (
             <ReasonCard
               key={reason.number}
               number={reason.number}
