@@ -216,7 +216,8 @@ function SoalCard({ rs, cycle, collapsed, optBRef }: CardProps) {
               {CONFETTI.map((p, i) => (
                 <span
                   key={`${cycle}-${i}`}
-                  className="anim-confetti absolute rounded-[2px]"
+                  /* Mobile: hanya 8 partikel pertama (hemat GPU) */
+                  className={`anim-confetti absolute rounded-[2px] ${i >= 8 ? 'max-sm:hidden' : ''}`}
                   style={
                     {
                       width: p.size,
