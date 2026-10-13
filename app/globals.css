@@ -9,6 +9,9 @@
   --musse-indigo: #4F46E5;
   --musse-text: #111111;
   --musse-muted: #4B5563;
+  --font-body: "Avenir Next", "Trebuchet MS", Arial, sans-serif;
+  --font-heading: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
+  --font-pixel: "Courier New", monospace;
   --background: var(--musse-bg);
   --foreground: var(--musse-text);
 }
