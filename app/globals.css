@@ -1,29 +1,235 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --musse-bg: #FAFAF7;
+  --musse-section: #FFFFFF;
+  --musse-card: #FFFFFF;
+  --musse-ink: #111111;
+  --musse-lime: #B6FF00;
+  --musse-indigo: #4F46E5;
+  --musse-text: #111111;
+  --musse-muted: #4B5563;
+  --background: var(--musse-bg);
+  --foreground: var(--musse-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --font-pixel: var(--font-pixel);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--musse-bg);
+  color: var(--musse-text);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
+
+/* Heading: Space Grotesk (font sebelumnya, udah bagus) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), var(--font-body), sans-serif;
+}
+
+/* Heading besar: letter-spacing -0.02em */
+h1, h2 {
+  letter-spacing: -0.02em;
+}
+
+/* .font-pixel: Press Start 2P — CUMA buat teks gede yang penting, jangan dipakai sembarangan */
+.font-pixel {
+  font-family: var(--font-pixel), monospace;
+}
+
+/* Headline hero baris 1-2: Space Grotesk + fill putih + outline hitam tebal */
+.headline-3d {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  color: #FFFFFF;
+  -webkit-text-stroke: 2px #111111;
+  paint-order: stroke fill;
+}
+@media (max-width: 639px) {
+  .headline-3d {
+    -webkit-text-stroke: 1.5px #111111;
+  }
+}
+
+/* Blok "SIAP TEMPUR": papan tebal 3D */
+.stamp-block {
+  display: inline-block;
+  background: #B6FF00;
+  color: #111111;
+  padding: 10px 18px;
+  border: 3px solid #111111;
+  border-radius: 12px;
+  transform: rotate(-1.5deg);
+  box-shadow:
+    1px 1px 0 #111111,
+    2px 2px 0 #111111,
+    3px 3px 0 #111111,
+    4px 4px 0 #111111,
+    5px 5px 0 #111111,
+    0 14px 24px rgba(17, 17, 17, 0.25);
+  animation: stamp-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes stamp-in {
+  from {
+    transform: rotate(-1.5deg) scale(1.15);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-1.5deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Kartu berbingkai: border 1.5px #111 + bayangan bawah 0 4px 0 #111 */
+.card-framed {
+  border: 1.5px solid #111111;
+  box-shadow: 0 4px 0 #111111;
+  background: var(--musse-card);
+}
+.card-framed-lime {
+  border: 1.5px solid #111111;
+  box-shadow: 0 4px 0 #111111;
+  background: var(--musse-lime);
+}
+
+/* Hover kartu di desktop: naik 2px */
+@media (hover: hover) {
+  .card-hover:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Animasi loop ketiga kartu besar (smooth & lambat, overshoot lembut) */
+@keyframes ruang-pop {
+  0% { opacity: 0; transform: scale(0.55); }
+  55% { opacity: 1; transform: scale(1.07); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes ruang-slide {
+  0% { opacity: 0; transform: translateX(32px); }
+  55% { opacity: 1; transform: translateX(-5px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes ruang-pop-big {
+  0% { opacity: 0; transform: scale(0.55) rotate(-2deg); }
+  55% { opacity: 1; transform: scale(1.1) rotate(1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.anim-pop { animation: ruang-pop 0.7s cubic-bezier(0.25, 1.35, 0.4, 1) both; }
+.anim-slide { animation: ruang-slide 0.8s cubic-bezier(0.25, 1.35, 0.4, 1) both; }
+.anim-pop-big { animation: ruang-pop-big 0.85s cubic-bezier(0.25, 1.35, 0.4, 1) both; }
+
+/* Demo animasi section "Lihat cara kerjanya" */
+@keyframes demo-spring {
+  0% { opacity: 0; transform: scale(0.7) translateY(26px); }
+  55% { opacity: 1; transform: scale(1.04) translateY(-4px); }
+  75% { transform: scale(0.99) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.anim-spring { animation: demo-spring 0.8s cubic-bezier(0.25, 1.2, 0.4, 1) both; }
+
+/* Masuk dari bawah (opsi, gelembung chat, baris langkah) — tidak pernah dari kiri */
+@keyframes demo-rise-8 {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-rise-8 { animation: demo-rise-8 0.45s ease-out both; }
+
+@keyframes demo-rise-10 {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-rise-10 { animation: demo-rise-10 0.5s ease-out both; }
+
+@keyframes demo-ripple {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3.4); opacity: 0; }
+}
+.anim-ripple { animation: demo-ripple 0.6s ease-out both; }
+
+@keyframes demo-confetti {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(320deg); opacity: 0; }
+}
+.anim-confetti { animation: demo-confetti 0.7s ease-out both; }
+
+/* Mockup hero: HP besar + jendela desktop melayang beda fase, kartu & chat loop */
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(8deg); }
+  50% { transform: translateY(-10px) rotate(8deg); }
+}
+.hero-float { animation: hero-float 4s ease-in-out infinite; }
+
+@keyframes hero-float-2 {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-12px) rotate(-4deg); }
+}
+.hero-float-2 { animation: hero-float-2 5s ease-in-out infinite; }
+
+/* Kartu "Pembahasan tersedia": slide-in dari bawah, loop 6 detik (tanpa layout shift) */
+@keyframes phone-card-loop {
+  0%, 30% { opacity: 0; transform: translateY(14px); }
+  42%, 78% { opacity: 1; transform: translateY(0); }
+  90%, 100% { opacity: 0; transform: translateY(10px); }
+}
+.phone-card-loop { animation: phone-card-loop 6s ease-in-out infinite; }
+
+/* Gelembung chat jendela desktop: muncul satu per satu, loop 7 detik */
+@keyframes win-chat-1 {
+  0%, 10% { opacity: 0; transform: translateY(8px); }
+  18%, 72% { opacity: 1; transform: translateY(0); }
+  82%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+.win-chat-1 { animation: win-chat-1 7s ease-in-out infinite; }
+
+@keyframes win-chat-2 {
+  0%, 28% { opacity: 0; transform: translateY(8px); }
+  36%, 72% { opacity: 1; transform: translateY(0); }
+  82%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+.win-chat-2 { animation: win-chat-2 7s ease-in-out infinite; }
+
+@keyframes hero-orbit {
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(348deg); }
+}
+.hero-orbit { animation: hero-orbit 22s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ruang-anim .anim-pop,
+  .ruang-anim .anim-slide,
+  .ruang-anim .anim-pop-big {
+    animation: none;
+  }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  .marquee-track { animation: none !important; }
+}
+
+button, a { -webkit-tap-highlight-color: transparent; }
+
+/* Marquee untuk pita mapel */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 30s linear infinite;
+}
+.marquee-paused:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (max-width: 639px) {
+  .animate-\[fadeIn_0\.7s_ease-out\], .animate-\[fadeIn_0\.4s_ease-in\] { animation: none !important; }
+  .question-carousel, .core-features-carousel, .reasons-carousel, .testimonials-carousel { scrollbar-width: none; }
+  .question-carousel::-webkit-scrollbar, .core-features-carousel::-webkit-scrollbar, .reasons-carousel::-webkit-scrollbar, .testimonials-carousel::-webkit-scrollbar { display: none; }
+}
+
 
 @keyframes fadeIn {
   from {
@@ -34,4 +240,24 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* === Optimasi performa === */
+
+/* Section di bawah layar: skip render sampai mendekati viewport.
+   contain-intrinsic-size memberi estimasi tinggi agar scrollbar tidak lompat. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+.cv-auto-tall {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1400px;
+}
+
+/* Pembungkus animasi infinite (float, marquee, orbit, chat loop):
+   --anim-play-state di-set 'paused' oleh hook usePauseWhenHidden saat elemen
+   keluar viewport atau tab disembunyikan. Variabel CSS menurun ke anak. */
+.anim-pause-scope, .anim-pause-scope * {
+  animation-play-state: var(--anim-play-state, running);
 }
