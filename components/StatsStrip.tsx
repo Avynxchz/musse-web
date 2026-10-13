@@ -1,40 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-
-const stats = [
-  { value: 990, suffix: '+', label: 'soal TKA', icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z' },
-  { value: 27, suffix: '', label: 'mapel SMA/SMK', icon: 'm12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5' },
-  { value: 100, suffix: '+', label: 'pelajar mulai', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
-]
-
-const mapelChips = [
-  'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'Fisika', 'Kimia', 'Biologi',
-  'Ekonomi', 'Kewirausahaan', 'Mapel Kejuruan SMK',
-]
-
-function useCountUp(target: number, start: boolean, duration = 1200) {
-  const [count, setCount] = useState(0)
-  useEffect(() => {
-    if (!start) return
-    // Hormati prefers-reduced-motion: langsung final
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setCount(target)
-      return
-    }
-    let raf: number
-    const t0 = performance.now()
-    const tick = (now: number) => {
-      const p = Math.min((now - t0) / duration, 1)
-      const eased = 1 - Math.pow(1 - p, 3) // ease-out
-      setCount(Math.round(target * eased))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [start, target, duration])
-  return count
-}
+import { useCountUp } from '@/lib/useCountUp'
+import { STATS, MARQUEE_MAPEL } from '@/content/stats'
 
 function StatNumber({ value, suffix }: { value: number; suffix: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -74,7 +42,7 @@ export default function StatsStrip() {
           <div className="pointer-events-none absolute -bottom-20 -right-20 size-64 rounded-full bg-[var(--musse-lime)]/10 blur-3xl" aria-hidden="true" />
 
           <div className="relative grid grid-cols-3 divide-x divide-[rgba(255,255,255,0.12)]">
-            {stats.map((stat) => (
+            {STATS.map((stat) => (
               <div key={stat.label} className="flex flex-col items-center px-4 text-center md:px-8">
                 <span className="flex size-12 items-center justify-center rounded-full bg-[var(--musse-lime)] md:size-14">
                   <svg aria-hidden="true" className="size-5 md:size-6" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
@@ -92,7 +60,7 @@ export default function StatsStrip() {
           {/* Marquee mapel */}
           <div className="marquee-paused relative mt-8 overflow-hidden md:mt-10" aria-hidden="true">
             <div className="marquee-track flex w-max gap-3">
-              {[...mapelChips, ...mapelChips].map((mapel, i) => (
+              {[...MARQUEE_MAPEL, ...MARQUEE_MAPEL].map((mapel, i) => (
                 <span key={i} className="whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-bold text-white/80">
                   {mapel}
                 </span>
