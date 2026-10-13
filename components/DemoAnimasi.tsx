@@ -174,68 +174,92 @@ export default function DemoAnimasi() {
               {s >= 1 && (
                 <div key={`q-${cycle}`} className="anim-spring absolute left-3 right-3 top-12">
                   <div className="relative rounded-2xl border-[1.5px] border-[#111111] bg-white p-3 shadow-[0_4px_0_#111111]">
-                    <span className="inline-block rounded-full border border-[#111111] bg-[#E0E7FF] px-2.5 py-0.5 text-[11px] font-bold text-[#111111]">
-                      Soal 12/46 · Matematika
-                    </span>
-                    <p className="mt-2 text-[13px] font-medium leading-5 text-[#111111]">
-                      Harga 3 buku tulis dan 2 penggaris Rp21.000. Harga 2 buku tulis dan 3 penggaris
-                      Rp19.000. Harga 1 buku tulis adalah …
-                    </p>
+                    {/* Isi penuh — menciut halus jadi bar ringkas saat panel chat dibuka */}
+                    <div
+                      className={`grid transition-all duration-700 ease-in-out ${
+                        s >= 4 ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <span className="inline-block rounded-full border border-[#111111] bg-[#E0E7FF] px-2.5 py-0.5 text-[11px] font-bold text-[#111111]">
+                          Soal 12/46 · Matematika
+                        </span>
+                        <p className="mt-2 text-[13px] font-medium leading-5 text-[#111111]">
+                          Harga 3 buku tulis dan 2 penggaris Rp21.000. Harga 2 buku tulis dan 3 penggaris
+                          Rp19.000. Harga 1 buku tulis adalah …
+                        </p>
 
-                    <div className="mt-2.5 space-y-1.5">
-                      {OPTIONS.map((o, i) => {
-                        const isB = o.key === 'B'
-                        const correct = answered && isB
-                        return (
-                          <Appear
-                            key={o.key}
-                            show
-                            animKey={`opt-${cycle}-${o.key}`}
-                            delay={i * 0.12}
-                          >
-                            <div
-                              className={`relative flex items-center gap-2 rounded-xl border-[1.5px] px-3 py-1.5 text-[13px] ${
-                                correct
-                                  ? 'border-[#111111] bg-[var(--musse-lime)] font-bold text-[#111111]'
-                                  : 'border-[#111111]/20 bg-white text-[var(--musse-text)]'
-                              }`}
-                            >
-                              <span className="font-bold">{o.key}.</span> {o.text}
-                              {correct && (
-                                <svg aria-hidden="true" className="ml-auto size-4 shrink-0" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24">
-                                  <path d="M20 6 9 17l-5-5" />
-                                </svg>
-                              )}
-                              {/* Kursor: sudah dirender sejak awal (tak terlihat), meluncur saat step 2 */}
-                              {isB && (
-                                <svg
-                                  aria-hidden="true"
-                                  viewBox="0 0 24 24"
-                                  className="pointer-events-none absolute right-2 top-1/2 z-10 size-6 -translate-y-1/2 transition-all duration-700 ease-out"
-                                  style={{
-                                    translate: s >= 2 ? '0 0' : '90px 70px',
-                                    opacity: s >= 2 ? 1 : 0,
-                                  }}
+                        <div className="mt-2.5 space-y-1.5">
+                          {OPTIONS.map((o, i) => {
+                            const isB = o.key === 'B'
+                            const correct = answered && isB
+                            return (
+                              <Appear
+                                key={o.key}
+                                show
+                                animKey={`opt-${cycle}-${o.key}`}
+                                delay={i * 0.12}
+                              >
+                                <div
+                                  className={`relative flex items-center gap-2 rounded-xl border-[1.5px] px-3 py-1.5 text-[13px] ${
+                                    correct
+                                      ? 'border-[#111111] bg-[var(--musse-lime)] font-bold text-[#111111]'
+                                      : 'border-[#111111]/20 bg-white text-[var(--musse-text)]'
+                                  }`}
                                 >
-                                  <path d="M6 3l13 8.5-7 1.5-2.5 7z" fill="#111111" stroke="#ffffff" strokeWidth="1.5" strokeLinejoin="round" />
-                                </svg>
-                              )}
-                              {/* Ripple saat klik */}
-                              {isB && answered && (
-                                <span
-                                  key={`rip-${cycle}`}
-                                  aria-hidden="true"
-                                  className="anim-ripple pointer-events-none absolute right-4 top-1/2 z-10 block size-4 rounded-full border-[2.5px] border-[#111111]"
-                                />
-                              )}
-                            </div>
-                          </Appear>
-                        )
-                      })}
+                                  <span className="font-bold">{o.key}.</span> {o.text}
+                                  {correct && (
+                                    <svg aria-hidden="true" className="ml-auto size-4 shrink-0" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24">
+                                      <path d="M20 6 9 17l-5-5" />
+                                    </svg>
+                                  )}
+                                  {/* Kursor: sudah dirender sejak awal (tak terlihat), meluncur saat step 2 */}
+                                  {isB && (
+                                    <svg
+                                      aria-hidden="true"
+                                      viewBox="0 0 24 24"
+                                      className="pointer-events-none absolute right-2 top-1/2 z-10 size-6 -translate-y-1/2 transition-all duration-700 ease-out"
+                                      style={{
+                                        translate: s >= 2 ? '0 0' : '90px 70px',
+                                        opacity: s >= 2 ? 1 : 0,
+                                      }}
+                                    >
+                                      <path d="M6 3l13 8.5-7 1.5-2.5 7z" fill="#111111" stroke="#ffffff" strokeWidth="1.5" strokeLinejoin="round" />
+                                    </svg>
+                                  )}
+                                  {/* Ripple saat klik */}
+                                  {isB && answered && (
+                                    <span
+                                      key={`rip-${cycle}`}
+                                      aria-hidden="true"
+                                      className="anim-ripple pointer-events-none absolute right-4 top-1/2 z-10 block size-4 rounded-full border-[2.5px] border-[#111111]"
+                                    />
+                                  )}
+                                </div>
+                              </Appear>
+                            )
+                          })}
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Badge Benar! */}
-                    {answered && (
+                    {/* Bar ringkas setelah soal dijawab */}
+                    {s >= 4 && (
+                      <div key={`min-${cycle}`} className="anim-pop flex items-center gap-2">
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#111111] bg-[var(--musse-lime)]">
+                          <svg aria-hidden="true" className="size-3.5" fill="none" stroke="#111111" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24">
+                            <path d="M20 6 9 17l-5-5" />
+                          </svg>
+                        </span>
+                        <p className="text-[13px] font-bold text-[#111111]">Soal 12/46 · B. Rp5.000</p>
+                        <span className="ml-auto rounded-full border-[1.5px] border-[#111111] bg-[var(--musse-lime)] px-2.5 py-0.5 text-[11px] font-extrabold text-[#111111]">
+                          Benar!
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Badge Benar! (hanya sesaat setelah klik) */}
+                    {s === 3 && (
                       <div
                         key={`bnr-${cycle}`}
                         className="anim-pop absolute -top-3 right-6 z-20 rotate-6 rounded-full border-[1.5px] border-[#111111] bg-[var(--musse-lime)] px-3 py-1 text-xs font-extrabold text-[#111111]"
