@@ -230,15 +230,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .question-carousel::-webkit-scrollbar, .core-features-carousel::-webkit-scrollbar, .reasons-carousel::-webkit-scrollbar, .testimonials-carousel::-webkit-scrollbar { display: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ruang-anim .anim-pop,
-  .ruang-anim .anim-slide,
-  .ruang-anim .anim-pop-big {
-    animation: none;
-  }
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
-  .marquee-track { animation: none !important; }
-}
 
 @keyframes fadeIn {
   from {
@@ -249,4 +240,24 @@ button, a { -webkit-tap-highlight-color: transparent; }
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* === Optimasi performa === */
+
+/* Section di bawah layar: skip render sampai mendekati viewport.
+   contain-intrinsic-size memberi estimasi tinggi agar scrollbar tidak lompat. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+.cv-auto-tall {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1400px;
+}
+
+/* Pembungkus animasi infinite (float, marquee, orbit, chat loop):
+   --anim-play-state di-set 'paused' oleh hook usePauseWhenHidden saat elemen
+   keluar viewport atau tab disembunyikan. Variabel CSS menurun ke anak. */
+.anim-pause-scope, .anim-pause-scope * {
+  animation-play-state: var(--anim-play-state, running);
 }
