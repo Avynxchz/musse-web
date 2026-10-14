@@ -37,8 +37,8 @@ export default function LoginPage() {
   }, [loading, logEvent, router, showToastMsg]);
 
   return (
-    <div className="min-h-screen bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-screen bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+    <div className="min-h-dvh bg-[#18181B] flex justify-center">
+      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== Isi: header / hero / footer ===== */}
         <div className="flex-1 flex flex-col justify-between p-6 overflow-y-auto">
           {/* Logo + badge */}
