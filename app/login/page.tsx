@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Toast, useToast } from '../components/ui';
 
@@ -10,6 +10,14 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast, showToastMsg } = useToast();
   const [loading, setLoading] = useState(false);
+  const loginTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup: cegah router.push setelah unmount
+  useEffect(() => {
+    return () => {
+      if (loginTimer.current) clearTimeout(loginTimer.current);
+    };
+  }, []);
 
   const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
     console.log('[login]', event, payload);
@@ -21,7 +29,8 @@ export default function LoginPage() {
     logEvent('auth_login_google_click', { mode: 'dummy' });
     showToastMsg('Login dummy — OAuth menyusul');
     // Dummy: jeda sebentar lalu masuk beranda
-    setTimeout(() => {
+    if (loginTimer.current) clearTimeout(loginTimer.current);
+    loginTimer.current = setTimeout(() => {
       logEvent('auth_login_google', { status: 'authenticated_dummy', quota_granted: 25 });
       router.push('/beranda');
     }, 900);
