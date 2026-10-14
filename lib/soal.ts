@@ -59,14 +59,28 @@ const MAPEL_DB_MAP: Record<string, string> = {
 
 export async function getSoal(mapel: string, paket: number): Promise<SoalRow[]> {
   const dbMapel = MAPEL_DB_MAP[mapel] ?? mapel;
+  // STAGE 1 (ringan): ambil soal tanpa pembahasan & soal_serupa.
+  // Payload JSONB pembahasan besar bikin koneksi Supabase diputus.
+  // Pembahasan di-load terpisah via getPembahasan() saat user klik Cek Jawaban.
   const { data, error } = await supabase
     .from('soal')
-    .select('*')
+    .select('id,mapel,mapel_nama,paket,nomor,tipe,stimulus,pertanyaan,pilihan,pernyataan,kunci')
     .eq('mapel', dbMapel)
     .eq('paket', paket)
     .order('nomor');
   if (error) throw error;
   return (data ?? []) as SoalRow[];
+}
+
+/** STAGE 2: ambil pembahasan + soal_serupa untuk 1 soal (dipanggil saat Cek Jawaban) */
+export async function getPembahasan(soalId: string): Promise<Pick<SoalRow, 'pembahasan' | 'soal_serupa'> | null> {
+  const { data, error } = await supabase
+    .from('soal')
+    .select('pembahasan,soal_serupa')
+    .eq('id', soalId)
+    .single();
+  if (error) return null;
+  return data;
 }
 
 /** Parse kunci format "A:Benar" menjadi {A: 'Benar'} + daftar label unik */
@@ -166,6 +180,7 @@ export function dbRowToQuestion(row: SoalRow): Question {
   };
 
   return {
+    id: row.id,
     nomor: row.nomor,
     tipe,
     topik,
