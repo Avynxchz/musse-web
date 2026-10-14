@@ -40,8 +40,8 @@ export default function AkunPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-screen bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+    <div className="min-h-dvh bg-[#18181B] flex justify-center">
+      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== Header ===== */}
         <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
           <h2 className="text-base font-extrabold">Akun & Pengaturan</h2>
