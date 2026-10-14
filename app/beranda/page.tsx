@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MAPEL_CATALOG, Mapel, MapelCat, QuizMode, getMapel } from '../arena/data';
 import {
@@ -45,6 +45,8 @@ export default function BerandaPage() {
   const [dateOpen, setDateOpen] = useState(false);
   const [dateInput, setDateInput] = useState('');
   const [countdownText, setCountdownText] = useState('H-12 TKA');
+  // Guard anti double-start quiz (double-click tombol Mulai)
+  const startingRef = useRef(false);
   const { toast, showToastMsg } = useToast();
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
 
@@ -82,6 +84,9 @@ export default function BerandaPage() {
 
   const confirmStartQuiz = useCallback(() => {
     if (!modeSheet) return;
+    // Guard: cegah double-push dari double-click tombol Mulai
+    if (startingRef.current) return;
+    startingRef.current = true;
     logEvent('quiz_start', {
       mapel: modeSheet.mapelKey,
       paket: modeSheet.paket,
