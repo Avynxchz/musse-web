@@ -10,47 +10,18 @@ import {
   getDurasiDetik,
   getMapel,
 } from './data';
+import {
+  LogPanel,
+  NeoBtn,
+  Toast,
+  type LogEntry,
+} from '../components/ui';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
-
-interface LogEntry {
-  id: number;
-  event: string;
-  ts: string;
-  payload: Record<string, unknown>;
-}
 
 let logId = 1;
 
 /* ================= Komponen kecil ================= */
-
-function NeoBtn({
-  children,
-  onClick,
-  className = '',
-  disabled,
-  title,
-  type,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-  disabled?: boolean;
-  title?: string;
-  type?: 'button' | 'submit';
-}) {
-  return (
-    <button
-      type={type ?? 'button'}
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={`border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-all font-extrabold disabled:opacity-40 ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
 
 function formatHMS(sec: number): string {
   const s = Math.max(0, Math.floor(sec));
@@ -860,45 +831,17 @@ function ArenaClient() {
         )}
 
         {/* ===== TOAST ===== */}
-        {toast && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#111] text-white border-2 border-[#B6FF00] px-4 py-2 rounded-full text-xs font-extrabold shadow-lg whitespace-nowrap pointer-events-none">
-            {toast}
-          </div>
-        )}
+        <Toast message={toast} className="bottom-24 shadow-lg pointer-events-none" />
 
         {/* ===== PANEL BEHAVIOR LOG ===== */}
         {showLogPanel && (
-          <div className="absolute inset-0 z-50 bg-[#111]/95 text-white flex flex-col p-4">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase bg-[#B6FF00] text-[#111] px-2 py-0.5 rounded">
-                  Dummy Telemetry
-                </span>
-                <h3 className="text-sm font-extrabold mt-1">Behavior Log ({logs.length})</h3>
-              </div>
-              <button
-                onClick={() => setShowLogPanel(false)}
-                className="bg-white/10 px-2.5 py-1 rounded-lg text-xs font-bold"
-              >
-                Tutup ✕
-              </button>
-            </div>
-            <p className="text-[11px] text-white/70 mt-2">
-              Versi dummy: event dicatat via console.log + counter. Belum dikirim ke Supabase.
-            </p>
-            <div className="flex-1 overflow-y-auto mt-3 space-y-2 font-mono text-[11px]">
-              {logs.length === 0 && <p className="text-white/50">Belum ada event.</p>}
-              {logs.map((l) => (
-                <div key={l.id} className="bg-white/5 border border-white/15 rounded-lg p-2.5">
-                  <div className="flex justify-between text-[#B6FF00] font-bold">
-                    <span>[{l.event}]</span>
-                    <span className="text-white/50">{l.ts}</span>
-                  </div>
-                  <div className="text-white/80 mt-1 break-all">{JSON.stringify(l.payload)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LogPanel
+            logs={logs}
+            onClose={() => setShowLogPanel(false)}
+            badge="Dummy Telemetry"
+            title={`Behavior Log (${logs.length})`}
+            description="Versi dummy: event dicatat via console.log + counter. Belum dikirim ke Supabase."
+          />
         )}
       </div>
     </div>
