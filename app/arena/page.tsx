@@ -17,6 +17,8 @@ import {
   Toast,
   type LogEntry,
 } from '../components/ui';
+import { dbRowToQuestion, getSoal } from '../../lib/soal';
+import type { Question } from './data';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
 
@@ -130,6 +132,42 @@ function ArenaClient() {
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
 
+  // --- soal dari Supabase (fallback ke dummy jika gagal) ---
+  const [questions, setQuestions] = useState<Question[]>(QUESTIONS);
+  const [soalLoading, setSoalLoading] = useState(true);
+  const [soalError, setSoalError] = useState<string | null>(null);
+  const [soalSource, setSoalSource] = useState<'supabase' | 'dummy'>('dummy');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await getSoal(mapelKey, paket);
+        if (cancelled) return;
+        if (rows.length > 0) {
+          setQuestions(rows.map(dbRowToQuestion));
+          setSoalSource('supabase');
+          setSoalError(null);
+        } else {
+          // Supabase kosong untuk mapel+paket ini → pakai dummy
+          setQuestions(QUESTIONS);
+          setSoalSource('dummy');
+        }
+      } catch (e) {
+        if (cancelled) return;
+        // Gagal fetch → fallback dummy agar tidak blank
+        setQuestions(QUESTIONS);
+        setSoalSource('dummy');
+        setSoalError(e instanceof Error ? e.message : 'Gagal memuat soal');
+      } finally {
+        if (!cancelled) setSoalLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mapelKey, paket]);
+
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const evalRef = useRef<HTMLDivElement>(null);
@@ -144,8 +182,8 @@ function ArenaClient() {
     };
   }, []);
 
-  const q = QUESTIONS[qIndex];
-  const isLast = qIndex === QUESTIONS.length - 1;
+  const q = questions[qIndex];
+  const isLast = qIndex === questions.length - 1;
   const fontScale = FONT_SCALES[fontScaleIdx];
 
   // --- behavior log ---
@@ -175,15 +213,15 @@ function ArenaClient() {
     setTimeout(() => {
       finishingRef.current = false;
     }, 3000);
-    const hasil = QUESTIONS.map((qq, i) => evaluateQuestion(qq, answers[i]));
+    const hasil = questions.map((qq, i) => evaluateQuestion(qq, answers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
     logEvent('attempt_finish', {
       mode,
       ended_by: endedBy,
       benar,
-      total: QUESTIONS.length,
+      total: questions.length,
     });
-    router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${QUESTIONS.length}`);
+    router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${questions.length}`);
   };
 
   // --- timer: state countdown hidup di <ArenaTimer> (terisolasi).
@@ -206,12 +244,12 @@ function ArenaClient() {
 
   // --- navigasi soal ---
   const goSoal = (idx: number) => {
-    if (idx < 0 || idx >= QUESTIONS.length) return;
+    if (idx < 0 || idx >= questions.length) return;
     setQIndex(idx);
     setPilarExpanded(false);
     setSimSoalOpen(false);
     setSimFeedback(null);
-    logEvent('soal_view', { soal_no: QUESTIONS[idx].nomor, tipe: QUESTIONS[idx].tipe, mode });
+    logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
     scrollBodyRef.current?.scrollTo({ top: 0 });
   };
 
@@ -231,7 +269,7 @@ function ArenaClient() {
     logEvent('option_click', { soal_no: q.nomor, opsi: key, mode });
   };
 
-  const pickBs = (stmtKey: string, val: 'Benar' | 'Salah') => {
+  const pickBs = (stmtKey: string, val: string) => {
     setAnswers((prev) => {
       const cur = (prev[qIndex] as Record<string, string>) || {};
       return { ...prev, [qIndex]: { ...cur, [stmtKey]: val } };
@@ -349,9 +387,29 @@ function ArenaClient() {
   const mapelShort = mapel.name.split(' ')[0];
   const soalLabel = `${mapelShort} · P${paket}`;
 
+  // Loading / error state untuk fetch soal
+  if (soalLoading || !q) {
+    return (
+      <div className="min-h-dvh bg-[#18181B] flex justify-center">
+        <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
+          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl px-6 py-4 text-sm font-extrabold bg-white text-center">
+            <div className="text-2xl mb-2">📚</div>
+            Memuat soal…
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
       <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+        {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
+        {soalError && soalSource === 'dummy' && (
+          <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
+            ⚠️ Soal asli gagal dimuat — pakai soal contoh
+          </div>
+        )}
         {/* ===== TOP BAR ===== */}
         <header className="bg-white border-b-2 border-[#111] px-3 py-2.5 flex items-center justify-between gap-1.5 shrink-0 sticky top-0 z-30">
           <NeoBtn
@@ -372,7 +430,7 @@ function ArenaClient() {
               </span>
               <span className="text-xs font-extrabold truncate">{soalLabel}</span>
               <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded shrink-0">
-                {q.nomor}/{QUESTIONS.length}
+                {q.nomor}/{questions.length}
               </span>
             </div>
           </div>
@@ -414,7 +472,7 @@ function ArenaClient() {
         <div className="w-full h-1.5 bg-neutral-200 border-b border-[#111] shrink-0">
           <div
             className="h-full w-full bg-[#B6FF00] transition-transform duration-300 origin-left"
-            style={{ transform: `scaleX(${(((qIndex + 1) / QUESTIONS.length)).toFixed(4)})` }}
+            style={{ transform: `scaleX(${(((qIndex + 1) / questions.length)).toFixed(4)})` }}
           />
         </div>
 
@@ -501,7 +559,7 @@ function ArenaClient() {
               )}
 
               {/* Tabel Benar-Salah */}
-              {q.statements && (
+              {q.statements && q.tipe === 'Benar-Salah' && (
                 <div className="border-2 border-[#111] rounded-xl overflow-hidden text-xs">
                   <div className="bg-[#111] text-white font-extrabold px-3 py-2 flex justify-between">
                     <span>Pernyataan</span>
@@ -531,6 +589,52 @@ function ArenaClient() {
                           >
                             Salah
                           </NeoBtn>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Tabel Matriks / Pernyataan-Label (label kolom custom) */}
+              {q.statements && (q.tipe === 'Matriks' || q.tipe === 'Pernyataan-Label') && (
+                <div className="border-2 border-[#111] rounded-xl overflow-hidden text-xs">
+                  <div className="bg-[#111] text-white font-extrabold px-3 py-2">
+                    <div className="mb-1">
+                      {q.tipe === 'Matriks' ? '▦ Matriks' : '🏷️ Pernyataan-Label'} · Pilih satu label per pernyataan
+                    </div>
+                    <div className="flex">
+                      <span className="flex-1">Pernyataan</span>
+                      {(q.labelOptions ?? []).map((lb) => (
+                        <span key={lb} className="w-20 text-center shrink-0">
+                          {lb}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {q.statements.map((st) => {
+                    const cur = (answers[qIndex] as Record<string, string>) || {};
+                    const labels = q.labelOptions ?? [];
+                    return (
+                      <div
+                        key={st.key}
+                        className="p-3 border-t border-neutral-200 bg-white"
+                      >
+                        <div className="mb-2">
+                          <b className="mr-1">{st.key}.</b>
+                          {st.text}
+                        </div>
+                        <div className="flex gap-1">
+                          <span className="flex-1" />
+                          {labels.map((lb, li) => (
+                            <NeoBtn
+                              key={lb}
+                              onClick={() => pickBs(st.key, lb)}
+                              className={`w-20 py-1 rounded-lg text-[11px] shrink-0 ${cur[st.key] === lb ? (li === 0 ? 'bg-[#B6FF00]' : 'bg-[#E0E7FF]') : 'bg-white'}`}
+                            >
+                              {lb}
+                            </NeoBtn>
+                          ))}
                         </div>
                       </div>
                     );
@@ -738,7 +842,7 @@ function ArenaClient() {
                 </span>
               </div>
               <div className="grid grid-cols-5 gap-2">
-                {QUESTIONS.map((qq, i) => {
+                {questions.map((qq, i) => {
                   const ans = answers[i];
                   const dijawab =
                     ans !== undefined &&
