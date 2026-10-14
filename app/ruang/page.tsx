@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BottomNav,
+  ChatInput,
   LogCounter,
   LogPanel,
   NeoBtn,
@@ -93,7 +94,6 @@ export default function RuangPage() {
   /* ===== Chat Coach per mapel ===== */
   const [showCoach, setShowCoach] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
-  const [chatInput, setChatInput] = useState('');
   const [coachQuota, setCoachQuota] = useState(24);
   const chatBoxRef = useRef<HTMLDivElement | null>(null);
   const greetedMapelRef = useRef<string>('');
@@ -136,7 +136,6 @@ export default function RuangPage() {
     const reply = replies[userCount % replies.length];
     const nextQuota = Math.max(0, coachQuota - 1);
     setChatMsgs((prev) => [...prev, { from: 'user', html: msg }, { from: 'ai', html: reply }]);
-    setChatInput('');
     setCoachQuota(nextQuota);
     logEvent('coach_chat_ask', { mapel: mapelCoach, prompt: msg.slice(0, 60), quota_remaining: nextQuota });
   };
@@ -147,8 +146,8 @@ export default function RuangPage() {
   }, [chatMsgs, showCoach]);
 
   return (
-    <div className="min-h-screen bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-screen bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+    <div className="min-h-dvh bg-[#18181B] flex justify-center">
+      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== Header ===== */}
         <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
           <div>
@@ -308,24 +307,10 @@ export default function RuangPage() {
                 ))}
               </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  sendCoachMsg(chatInput);
-                }}
-                className="p-3 bg-white border-t-2 border-[#111] flex gap-2 shrink-0"
-              >
-                <input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  type="text"
-                  placeholder={`Tanya materi ${mapelLabel}...`}
-                  className="flex-1 border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none min-w-0"
-                />
-                <NeoBtn type="submit" className="bg-[#B6FF00] px-4 py-2 rounded-xl text-xs">
-                  Kirim
-                </NeoBtn>
-              </form>
+              <ChatInput
+                placeholder={`Tanya materi ${mapelLabel}...`}
+                onSend={sendCoachMsg}
+              />
             </div>
           </div>
         )}
