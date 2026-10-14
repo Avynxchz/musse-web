@@ -30,7 +30,12 @@ export const MAPEL_CATALOG: Mapel[] = [
 
 // ---------- Soal ----------
 
-export type TipeSoal = 'Pilihan Ganda' | 'Pilihan Ganda Kompleks' | 'Benar-Salah';
+export type TipeSoal =
+  | 'Pilihan Ganda'
+  | 'Pilihan Ganda Kompleks'
+  | 'Benar-Salah'
+  | 'Matriks'
+  | 'Pernyataan-Label';
 
 export interface Opsi {
   key: string;
@@ -56,8 +61,9 @@ export interface Question {
   stimulus: string; // '' = tidak ada stimulus
   prompt: string;
   options?: Opsi[]; // untuk PG & PG Kompleks
-  statements?: Statement[]; // untuk Benar-Salah
-  kunci: string | string[] | Record<string, 'Benar' | 'Salah'>;
+  statements?: Statement[]; // untuk Benar-Salah, Matriks, Pernyataan-Label
+  labelOptions?: string[]; // untuk Matriks & Pernyataan-Label (kolom label custom)
+  kunci: string | string[] | Record<string, string>;
   ringkas: string;
   pilar1: string;
   pilar3: string;
@@ -199,8 +205,8 @@ export function evaluateQuestion(
     const k = [...(q.kunci as string[])].sort().join(',');
     return u === k ? 'benar' : 'salah';
   }
-  // Benar-Salah
-  if (q.tipe === 'Benar-Salah') {
+  // Benar-Salah, Matriks, Pernyataan-Label: semua pernyataan harus dijawab & cocok kunci
+  if (q.tipe === 'Benar-Salah' || q.tipe === 'Matriks' || q.tipe === 'Pernyataan-Label') {
     if (typeof answer !== 'object' || Array.isArray(answer)) return 'kosong';
     const kunci = q.kunci as Record<string, string>;
     const stmts = q.statements ?? [];
