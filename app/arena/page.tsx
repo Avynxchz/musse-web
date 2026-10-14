@@ -17,7 +17,7 @@ import {
   Toast,
   type LogEntry,
 } from '../components/ui';
-import { dbRowToQuestion, getSoal } from '../../lib/soal';
+import { dbRowToQuestion, getPembahasan, getSoal } from '../../lib/soal';
 import type { Question } from './data';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
@@ -138,6 +138,74 @@ function ArenaClient() {
   const [soalError, setSoalError] = useState<string | null>(null);
   const [soalSource, setSoalSource] = useState<'supabase' | 'dummy'>('dummy');
 
+  // --- two-stage pembahasan: status per id soal (bukan index, agar aman saat ganti mapel) ---
+  // 'loading' = sedang fetch, 'loaded' = sudah ada isi, 'failed' = gagal (tampilkan pesan)
+  const [pembahasanStatus, setPembahasanStatus] = useState<Record<string, 'loading' | 'loaded' | 'failed'>>({});
+  const pembahasanStatusRef = useRef<Record<string, 'loading' | 'loaded' | 'failed'>>({});
+  const setPembahasanStatusSync = (id: string, s: 'loading' | 'loaded' | 'failed') => {
+    pembahasanStatusRef.current[id] = s;
+    setPembahasanStatus((prev) => ({ ...prev, [id]: s }));
+  };
+
+  /** STAGE 2: fetch pembahasan + soal_serupa untuk 1 soal, lalu merge ke questions[idx] */
+  const loadPembahasan = useCallback(
+    async (idx: number) => {
+      const question = questions[idx];
+      const qid = question?.id;
+      // Skip: soal dummy (tanpa id) atau sudah loading/loaded/failed
+      if (!qid) return;
+      if (pembahasanStatusRef.current[qid]) return;
+      setPembahasanStatusSync(qid, 'loading');
+      try {
+        const data = await getPembahasan(qid);
+        if (!data || (!data.pembahasan && !data.soal_serupa)) {
+          setPembahasanStatusSync(qid, 'failed');
+          return;
+        }
+        const p = data.pembahasan ?? {};
+        const ss = data.soal_serupa ?? {};
+        const diketahui = (p.diketahui ?? '').trim();
+        const ditanyakan = (p.ditanyakan ?? '').trim();
+        const reasoning = (p.reasoning ?? '').trim();
+        const tips = (p.tips ?? '').trim();
+        const whyCorrect = (p.why_correct ?? '').trim();
+        const mistakes = (p.common_mistakes ?? '').trim();
+        const steps = Array.isArray(p.steps) ? p.steps : [];
+        const ssPilihan = Array.isArray(ss.pilihan) ? ss.pilihan : [];
+        const ssKunci = typeof ss.kunci === 'string' ? ss.kunci.trim() : '';
+        setQuestions((prev) =>
+          prev.map((qq, i) => {
+            if (i !== idx) return qq;
+            const pilar1 = [diketahui, ditanyakan].filter(Boolean).join(' ').trim();
+            const pilar5 = [tips, whyCorrect, mistakes].filter(Boolean).join(' ').trim();
+            const ringkas = (whyCorrect || reasoning).slice(0, 300);
+            return {
+              ...qq,
+              ...(pilar1 ? { pilar1 } : {}),
+              ...(reasoning ? { pilar3: reasoning } : {}),
+              ...(steps.length > 0 ? { pilar4: steps } : {}),
+              ...(pilar5 ? { pilar5 } : {}),
+              ...(ringkas ? { ringkas } : {}),
+              similar: {
+                q: (ss.pertanyaan ?? '').trim() || 'Soal serupa belum tersedia.',
+                opts: ssPilihan.map((o) => `${o.key}. ${o.text}`),
+                ans: Math.max(
+                  0,
+                  ssPilihan.findIndex((o) => o.key === ssKunci)
+                ),
+                exp: (ss.pembahasan ?? ss.pembahasan_singkat ?? ss.pembahasan_serupa ?? '').trim(),
+              },
+            };
+          })
+        );
+        setPembahasanStatusSync(qid, 'loaded');
+      } catch {
+        setPembahasanStatusSync(qid, 'failed');
+      }
+    },
+    [questions]
+  );
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -250,6 +318,10 @@ function ArenaClient() {
     setSimSoalOpen(false);
     setSimFeedback(null);
     logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
+    // Two-stage: pastikan pembahasan ter-load untuk soal yang sudah di-cek (mode latihan)
+    if (mode === 'latihan' && checked[idx]) {
+      loadPembahasan(idx);
+    }
     scrollBodyRef.current?.scrollTo({ top: 0 });
   };
 
@@ -303,6 +375,8 @@ function ArenaClient() {
       }
       setChecked((prev) => ({ ...prev, [qIndex]: true }));
       logEvent('check_answer', { soal_no: q.nomor, jawaban: ans });
+      // Two-stage: fetch pembahasan asli dari Supabase (tidak blocking UI)
+      loadPembahasan(qIndex);
       setTimeout(() => evalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
     } else {
       if (isLast) finishQuiz('user');
@@ -662,6 +736,18 @@ function ArenaClient() {
                     <span className="text-[11px] font-bold">Soal #{q.nomor}</span>
                   </div>
                 </div>
+
+                {/* Two-stage: indikator loading / gagal fetch pembahasan */}
+                {q.id && pembahasanStatus[q.id] === 'loading' && (
+                  <div className="text-center text-xs font-bold text-neutral-500 py-1">
+                    ⏳ Memuat pembahasan...
+                  </div>
+                )}
+                {q.id && pembahasanStatus[q.id] === 'failed' && (
+                  <div className="text-center text-xs font-bold text-neutral-500 py-1">
+                    Pembahasan belum tersedia
+                  </div>
+                )}
 
                 <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4">
                   <div className="flex items-center justify-between border-b-2 border-[#111] pb-2.5">
