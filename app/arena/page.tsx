@@ -80,6 +80,16 @@ function ArenaClient() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const evalRef = useRef<HTMLDivElement>(null);
+  // Guard anti double-submit / double-finish (race condition)
+  const finishingRef = useRef(false);
+  const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
+
+  // Cleanup: cegah setState setelah unmount (toast timer)
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   const q = QUESTIONS[qIndex];
   const isLast = qIndex === QUESTIONS.length - 1;
@@ -105,6 +115,9 @@ function ArenaClient() {
 
   // --- timer ---
   const finishQuiz = (endedBy: 'user' | 'timer') => {
+    // Guard: cegah double-finish (double-click / timer + klik manual bersamaan)
+    if (finishingRef.current) return;
+    finishingRef.current = true;
     const hasil = QUESTIONS.map((qq, i) => evaluateQuestion(qq, answers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
     logEvent('attempt_finish', {
@@ -240,6 +253,11 @@ function ArenaClient() {
   const sendChat = (text: string) => {
     const msg = text.trim();
     if (!msg) return;
+    // Guard: cegah pesan duplikat dari double-click submit (<500ms, pesan sama)
+    // eslint-disable-next-line react-hooks/purity -- Date.now() di event handler (bukan render), aman
+    const now = Date.now();
+    if (lastChatRef.current.msg === msg && now - lastChatRef.current.ts < 500) return;
+    lastChatRef.current = { msg, ts: now };
     setChatInput('');
     setTutorQuota((qt) => Math.max(0, qt - 1));
     const reply =
