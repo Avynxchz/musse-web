@@ -55,6 +55,7 @@ export interface SimilarSoal {
 }
 
 export interface Question {
+  id?: string; // id baris Supabase (undefined untuk soal dummy)
   nomor: number;
   tipe: TipeSoal;
   topik: string;
