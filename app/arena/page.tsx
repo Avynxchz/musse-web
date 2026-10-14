@@ -169,8 +169,12 @@ function ArenaClient() {
   // --- timer ---
   const finishQuiz = (endedBy: 'user' | 'timer') => {
     // Guard: cegah double-finish (double-click / timer + klik manual bersamaan)
+    // Reset otomatis setelah 3 detik sebagai pengaman kalau navigasi gagal
     if (finishingRef.current) return;
     finishingRef.current = true;
+    setTimeout(() => {
+      finishingRef.current = false;
+    }, 3000);
     const hasil = QUESTIONS.map((qq, i) => evaluateQuestion(qq, answers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
     logEvent('attempt_finish', {
