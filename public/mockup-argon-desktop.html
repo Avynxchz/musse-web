@@ -1,0 +1,1851 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>musse — Desktop & Mobile Responsive Prototype (Neo-Brutalism)</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Press+Start+2P&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"><style>
+/* =====================================================================
+1. TOKENS & RESET (NEO-BRUTALISM MANDIRI TANPA TAILWIND CDN)
+===================================================================== */
+:root {
+--bg: #FAFAF7;
+--surface: #FFFFFF;
+--ink: #111111;
+--muted: #52525B;
+--lime: #B6FF00;
+--lime-hover: #C8FF3D;
+--indigo: #4F46E5;
+--indigo-soft: #E0E7FF;
+--amber-soft: #FEF3C7;
+--amber-mid: #FCD34D;
+--orange-soft: #FFEDD5;
+--red-soft: #FEE2E2;
+--red-ink: #991B1B;
+--green-soft: #DCFCE7;
+--green-ink: #166534;
+--border: 2px solid #111111;
+--shadow: 0 4px 0 #111111;
+--shadow-sm: 0 3px 0 #111111;
+--radius-lg: 16px;
+--radius-md: 12px;
+--radius-sm: 8px;
+--font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+--font-heading: 'Space Grotesk', sans-serif;
+--font-pixel: 'Press Start 2P', monospace;
+}
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+-webkit-tap-highlight-color: transparent;
+}
+body {
+background-color: #18181B;
+color: var(--ink);
+font-family: var(--font-sans);
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+overflow-x: hidden;
+}
+h1, h2, h3, h4, .font-heading {
+font-family: var(--font-heading);
+letter-spacing: -0.02em;
+}
+.font-pixel {
+font-family: var(--font-pixel);
+}
+button, input, select {
+font-family: inherit;
+color: inherit;
+}
+button {
+cursor: pointer;
+background: none;
+border: none;
+}
+button:disabled {
+opacity: 0.45;
+cursor: not-allowed;
+}
+.hidden {
+display: none !important;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* =====================================================================
+2. NEO-BRUTALISM PRIMITIVES
+===================================================================== */
+.neo-card {
+background: var(--surface);
+border: var(--border);
+box-shadow: var(--shadow);
+border-radius: var(--radius-lg);
+}
+.neo-card-lime {
+background: var(--lime);
+border: var(--border);
+box-shadow: var(--shadow);
+border-radius: var(--radius-lg);
+}
+.neo-card-dark {
+background: var(--ink);
+color: #FFFFFF;
+border: var(--border);
+box-shadow: var(--shadow);
+border-radius: var(--radius-lg);
+}
+.neo-btn {
+border: var(--border);
+box-shadow: var(--shadow-sm);
+border-radius: var(--radius-md);
+font-weight: 800;
+transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+background: var(--surface);
+}
+.neo-btn:active:not(:disabled) {
+transform: translateY(2px);
+box-shadow: 0 1px 0 #111111;
+}
+.btn-lime { background: var(--lime); color: var(--ink); }
+.btn-lime:hover:not(:disabled) { background: var(--lime-hover); }
+.btn-dark { background: var(--ink); color: var(--lime); }
+.btn-indigo { background: var(--indigo); color: #FFFFFF; }
+.btn-indigo-soft { background: var(--indigo-soft); color: var(--ink); }
+.btn-amber { background: var(--amber-mid); color: var(--ink); }
+.btn-red-soft { background: var(--red-soft); color: var(--red-ink); }
+.badge {
+display: inline-flex;
+align-items: center;
+gap: 4px;
+padding: 3px 9px;
+font-size: 11px;
+font-weight: 800;
+border: 1.5px solid var(--ink);
+border-radius: 999px;
+background: var(--surface);
+}
+.badge-lime { background: var(--lime); color: var(--ink); }
+.badge-indigo { background: var(--indigo-soft); color: var(--ink); }
+.badge-amber { background: var(--amber-mid); color: var(--ink); }
+.badge-orange { background: var(--orange-soft); color: var(--ink); }
+.badge-dark { background: var(--ink); color: var(--lime); }
+.badge-green { background: var(--green-soft); color: var(--green-ink); border-color: var(--green-ink); }
+.badge-red { background: var(--red-soft); color: var(--red-ink); border-color: var(--red-ink); }
+/* Scale text support in Arena */
+[data-scale="90"] .soal-text-scope { font-size: 13.5px; }
+[data-scale="100"] .soal-text-scope { font-size: 15px; }
+[data-scale="115"] .soal-text-scope { font-size: 17px; }
+[data-scale="130"] .soal-text-scope { font-size: 19.5px; }
+/* =====================================================================
+3. TOP DEV BAR (PREVIEW SWITCHER & LOG INSPECTOR)
+===================================================================== */
+.dev-topbar {
+width: 100%;
+background: #09090B;
+color: #FFFFFF;
+padding: 8px 16px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+border-bottom: 2px solid #27272A;
+font-size: 12px;
+z-index: 100;
+position: sticky;
+top: 0;
+}
+.dev-screens {
+display: flex;
+align-items: center;
+gap: 6px;
+overflow-x: auto;
+}
+.dev-tab-btn {
+padding: 5px 10px;
+border-radius: 6px;
+background: rgba(255,255,255,0.1);
+color: #E4E4E7;
+font-weight: 700;
+font-size: 11px;
+white-space: nowrap;
+}
+.dev-tab-btn.active {
+background: var(--lime);
+color: var(--ink);
+font-weight: 800;
+}
+.dev-actions {
+display: flex;
+align-items: center;
+gap: 8px;
+flex-shrink: 0;
+}
+.viewport-toggle-btn {
+background: #27272A;
+color: #FFFFFF;
+border: 1.5px solid var(--lime);
+padding: 5px 12px;
+border-radius: 999px;
+font-size: 11px;
+font-weight: 800;
+display: inline-flex;
+align-items: center;
+gap: 6px;
+}
+.viewport-toggle-btn:hover {
+background: var(--lime);
+color: var(--ink);
+}
+/* =====================================================================
+4. VIEWPORT CONTAINER: DESKTOP vs MOBILE SHELL
+===================================================================== */
+/* DESKTOP MODE (Default on >=768px when data-viewport="desktop") */
+#appViewport {
+position: relative;
+background: var(--bg);
+width: 100%;
+min-height: calc(100vh - 45px);
+display: flex;
+flex-direction: row;
+overflow: hidden;
+}
+/* Forced Mobile Preview Mode OR Screen < 768px */
+#appViewport[data-viewport="mobile"] {
+max-width: 430px;
+height: 850px;
+max-height: calc(100vh - 60px);
+min-height: auto;
+margin: 10px auto;
+border: 2px solid var(--ink);
+border-radius: 24px;
+box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+flex-direction: column;
+}
+/* =====================================================================
+5. NAVIGATION: SIDEBAR KIRI (DESKTOP) vs BOTTOM NAV (MOBILE)
+===================================================================== */
+.app-sidebar {
+width: 250px;
+background: var(--surface);
+border-right: var(--border);
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+padding: 20px 16px;
+flex-shrink: 0;
+z-index: 20;
+}
+.sidebar-brand {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 6px 18px;
+border-bottom: 2px solid var(--ink);
+}
+.sidebar-brand-logo {
+font-family: var(--font-heading);
+font-size: 26px;
+font-weight: 800;
+letter-spacing: -0.03em;
+}
+.sidebar-nav-list {
+display: flex;
+flex-direction: column;
+gap: 10px;
+margin-top: 20px;
+}
+.nav-item-btn {
+width: 100%;
+padding: 12px 14px;
+border-radius: var(--radius-md);
+font-size: 14px;
+font-weight: 800;
+display: flex;
+align-items: center;
+gap: 12px;
+text-align: left;
+border: 2px solid transparent;
+color: var(--muted);
+transition: all 0.12s ease;
+}
+.nav-item-btn:hover {
+background: var(--bg);
+color: var(--ink);
+}
+.nav-item-btn.active {
+background: var(--lime);
+color: var(--ink);
+border: var(--border);
+box-shadow: var(--shadow-sm);
+}
+.sidebar-footer {
+border-top: 2px solid var(--ink);
+padding-top: 16px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.sidebar-user-card {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 10px;
+border-radius: var(--radius-md);
+background: var(--bg);
+border: 1.5px solid var(--ink);
+}
+.avatar-circle {
+width: 36px;
+height: 36px;
+border-radius: 999px;
+background: var(--lime);
+border: var(--border);
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 800;
+font-size: 13px;
+flex-shrink: 0;
+}
+/* Mobile Bottom Nav (Hidden on Desktop) */
+.mobile-bottomnav {
+display: none;
+background: var(--surface);
+border-top: var(--border);
+padding: 8px 16px;
+justify-content: space-around;
+align-items: center;
+flex-shrink: 0;
+z-index: 25;
+}
+.m-nav-btn {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 3px;
+font-size: 11px;
+font-weight: 700;
+color: var(--muted);
+}
+.m-nav-btn.active {
+color: var(--ink);
+font-weight: 800;
+}
+.m-nav-pill {
+padding: 2px 14px;
+border-radius: 999px;
+font-size: 13px;
+}
+.m-nav-btn.active .m-nav-pill {
+background: var(--lime);
+border: 1.5px solid var(--ink);
+}
+/* Main Content Wrapper */
+.app-main-area {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow-y: auto;
+height: calc(100vh - 45px);
+}
+#appViewport[data-viewport="mobile"] .app-main-area {
+height: 100%;
+}
+.desktop-container {
+width: 100%;
+max-width: 1200px;
+margin: 0 auto;
+padding: 24px 28px 48px;
+}
+/* =====================================================================
+6. LAYAR 1: LOGIN SPLIT-SCREEN (DESKTOP) vs STACK (MOBILE)
+===================================================================== */
+.auth-wrapper {
+width: 100%;
+min-height: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 32px;
+background: var(--bg);
+}
+.auth-split-grid {
+width: 100%;
+max-width: 1080px;
+display: grid;
+grid-template-columns: 1.15fr 0.85fr;
+gap: 40px;
+align-items: center;
+}
+.auth-headline {
+font-size: 52px;
+line-height: 1.08;
+font-weight: 800;
+margin-top: 16px;
+}
+.lime-underline {
+text-decoration: underline;
+text-decoration-color: var(--lime);
+text-decoration-thickness: 10px;
+text-underline-offset: 4px;
+}
+.auth-right-card {
+padding: 32px;
+display: flex;
+flex-direction: column;
+gap: 18px;
+}
+/* =====================================================================
+7. LAYAR 2: BERANDA LATIHAN (2 KOLOM WIDGET + 3 KOLOM GRID MAPEL)
+===================================================================== */
+.top-header-bar {
+background: var(--surface);
+border-bottom: var(--border);
+padding: 16px 28px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 16px;
+position: sticky;
+top: 0;
+z-index: 15;
+}
+.top-header-inner {
+width: 100%;
+max-width: 1200px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 16px;
+}
+.home-top-row {
+display: grid;
+grid-template-columns: 1.15fr 0.85fr;
+gap: 20px;
+margin-bottom: 28px;
+}
+.catalog-Controls-bar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 16px;
+margin-bottom: 16px;
+flex-wrap: wrap;
+}
+.search-input {
+width: 320px;
+max-width: 100%;
+background: var(--surface);
+border: var(--border);
+border-radius: var(--radius-md);
+padding: 10px 14px;
+font-size: 13px;
+font-weight: 600;
+outline: none;
+}
+.search-input:focus {
+box-shadow: 0 0 0 3px var(--lime);
+}
+.chips-scroll-row {
+display: flex;
+align-items: center;
+gap: 8px;
+overflow-x: auto;
+padding-bottom: 4px;
+margin-bottom: 18px;
+}
+.mapel-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 18px;
+}
+.mapel-card {
+padding: 18px;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+gap: 14px;
+transition: transform 0.12s ease;
+}
+.mapel-card:hover {
+transform: translateY(-2px);
+}
+/* =====================================================================
+8. LAYAR 3: ARENA SOAL (PRIORITAS 80% — 2 KOLOM 60% KIRI / 40% KANAN)
+===================================================================== */
+.arena-topbar {
+background: var(--surface);
+border-bottom: var(--border);
+padding: 12px 24px;
+position: sticky;
+top: 0;
+z-index: 20;
+}
+.arena-topbar-inner {
+max-width: 1200px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+}
+.arena-2col-grid {
+width: 100%;
+max-width: 1200px;
+margin: 0 auto;
+padding: 24px;
+display: grid;
+grid-template-columns: minmax(0, 6fr) minmax(300px, 4fr);
+gap: 24px;
+align-items: start;
+}
+.arena-left-col {
+display: flex;
+flex-direction: column;
+gap: 18px;
+}
+/* Panel Kanan Sticky di Desktop (Berisi Timer Besar, Peta Soal, Ragu, Cek Jawaban) */
+.arena-right-col {
+position: sticky;
+top: 84px;
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+.peta-grid {
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 8px;
+}
+.option-btn {
+width: 100%;
+padding: 14px 16px;
+border-radius: var(--radius-md);
+border: var(--border);
+box-shadow: var(--shadow-sm);
+background: var(--surface);
+display: flex;
+align-items: center;
+gap: 12px;
+text-align: left;
+font-weight: 700;
+transition: background 0.12s ease, transform 0.1s ease;
+}
+.option-btn:hover {
+background: #F4F4F0;
+}
+.option-btn.selected {
+background: var(--lime);
+}
+.option-key-circle {
+width: 28px;
+height: 28px;
+border: var(--border);
+background: var(--surface);
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 800;
+font-size: 12px;
+flex-shrink: 0;
+}
+/* Desktop Question Bottom Nav (Di bawah kartu soal kiri) */
+.desktop-soal-nav {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+padding: 14px 18px;
+}
+/* Mobile Sticky Footer Arena (Hanya muncul di Mobile) */
+.mobile-arena-footer {
+display: none;
+background: var(--surface);
+border-top: var(--border);
+padding: 10px 12px;
+align-items: center;
+gap: 8px;
+flex-shrink: 0;
+z-index: 25;
+}
+/* AI TUTOR: SLIDE-OVER KANAN (400px di Desktop) vs BOTTOM-SHEET (di Mobile) */
+.ai-tutor-backdrop {
+position: absolute;
+inset: 0;
+background: rgba(17, 17, 17, 0.25);
+z-index: 45;
+display: flex;
+justify-content: flex-end;
+}
+.ai-tutor-panel {
+width: 400px;
+max-width: 100%;
+height: 100%;
+background: var(--bg);
+border-left: 3px solid var(--ink);
+box-shadow: -8px 0 30px rgba(0,0,0,0.25);
+display: flex;
+flex-direction: column;
+overflow: hidden;
+animation: slideInRight 0.2s ease-out;
+}
+@keyframes slideInRight {
+from { transform: translateX(100%); }
+to { transform: translateX(0); }
+}
+/* =====================================================================
+9. LAYAR 4, 5, 6: HASIL AUTOPSI, RUANG AI & AKUN (2 KOLOM DESKTOP)
+===================================================================== */
+.autopsi-2col-grid {
+display: grid;
+grid-template-columns: 1.05fr 0.95fr;
+gap: 22px;
+align-items: start;
+margin-top: 20px;
+}
+.autopsi-scroll-list {
+max-height: 480px;
+overflow-y: auto;
+padding-right: 4px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.stats-3col-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 18px;
+margin-bottom: 22px;
+}
+.progres-2col-grid {
+display: grid;
+grid-template-columns: 1.2fr 0.8fr;
+gap: 22px;
+align-items: start;
+}
+.akun-2col-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 22px;
+align-items: start;
+}
+/* =====================================================================
+10. MODALS (PILIH MODE, ATUR MAPEL, STRATEGI)
+===================================================================== */
+.modal-backdrop {
+position: absolute;
+inset: 0;
+background: rgba(17, 17, 17, 0.6);
+z-index: 60;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+}
+.modal-dialog {
+width: 100%;
+max-width: 520px;
+background: var(--bg);
+border: 2px solid var(--ink);
+box-shadow: 0 8px 0 var(--ink);
+border-radius: 24px;
+padding: 24px;
+max-height: 88vh;
+display: flex;
+flex-direction: column;
+gap: 16px;
+overflow: hidden;
+}
+/* =====================================================================
+11. RESPONSIVE BREAKPOINT (<768px ATAU DATA-VIEWPORT="MOBILE")
+Otomatis kembali ke Layout Mobile v2 yang sudah di-ACC!
+===================================================================== */
+@media (max-width: 767px) {
+#appViewport {
+flex-direction: column !important;
+}
+.app-sidebar { display: none !important; }
+.mobile-bottomnav { display: flex !important; }
+.desktop-container { padding: 16px 16px 32px !important; }
+.top-header-bar { padding: 12px 16px !important; }
+.auth-split-grid,
+.home-top-row,
+.mapel-grid,
+.arena-2col-grid,
+.autopsi-2col-grid,
+.progres-2col-grid,
+.akun-2col-grid {
+grid-template-columns: 1fr !important;
+gap: 14px !important;
+}
+.auth-headline { font-size: 34px !important; }
+.search-input { width: 100% !important; }
+.desktop-soal-nav { display: none !important; }
+.mobile-arena-footer { display: flex !important; }
+.arena-2col-grid { padding: 14px !important; }
+/* Di mobile, panel kanan Arena jadi Drawer Peta Soal saat tombol Peta diklik */
+.arena-right-col {
+display: none;
+position: fixed;
+inset: 0;
+top: 0;
+background: rgba(0,0,0,0.6);
+z-index: 50;
+justify-content: flex-end;
+padding: 0;
+}
+.arena-right-col.mobile-drawer-open {
+display: flex !important;
+}
+.arena-right-inner {
+background: var(--bg);
+border-top: 2px solid var(--ink);
+border-radius: 24px 24px 0 0 !important;
+padding: 20px !important;
+}
+.desktop-only-widget { display: none !important; }
+.mobile-only-btn { display: inline-flex !important; }
+/* AI Tutor balik jadi Bottom-Sheet di Mobile */
+.ai-tutor-backdrop {
+align-items: flex-end;
+}
+.ai-tutor-panel {
+width: 100% !important;
+height: 82% !important;
+border-left: none !important;
+border-top: 2px solid var(--ink) !important;
+border-radius: 24px 24px 0 0 !important;
+}
+.modal-backdrop {
+align-items: flex-end;
+padding: 0;
+}
+.modal-dialog {
+max-width: 100%;
+border-radius: 24px 24px 0 0;
+border-bottom: none;
+}
+}
+/* Rules khusus saat user menekan tombol preview "📱 Mobile" di layar laptop */
+#appViewport[data-viewport="mobile"] .app-sidebar { display: none !important; }
+#appViewport[data-viewport="mobile"] .mobile-bottomnav { display: flex !important; }
+#appViewport[data-viewport="mobile"] .desktop-container { padding: 16px !important; }
+#appViewport[data-viewport="mobile"] .top-header-bar { padding: 12px 16px !important; }
+#appViewport[data-viewport="mobile"] .auth-split-grid,
+#appViewport[data-viewport="mobile"] .home-top-row,
+#appViewport[data-viewport="mobile"] .mapel-grid,
+#appViewport[data-viewport="mobile"] .arena-2col-grid,
+#appViewport[data-viewport="mobile"] .autopsi-2col-grid,
+#appViewport[data-viewport="mobile"] .progres-2col-grid,
+#appViewport[data-viewport="mobile"] .akun-2col-grid {
+grid-template-columns: 1fr !important;
+gap: 14px !important;
+}
+#appViewport[data-viewport="mobile"] .auth-headline { font-size: 34px !important; }
+#appViewport[data-viewport="mobile"] .search-input { width: 100% !important; }
+#appViewport[data-viewport="mobile"] .desktop-soal-nav { display: none !important; }
+#appViewport[data-viewport="mobile"] .mobile-arena-footer { display: flex !important; }
+#appViewport[data-viewport="mobile"] .arena-2col-grid { padding: 14px !important; }
+#appViewport[data-viewport="mobile"] .arena-right-col {
+display: none;
+position: absolute;
+inset: 0;
+top: 0;
+background: rgba(0,0,0,0.6);
+z-index: 50;
+justify-content: flex-end;
+padding: 0;
+}
+#appViewport[data-viewport="mobile"] .arena-right-col.mobile-drawer-open {
+display: flex !important;
+}
+#appViewport[data-viewport="mobile"] .arena-right-inner {
+background: var(--bg);
+border-top: 2px solid var(--ink);
+border-radius: 24px 24px 0 0 !important;
+padding: 20px !important;
+}
+#appViewport[data-viewport="mobile"] .desktop-only-widget { display: none !important; }
+#appViewport[data-viewport="mobile"] .mobile-only-btn { display: inline-flex !important; }
+#appViewport[data-viewport="mobile"] .ai-tutor-backdrop { align-items: flex-end; }
+#appViewport[data-viewport="mobile"] .ai-tutor-panel {
+width: 100% !important;
+height: 82% !important;
+border-left: none !important;
+border-top: 2px solid var(--ink) !important;
+border-radius: 24px 24px 0 0 !important;
+}
+#appViewport[data-viewport="mobile"] .modal-backdrop {
+align-items: flex-end;
+padding: 0;
+}
+#appViewport[data-viewport="mobile"] .modal-dialog {
+max-width: 100%;
+border-radius: 24px 24px 0 0;
+border-bottom: none;
+}
+@media (min-width: 768px) {
+#appViewport[data-viewport="desktop"] .mobile-only-btn {
+display: none !important;
+}
+}
+</style></head><body><div class="dev-topbar"><div class="dev-screens no-scrollbar"><span style="color:var(--lime);font-weight:800;margin-right:4px;">LAYAR:</span><button onclick="switchScreen('auth')" id="dev-btn-auth" class="dev-tab-btn">1. Login</button><button onclick="switchScreen('home')" id="dev-btn-home" class="dev-tab-btn active">2. Beranda</button><button onclick="switchScreen('arena')" id="dev-btn-arena" class="dev-tab-btn">3. Arena Soal</button><button onclick="switchScreen('result')" id="dev-btn-result" class="dev-tab-btn">4. Hasil & Autopsi</button><button onclick="switchScreen('progres')" id="dev-btn-progres" class="dev-tab-btn">5. Ruang AI & Progres</button><button onclick="switchScreen('akun')" id="dev-btn-akun" class="dev-tab-btn">6. Akun</button></div><div class="dev-actions"><button onclick="toggleViewportMode()" id="btnViewportToggle" class="viewport-toggle-btn" title="Bandingkan tampilan Desktop vs Mobile"><span>🖥️ Mode: Desktop</span></button><button onclick="fastForwardTimerTo5Sec()" id="btnTestTimer5s" class="hidden neo-btn btn-amber" style="padding:4px 10px;font-size:11px;border-radius:999px;">
+⏱ Tes 5 dtk
+</button><button onclick="toggleLogInspector()" class="neo-btn btn-lime" style="padding:4px 10px;font-size:11px;border-radius:999px;">
+📡 Log (<span id="logCountBadge">0</span>)
+</button></div></div><div id="appViewport" data-viewport="desktop" data-scale="100"><div id="miniToast" class="hidden" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:90;background:#111111;color:#FFFFFF;border:2px solid var(--lime);padding:10px 18px;border-radius:999px;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,0.35);white-space:nowrap;"></div><div id="customModal" class="hidden" style="position:fixed;inset:0;z-index:95;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:24px;"><div style="background:#FFFFFF;border:2px solid #111111;box-shadow:0 4px 0 #111111;border-radius:16px;padding:20px;width:100%;max-width:300px;text-align:center;"><div id="customModalIcon" style="font-size:32px;margin-bottom:8px;">⚠️</div><p id="customModalText" style="font-size:14px;font-weight:700;color:#111111;margin-bottom:12px;"></p><input id="customModalInput" type="text" class="hidden" style="width:100%;border:2px solid #111111;border-radius:12px;padding:8px 12px;font-size:14px;margin-bottom:12px;box-sizing:border-box;" /><div style="display:flex;gap:8px;"><button id="customModalOk" style="flex:1;background:#B6FF00;border:2px solid #111111;box-shadow:0 3px 0 #111111;border-radius:12px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">OK</button><button id="customModalCancel" class="hidden" style="flex:1;background:#FFFFFF;border:2px solid #111111;box-shadow:0 3px 0 #111111;border-radius:12px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;">Batal</button></div></div></div>      Notifikasi
+</div><aside id="desktopSidebar" class="app-sidebar"><div><div class="sidebar-brand"><div class="sidebar-brand-logo">musse<span style="color:var(--indigo);">.</span></div><span class="badge badge-lime">BETA</span></div><nav class="sidebar-nav-list" aria-label="Menu Utama Desktop"><button onclick="switchScreen('home')" id="side-nav-home" class="nav-item-btn active"><span style="font-size:18px;">📝</span><span>Latihan</span></button><button onclick="switchScreen('progres')" id="side-nav-progres" class="nav-item-btn"><span style="font-size:18px;">🧠</span><span>Ruang & Progres</span></button><button onclick="switchScreen('akun')" id="side-nav-akun" class="nav-item-btn"><span style="font-size:18px;">👤</span><span>Akun</span></button></nav></div><div class="sidebar-footer"><div class="neo-card" style="padding:12px;background:var(--indigo-soft);border-radius:12px;"><div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800;"><span>✨ Kuota AI Tutor</span><span id="sidebarQuotaText">24 / 25</span></div><div style="height:6px;background:#FFFFFF;border:1px solid #111;border-radius:999px;margin-top:6px;overflow:hidden;"><div style="width:96%;height:100%;background:var(--lime);"></div></div></div><div class="sidebar-user-card"><div class="avatar-circle">AG</div><div style="min-width:0;flex:1;"><p style="font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Agus Putra</p><p style="font-size:10px;color:var(--muted);font-weight:600;">🔥 Streak 14 Hari</p></div></div></div></aside><div class="app-main-area"><section id="screen-auth" class="hidden auth-wrapper"><div class="auth-split-grid"><div><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><span class="font-heading" style="font-size:32px;font-weight:800;">musse<span style="color:var(--indigo);">.</span></span><span class="badge badge-lime">100% Gratis Selama Beta</span></div><span class="badge badge-indigo" style="padding:6px 12px;font-size:12px;">Persiapan TKA SMA/SMK 2026</span><h1 class="auth-headline">
+Tahu Jawabannya.<br/><span class="lime-underline">Paham Polanya.</span></h1><p style="margin-top:18px;font-size:15px;color:var(--muted);line-height:1.6;max-width:520px;">
+990+ soal resmi 27 mapel Pusmendik, pembahasan 5 pilar langkah demi langkah, AI Tutor kontekstual, dan Guru Autopsi pendeteksi kebocoran skor.
+</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px;max-width:520px;"><div class="neo-card" style="padding:12px;"><p class="font-pixel" style="font-size:16px;">990+</p><p style="font-size:11px;font-weight:700;color:var(--muted);margin-top:4px;">Soal Resmi TKA</p></div><div class="neo-card-lime" style="padding:12px;"><p class="font-pixel" style="font-size:16px;">27</p><p style="font-size:11px;font-weight:800;margin-top:4px;">Mapel SMA/SMK</p></div><div class="neo-card" style="padding:12px;"><p class="font-pixel" style="font-size:16px;">5 Pilar</p><p style="font-size:11px;font-weight:700;color:var(--muted);margin-top:4px;">Bedah Konsep</p></div></div></div><div class="neo-card auth-right-card"><div><span class="badge badge-orange">🔥 Akses Penuh Tanpa Paywall</span><h2 style="font-size:24px;font-weight:800;margin-top:10px;">Masuk ke Dashboard Belajar</h2><p style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;">
+Gunakan akun Google-mu agar progres latihan, analisis kecepatan per soal, dan kuota 25 tanya AI/hari otomatis tersimpan di semua perangkat.
+</p></div><div style="background:var(--bg);border:1.5px solid var(--ink);border-radius:12px;padding:14px;font-size:12px;display:flex;flex-direction:column;gap:8px;"><div style="display:flex;align-items:center;gap:8px;font-weight:700;"><span class="badge badge-lime">✓</span><span>Mode Latihan (Cek langsung) & Mode Simulasi Ujian</span></div><div style="display:flex;align-items:center;gap:8px;font-weight:700;"><span class="badge badge-lime">✓</span><span>25 Kuota Tanya AI Tutor per hari</span></div><div style="display:flex;align-items:center;gap:8px;font-weight:700;"><span class="badge badge-lime">✓</span><span>Laporan Guru Autopsi & Ruang AI per Mapel</span></div></div><button onclick="doGoogleLogin()" class="neo-btn btn-lime" style="width:100%;padding:16px;font-size:14px;border-radius:14px;"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.3h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.6 2.8c2.3-2.1 3.8-5.2 3.8-8.6z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5l-3.6 2.8C3.5 21.3 7.4 24 12 24z"/><path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4L1.6 6.8C.6 8.6 0 10.2 0 12s.6 3.4 1.6 4.9l3.6-2.5z"/><path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.3-3.2C17.9 1.1 15.2 0 12 0 7.4 0 3.5 2.7 1.6 6.8l3.6 2.8c1-2.9 3.7-4.9 6.8-4.9z"/></svg><span>Masuk dengan Google — Gratis</span></button><p style="text-align:center;font-size:11px;color:var(--muted);">10 detik • Tanpa password • Tanpa kartu kredit</p></div></div></section><section id="screen-home"><header class="top-header-bar"><div class="top-header-inner"><div><p style="font-size:12px;color:var(--muted);font-weight:700;">Siap tempur hari ini,</p><h1 style="font-size:20px;font-weight:800;">Halo, Agus Alfiansyah Putra 👋</h1></div><div style="display:flex;align-items:center;gap:10px;"><div class="neo-card" style="padding:6px 14px;border-radius:999px;background:var(--orange-soft);font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px;"><span>🔥</span><span>Streak 14 Hari</span></div><button onclick="openDateModal()" class="neo-btn btn-indigo-soft" style="padding:6px 14px;border-radius:999px;font-size:13px;"><span>🎯</span><span id="headerCountdownText">H-12 TKA (26 Okt)</span></button></div></div></header><div class="desktop-container"><div class="home-top-row"><div class="neo-card-dark" style="padding:20px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;"><div><div style="display:flex;justify-content:space-between;align-items:center;"><span class="badge badge-lime">LANJUTKAN TERAKHIR</span><span style="font-size:12px;color:rgba(255,255,255,0.75);font-weight:700;">Soal 2 / 3 (Demo) • 46 Soal Asli</span></div><h2 style="font-size:20px;font-weight:800;margin-top:10px;">Matematika (Wajib) · Paket 1</h2><p style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;">Topik terakhir: Sistem Persamaan Linear & Fungsi Kuadrat</p></div><div><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div style="flex:1;height:10px;background:rgba(255,255,255,0.18);border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,0.3);"><div style="width:33%;height:100%;background:var(--lime);"></div></div><span style="font-size:12px;font-weight:800;color:var(--lime);">33%</span></div><button onclick="openModeSelector('matematika', 'Matematika (Wajib)', 1, 2)" class="neo-btn btn-lime" style="width:100%;padding:11px;font-size:13px;">
+Lanjutkan Paket Ini (Pilih Mode) →
+</button></div></div><div class="neo-card" style="padding:20px;background:var(--amber-soft);display:flex;flex-direction:column;justify-content:space-between;gap:14px;"><div><div style="display:flex;justify-content:space-between;align-items:center;"><span class="badge badge-amber">🔍 CATATAN GURU AUTOPSI</span><span style="font-size:11px;font-weight:800;color:#92400E;">Evaluasi Terakhir</span></div><h3 style="font-size:17px;font-weight:800;margin-top:10px;">Waspada Pola "Terburu-buru" (&lt;15 dtk/soal)</h3><p style="font-size:12.5px;color:#3F3F46;margin-top:4px;line-height:1.5;">
+Terdeteksi di tryout terakhir pada soal multi-pernyataan. Pastikan membaca kalimat tanya terakhir sebelum mengunci opsi jawaban.
+</p></div><div style="display:flex;gap:10px;"><button onclick="openStrategyModal('terburu')" class="neo-btn" style="flex:1;padding:10px;font-size:12px;">
+📚 Baca 5 Strategi Anti-Bocor
+</button><button onclick="switchScreen('result')" class="neo-btn btn-indigo-soft" style="padding:10px 14px;font-size:12px;">
+Lihat Autopsi →
+</button></div></div></div><div class="catalog-Controls-bar"><div><h2 style="font-size:20px;font-weight:800;">Katalog Mapel & Paket Soal</h2><p style="font-size:12px;color:var(--muted);font-weight:600;">27 Mata Pelajaran SMA & Kejuruan SMK sesuai Kisi-Kisi Resmi Pusmendik</p></div><input id="searchMapelInput" oninput="renderMapelList()" type="text" placeholder="🔍 Cari Matematika, TKJ, Fisika, Jepang..." class="search-input" /></div><div class="chips-scroll-row no-scrollbar" id="categoryTabs"><button onclick="setCategory('pilihanmu')" id="chipPilihanmu" data-cat="pilihanmu" class="cat-chip neo-btn btn-lime" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;">
+⭐ Pilihanmu (4)
+</button><button onclick="setCategory('Wajib')" data-cat="Wajib" class="cat-chip neo-btn" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;">Wajib</button><button onclick="setCategory('Saintek')" data-cat="Saintek" class="cat-chip neo-btn" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;">Saintek</button><button onclick="setCategory('Soshum')" data-cat="Soshum" class="cat-chip neo-btn" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;">Soshum</button><button onclick="setCategory('SMK')" data-cat="SMK" class="cat-chip neo-btn" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;">Kejuruan SMK</button><button onclick="setCategory('Bahasa')" data-cat="Bahasa" class="cat-chip neo-btn" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;">Bahasa Asing</button><button onclick="openAturMapelModal()" class="neo-btn btn-indigo-soft" style="padding:7px 14px;border-radius:999px;font-size:12px;flex-shrink:0;margin-left:auto;">
+⚙️ Atur Mapel Pilihan
+</button></div><div id="mapelListContainer" class="mapel-grid"></div></div></section><section id="screen-arena" class="hidden" style="display:flex;flex-direction:column;flex:1;"><header class="arena-topbar"><div class="arena-topbar-inner"><div style="display:flex;align-items:center;gap:10px;"><button onclick="confirmExitArena()" class="neo-btn" style="padding:6px 12px;font-size:12px;">
+← Beranda
+</button><span id="arenaModeBadge" class="badge badge-lime">🌱 Mode Latihan</span><h2 id="arenaMapelLabel" style="font-size:15px;font-weight:800;">Matematika (Wajib) · Paket 1</h2><span id="arenaSoalCounter" class="badge badge-dark">Soal 1 / 3</span></div><div style="display:flex;align-items:center;gap:8px;"><div id="arenaTimerPillMobile" class="mobile-only-btn badge" style="font-family:monospace;font-size:12px;padding:5px 10px;">
+⏱ <span class="timer-text-sync">01:15:00</span></div><button onclick="cycleFontScale()" id="btnFontScale" class="neo-btn" style="padding:6px 10px;font-size:12px;" title="Ubah Ukuran Font">
+Aa 100%
+</button><button onclick="openAiTutorSheet()" class="neo-btn btn-indigo-soft desktop-only-widget" style="padding:6px 12px;font-size:12px;">
+✨ Buka AI Tutor (<span class="ai-quota-sync">24</span>)
+</button><button onclick="toggleMobilePetaDrawer(true)" class="neo-btn btn-indigo-soft mobile-only-btn" style="padding:6px 10px;font-size:12px;">
+▦ Peta
+</button></div></div></header><div id="latihanTimeUpBanner" class="hidden" style="background:var(--amber-mid);border-bottom:var(--border);padding:10px 24px;font-size:12.5px;font-weight:800;display:flex;justify-content:space-between;align-items:center;"><span>⏰ Waktu acuan habis! Karena kamu di Mode Latihan, silakan lanjut belajar dengan santai sampai paham.</span><button onclick="document.getElementById('latihanTimeUpBanner').classList.add('hidden')" style="text-decoration:underline;font-weight:800;font-size:12px;">Tutup ✕</button></div><div class="arena-2col-grid soal-text-scope" style="flex:1;"><div class="arena-left-col"><div class="neo-card" style="padding:22px;display:flex;flex-direction:column;gap:16px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1.5px solid #E4E4E7;padding-bottom:12px;"><div style="display:flex;align-items:center;gap:8px;"><span id="soalNomorTitle" style="font-weight:800;font-size:14px;">SOAL NOMOR 1</span><span id="soalTipeBadge" class="badge badge-indigo">Pilihan Ganda</span><span id="soalTopikBadge" class="badge">SPLDV</span></div><button onclick="logEvent('bug_report_click', { soal_no: currentQIndex + 1 }); showToast('Laporan kendala Soal #' + (currentQIndex+1) + ' terkirim!')" style="font-size:11.5px;font-weight:700;color:var(--muted);">
+⚑ Lapor Soal
+</button></div><div id="soalStimulusBox" class="hidden" style="background:var(--bg);border:2px dashed #A1A1AA;border-radius:12px;padding:14px;font-size:0.92em;line-height:1.6;"></div><div id="soalPromptText" style="font-weight:600;line-height:1.65;"></div><div id="complexNoticePill" class="hidden" style="background:var(--indigo-soft);border:var(--border);border-radius:12px;padding:10px 14px;font-size:12.5px;font-weight:800;">
+☑️ Pilihan Ganda Kompleks · Pilih lebih dari satu jawaban yang benar!
+</div><div id="soalOptionsContainer" style="display:flex;flex-direction:column;gap:10px;"></div></div><div class="neo-card desktop-soal-nav"><button onclick="navSoal(-1)" id="btnDesktopPrev" class="neo-btn" style="padding:10px 16px;font-size:13px;">
+← Soal Sebelumnya
+</button><button onclick="openAiTutorSheet()" class="neo-btn btn-indigo-soft" style="padding:10px 18px;font-size:13px;">
+✨ Tanya AI Tutor Soal Ini (<span class="ai-quota-sync">24</span>)
+</button><button onclick="navSoal(1)" id="btnDesktopNext" class="neo-btn" style="padding:10px 16px;font-size:13px;">
+Soal Selanjutnya →
+</button></div><div id="inlineEvaluationSection" class="hidden" style="display:flex;flex-direction:column;gap:16px;"><div id="evalFeedbackBanner" class="neo-card" style="padding:16px 20px;"></div><div class="neo-card" style="padding:22px;display:flex;flex-direction:column;gap:14px;"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:var(--border);padding-bottom:12px;flex-wrap:wrap;gap:8px;"><div><span class="badge badge-lime">KUNCI RESMI PUSMENDIK</span><h3 id="pembKeyTitle" style="font-size:17px;font-weight:800;margin-top:6px;">Kunci Jawaban: B</h3></div><button onclick="togglePembahasanModeUI()" id="btnTogglePilarMode" class="neo-btn btn-indigo-soft" style="padding:8px 14px;font-size:12px;border-radius:999px;">
+📖 Buka 5 Pilar Lengkap
+</button></div><div id="pembRingkasBody" style="font-size:14px;line-height:1.6;"></div><div id="pembLengkapBody" class="hidden" style="display:flex;flex-direction:column;gap:12px;border-top:2px dashed #D4D4D8;padding-top:14px;font-size:13.5px;"><div style="background:var(--bg);border:var(--border);border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:800;color:var(--indigo);text-transform:uppercase;">Pilar 1 · Diketahui & Konsep Kunci</div><p id="pilar1Text" style="margin-top:4px;font-weight:500;"></p></div><div style="background:var(--bg);border:var(--border);border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:800;color:var(--indigo);text-transform:uppercase;">Pilar 2 & 3 · Glosarium & Alasan Logis</div><p id="pilar3Text" style="margin-top:4px;font-weight:500;"></p></div><div style="background:#F0FFB8;border:var(--border);border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;">Pilar 4 · Langkah Penyelesaian Rinci</div><ol id="pilar4List" style="margin-top:6px;padding-left:20px;font-weight:600;line-height:1.6;"></ol></div><div style="background:var(--orange-soft);border:var(--border);border-radius:12px;padding:14px;"><div style="font-size:11px;font-weight:800;color:#9A3412;text-transform:uppercase;">Pilar 5 · Trik Cepat & Jebakan Umum</div><p id="pilar5Text" style="margin-top:4px;font-weight:500;"></p></div></div><div style="display:flex;gap:10px;padding-top:10px;border-top:1px solid #E4E4E7;"><button onclick="openAiTutorSheet()" class="neo-btn btn-dark" style="flex:1;padding:11px;font-size:12.5px;">
+✨ Tanya AI Bagian yang Bingung
+</button><button onclick="toggleSimilarSoalBox()" class="neo-btn btn-lime" style="padding:11px 16px;font-size:12.5px;">
+🔄 Latih Soal Serupa
+</button></div></div><div id="similarSoalBox" class="hidden neo-card" style="padding:20px;background:var(--indigo-soft);display:flex;flex-direction:column;gap:12px;"><div style="display:flex;justify-content:space-between;align-items:center;"><span class="badge">UJI PAHAM · SOAL SERUPA</span><button onclick="toggleSimilarSoalBox()" style="font-size:12px;font-weight:800;">Tutup ✕</button></div><p id="simQuestionText" style="font-size:14px;font-weight:700;"></p><div id="simOptionsList" style="display:flex;flex-direction:column;gap:8px;"></div><div id="simFeedbackText" class="hidden" style="padding:12px;border-radius:10px;border:var(--border);background:#FFFFFF;font-size:13px;font-weight:700;"></div></div></div></div><aside id="arenaRightPanel" class="arena-right-col"><div class="neo-card arena-right-inner" style="padding:20px;display:flex;flex-direction:column;gap:16px;"><div class="mobile-only-btn" style="display:none;justify-content:space-between;align-items:center;width:100%;"><h3 style="font-size:16px;font-weight:800;">Peta & Kontrol Soal</h3><button onclick="toggleMobilePetaDrawer(false)" class="neo-btn" style="padding:4px 10px;font-size:12px;">✕</button></div><div id="desktopTimerCard" class="neo-card-dark desktop-only-widget" style="padding:16px;display:flex;align-items:center;justify-content:space-between;"><div><span style="font-size:10px;font-weight:800;text-transform:uppercase;color:rgba(255,255,255,0.7);">Sisa Waktu Paket</span><div class="font-pixel timer-text-sync" style="font-size:22px;color:var(--lime);margin-top:6px;">01:15:00</div></div><span style="font-size:26px;">⏱</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;font-size:11px;font-weight:800;"><div style="background:var(--lime);border:var(--border);border-radius:10px;padding:8px;"><div id="statCountAnswered" style="font-size:16px;">0</div><div>Dijawab</div></div><div style="background:var(--amber-mid);border:var(--border);border-radius:10px;padding:8px;"><div id="statCountRagu" style="font-size:16px;">0</div><div>Ragu</div></div><div style="background:var(--bg);border:var(--border);border-radius:10px;padding:8px;"><div id="statCountUnanswered" style="font-size:16px;">3</div><div>Belum</div></div></div><div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:12px;font-weight:800;text-transform:uppercase;">Peta Nomor Soal</span><span style="font-size:11px;color:var(--muted);font-weight:600;">Klik nomor untuk lompat</span></div><div id="petaGridContainer" class="peta-grid"></div></div><button onclick="toggleFlagRagu()" id="btnRightRagu" class="neo-btn" style="width:100%;padding:11px;font-size:13px;">
+⚑ Tandai Soal Ini Ragu-ragu
+</button><div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;border-top:2px solid var(--ink);"><button onclick="notifySimulasiLocked()" id="btnRightSimulasiLocked" class="hidden neo-btn" style="width:100%;padding:12px;font-size:12.5px;background:#E4E4E7;color:#52525B;">
+🔒 Cek Jawaban Dikunci (Mode Simulasi)
+</button><button onclick="handlePrimaryArenaAction()" id="btnRightPrimary" class="neo-btn btn-lime" style="width:100%;padding:13px;font-size:13.5px;">
+Cek Jawaban ✓
+</button><button onclick="finishQuizNow('user')" class="neo-btn btn-dark" style="width:100%;padding:12px;font-size:12.5px;">
+🏁 Selesai & Kumpulkan Paket
+</button></div></div></aside></div><footer class="mobile-arena-footer"><button onclick="navSoal(-1)" id="btnMobilePrev" class="neo-btn" style="padding:10px 12px;font-size:12px;">←</button><button onclick="toggleFlagRagu()" id="btnMobileRagu" class="neo-btn" style="padding:10px 12px;font-size:12px;">⚑ Ragu</button><button onclick="openAiTutorSheet()" class="neo-btn btn-indigo-soft" style="padding:10px 12px;font-size:12px;">✨ AI (<span class="ai-quota-sync">24</span>)</button><button onclick="notifySimulasiLocked()" id="btnMobileSimulasiLocked" class="hidden neo-btn" style="padding:10px;font-size:11px;background:#E4E4E7;">🔒 Dikunci</button><button onclick="handlePrimaryArenaAction()" id="btnMobilePrimary" class="neo-btn btn-lime" style="flex:1;padding:10px 12px;font-size:12px;">Cek Jawaban ✓</button></footer></section><section id="screen-result" class="hidden"><header class="top-header-bar"><div class="top-header-inner"><div><span id="resultModeBadge" class="badge badge-lime">🌱 HASIL LATIHAN</span><h1 id="resultTitleText" style="font-size:20px;font-weight:800;margin-top:4px;">Matematika (Wajib) · Paket 1</h1></div><div style="display:flex;gap:10px;"><button onclick="openModeSelector('matematika', 'Matematika (Wajib)', 1)" class="neo-btn" style="padding:8px 14px;font-size:12px;">
+🔄 Ulangi Paket
+</button><button onclick="switchScreen('home')" class="neo-btn btn-lime" style="padding:8px 16px;font-size:12px;">
+Kembali ke Beranda →
+</button></div></div></header><div class="desktop-container"><div id="resultAutoSubmitBanner" class="hidden neo-card" style="padding:16px;background:var(--red-soft);margin-bottom:18px;display:flex;align-items:center;gap:12px;"><span style="font-size:24px;">⏰</span><div><p style="font-size:14px;font-weight:800;color:var(--red-ink);">Waktu Simulasi Habis! (Otomatis Dikumpulkan)</p><p style="font-size:12px;color:var(--red-ink);">Seluruh kunci jawaban, Pembahasan 5 Pilar, dan diagnosis Guru Autopsi sekarang sudah terbuka.</p></div></div><div class="neo-card-dark" style="padding:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;"><div style="display:flex;align-items:center;gap:20px;"><div><p style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:700;text-transform:uppercase;">Skor Akhir Kamu</p><div id="resScoreBig" class="font-pixel" style="font-size:40px;color:var(--lime);margin-top:8px;">67%</div></div><div style="border-left:2px solid rgba(255,255,255,0.2);padding-left:20px;font-size:12.5px;display:flex;flex-direction:column;gap:4px;"><span id="resEndedByText">🏁 Diselesaikan oleh User</span><span>⚡ Kecepatan rata-rata: <b>24 detik / soal</b></span><span style="color:var(--lime);">✓ Progres & Riwayat tersimpan di Google</span></div></div><div style="display:flex;gap:12px;"><div style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;padding:12px 20px;text-align:center;"><p id="resCountBenar" style="font-size:20px;font-weight:800;color:var(--lime);">2</p><p style="font-size:11px;color:rgba(255,255,255,0.75);">Benar</p></div><div style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;padding:12px 20px;text-align:center;"><p id="resCountSalah" style="font-size:20px;font-weight:800;color:#F87171;">1</p><p style="font-size:11px;color:rgba(255,255,255,0.75);">Salah</p></div><div style="background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;padding:12px 20px;text-align:center;"><p id="resCountKosong" style="font-size:20px;font-weight:800;color:#FFFFFF;">0</p><p style="font-size:11px;color:rgba(255,255,255,0.75);">Kosong</p></div></div></div><div class="autopsi-2col-grid"><div class="neo-card" style="padding:22px;display:flex;flex-direction:column;gap:16px;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="badge badge-lime">✨ GURU AUTOPSI AI</span><h3 style="font-size:18px;font-weight:800;margin-top:6px;">Analisis Pola Pengerjaanmu</h3></div></div><div style="background:var(--bg);border:var(--border);border-radius:12px;padding:14px;font-size:13px;line-height:1.6;"><p style="font-weight:800;">👀 Yang Saya Lihat dari Telemetry Pengerjaanmu:</p><ul style="padding-left:18px;margin-top:6px;"><li>Di <b>Soal #1 (SPLDV)</b>, kamu menjawab mantap dalam 18 detik tanpa ganti opsi.</li><li>Di <b>Soal #2 (PG Kompleks Fungsi)</b>, kamu hanya memilih 1 dari 2 kunci jawaban yang diminta.</li><li>Di <b>Soal #3 (Tabel Benar/Salah)</b>, kamu mengeksekusi pernyataan C kurang dari 12 detik.</li></ul></div><div style="background:var(--amber-soft);border:var(--border);border-radius:12px;padding:16px;"><div style="display:flex;justify-content:space-between;align-items:center;"><span class="badge badge-amber">KEBOCORAN UTAMA #1</span><span style="font-size:11px;font-weight:800;color:var(--red-ink);">Pola: Terburu-buru</span></div><h4 style="font-size:15px;font-weight:800;margin-top:8px;">Terburu-buru di Soal Multi-Pernyataan</h4><p style="font-size:12.5px;margin-top:4px;line-height:1.5;"><b>Bukti:</b> Waktu baca rata-rata di bawah 15 detik pada soal PG Kompleks & Tabel Pernyataan.
+</p><div style="display:flex;gap:10px;margin-top:12px;"><button onclick="openStrategyModal('terburu')" class="neo-btn" style="flex:1;padding:10px;font-size:12px;">
+📚 Pelajari 5 Strategi
+</button><button onclick="jumpToReviewQuestion(1)" class="neo-btn btn-lime" style="flex:1;padding:10px;font-size:12px;">
+🎯 Bedah Soal #2
+</button></div></div></div><div class="neo-card" style="padding:22px;display:flex;flex-direction:column;gap:12px;"><div><h3 style="font-size:16px;font-weight:800;">Bedah Soal Satu per Satu</h3><p style="font-size:12px;color:var(--muted);">Klik soal mana pun untuk membuka Pembahasan 5 Pilar & AI Tutor</p></div><div id="resultReviewList" class="autopsi-scroll-list"></div></div></div></div></section><section id="screen-progres" class="hidden"><header class="top-header-bar"><div class="top-header-inner"><div><h1 style="font-size:20px;font-weight:800;">Ruang AI Coach & Progres Kumulatif</h1><p style="font-size:12px;color:var(--muted);font-weight:600;">Evaluasi lintas paket dan konsultasi strategi per mata pelajaran</p></div><span class="badge badge-lime" style="padding:6px 14px;font-size:12px;">Akurasi Rata-rata: 74%</span></div></header><div class="desktop-container"><div class="stats-3col-grid"><div class="neo-card" style="padding:20px;display:flex;align-items:center;justify-content:space-between;"><div><p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;">Total Soal Selesai</p><p class="font-pixel" style="font-size:26px;margin-top:8px;">142</p></div><span style="font-size:28px;">📚</span></div><div class="neo-card-lime" style="padding:20px;display:flex;align-items:center;justify-content:space-between;"><div><p style="font-size:11px;font-weight:800;text-transform:uppercase;">Akurasi Jawaban</p><p class="font-pixel" style="font-size:26px;margin-top:8px;">74%</p></div><span style="font-size:28px;">🎯</span></div><div class="neo-card" style="padding:20px;display:flex;align-items:center;justify-content:space-between;"><div><p style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;">Total Jam Fokus</p><p class="font-pixel" style="font-size:26px;color:var(--indigo);margin-top:8px;">6.4j</p></div><span style="font-size:28px;">⏱</span></div></div><div class="progres-2col-grid"><div class="neo-card" style="padding:22px;display:flex;flex-direction:column;gap:14px;"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:var(--border);padding-bottom:12px;"><div><span class="badge badge-indigo">🧠 RUANG DISKUSI MAPEL</span><h3 style="font-size:17px;font-weight:800;margin-top:4px;">AI Coach Spesialis Mapel</h3></div><select onchange="logEvent('switch_ai_room', { mapel: this.value })" style="border:var(--border);border-radius:10px;padding:6px 10px;font-size:12px;font-weight:800;background:var(--bg);"><option value="matematika">Matematika (Wajib)</option><option value="fisika">Fisika (Saintek)</option><option value="tkj">SMK - Teknik Jaringan (TKJ)</option><option value="inggris">Bahasa Inggris</option></select></div><div id="coachRoomMessages" style="background:var(--bg);border:var(--border);border-radius:12px;padding:14px;min-height:200px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;font-size:13px;"><div class="neo-card" style="padding:12px;background:#FFFFFF;"><span style="font-size:10px;font-weight:800;color:var(--indigo);text-transform:uppercase;">Coach Matematika</span><p style="margin-top:4px;line-height:1.5;">
+Halo Agus! Dari 2 paket terakhir, penguasaan <b>SPLDV & Matriks</b> kamu sudah di angka <b>88%</b>. Fokus kita minggu ini adalah menambal <b>Fungsi Kuadrat (52%)</b> terutama menentukan titik puncak dan diskriminan.
+</p></div></div><form onsubmit="handleCoachRoomSubmit(event)" style="display:flex;gap:8px;"><input id="coachRoomInput" type="text" placeholder="Tanya strategi belajar atau materi ke Coach Matematika..." class="search-input" style="flex:1;" /><button type="submit" class="neo-btn btn-lime" style="padding:10px 18px;font-size:12.5px;">Kirim</button></form></div><div class="neo-card" style="padding:22px;display:flex;flex-direction:column;gap:14px;"><h3 style="font-size:16px;font-weight:800;">Peta Penguasaan Topik</h3><div style="background:var(--green-soft);border:var(--border);border-radius:12px;padding:14px;"><span class="badge badge-green">💪 TOPIK TERKUAT</span><p style="font-size:15px;font-weight:800;margin-top:6px;">SPLDV & Aljabar Linear (88%)</p><p style="font-size:12px;color:var(--green-ink);margin-top:2px;">Rata-rata kecepatan 19 detik/soal • Akurasi tinggi</p></div><div style="background:var(--red-soft);border:var(--border);border-radius:12px;padding:14px;"><span class="badge badge-red">⚠️ PERLU DIKEJAR</span><p style="font-size:15px;font-weight:800;margin-top:6px;">Fungsi & Grafik Kuadrat (52%)</p><p style="font-size:12px;color:var(--red-ink);margin-top:2px;">Sering kehilangan poin di soal Pilihan Ganda Kompleks</p></div><button onclick="openModeSelector('matematika', 'Matematika (Wajib)', 1)" class="neo-btn btn-lime" style="width:100%;padding:12px;font-size:13px;">
+🎯 Latih Paket Matematika Sekarang →
+</button></div></div></div></section><section id="screen-akun" class="hidden"><header class="top-header-bar"><div class="top-header-inner"><h1 style="font-size:20px;font-weight:800;">Akun & Pengaturan</h1><span class="badge badge-indigo">Terhubung Google OAuth</span></div></header><div class="desktop-container"><div class="akun-2col-grid"><div class="neo-card" style="padding:24px;display:flex;flex-direction:column;gap:18px;"><div style="display:flex;align-items:center;gap:14px;"><div class="avatar-circle" style="width:56px;height:56px;font-size:20px;">AG</div><div><h2 style="font-size:18px;font-weight:800;">Agus Alfiansyah Putra</h2><p style="font-size:13px;color:var(--muted);">agus@gmail.com</p><span class="badge badge-lime" style="margin-top:6px;">Paket Beta Gratis • Aktif</span></div></div><div style="background:var(--bg);border:var(--border);border-radius:12px;padding:16px;"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;"><span>✨ Sisa Kuota AI Tutor Hari Ini</span><span class="ai-quota-sync">24 / 25 Tanya</span></div><p style="font-size:11.5px;color:var(--muted);margin-top:4px;">Kuota di-reset otomatis setiap pukul 00:00 WIB.</p></div><button onclick="switchScreen('auth')" class="neo-btn btn-red-soft" style="width:100%;padding:12px;font-size:13px;">
+Keluar dari Akun Google
+</button></div><div class="neo-card" style="padding:24px;display:flex;flex-direction:column;gap:16px;"><h3 style="font-size:16px;font-weight:800;">Preferensi Belajar</h3><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #E4E4E7;font-size:13px;"><div><p style="font-weight:800;">Tanggal Target Ujian TKA</p><p style="font-size:11.5px;color:var(--muted);">Dipakai untuk hitung mundur H-n di Beranda</p></div><button onclick="openDateModal()" class="neo-btn btn-lime" style="padding:8px 14px;font-size:12px;">26 Okt 2026</button></div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #E4E4E7;font-size:13px;"><div><p style="font-weight:800;">Mapel Pilihan di Beranda</p><p style="font-size:11.5px;color:var(--muted);">Atur mapel yang tampil di tab ⭐ Pilihanmu</p></div><button onclick="openAturMapelModal()" class="neo-btn btn-indigo-soft" style="padding:8px 14px;font-size:12px;">⚙️ Atur Mapel</button></div><div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;"><div><p style="font-weight:800;">Ukuran Teks Lembar Soal</p><p style="font-size:11.5px;color:var(--muted);">Skala nyaman baca (90% – 130%)</p></div><button onclick="cycleFontScale()" class="neo-btn" style="padding:8px 14px;font-size:12px;">Aa Ubah Skala</button></div></div></div></div></section></div><nav id="mobileBottomNav" class="mobile-bottomnav"><button onclick="switchScreen('home')" id="m-nav-home" class="m-nav-btn active"><span class="m-nav-pill">📝</span><span>Latihan</span></button><button onclick="switchScreen('progres')" id="m-nav-progres" class="m-nav-btn"><span class="m-nav-pill">🧠</span><span>Ruang & Progres</span></button><button onclick="switchScreen('akun')" id="m-nav-akun" class="m-nav-btn"><span class="m-nav-pill">👤</span><span>Akun</span></button></nav><div id="sheetAiTutor" class="hidden ai-tutor-backdrop" onclick="if(event.target===this) closeAiTutorSheet()"><div class="ai-tutor-panel"><div style="background:var(--surface);border-bottom:var(--border);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><span class="badge badge-lime" style="padding:6px;">✨</span><div><h3 style="font-size:14px;font-weight:800;">AI Tutor Matematika</h3><p id="tutorContextLabel" style="font-size:11px;color:var(--green-ink);font-weight:700;">✓ Paham konteks Soal #1</p></div></div><div style="display:flex;align-items:center;gap:8px;"><span id="tutorQuotaPill" class="badge badge-indigo">24/25 Tanya</span><button onclick="closeAiTutorSheet()" class="neo-btn" style="width:30px;height:30px;font-size:12px;">✕</button></div></div><div style="background:var(--amber-soft);border-bottom:var(--border);padding:10px 18px;"><button onclick="toggleTutorQuestionPreview()" style="width:100%;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;"><span id="tutorPreviewTitle">📌 Intip Teks Soal #1 (Klik buka/tutup)</span><span>▼</span></button><div id="tutorPreviewBody" class="hidden" style="margin-top:8px;padding-top:8px;border-top:1px solid #F59E0B;font-size:12px;line-height:1.5;"></div></div><div id="tutorMessagesList" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;font-size:13px;"></div><div class="no-scrollbar" style="padding:8px 14px;background:var(--surface);border-top:1px solid #E4E4E7;display:flex;gap:6px;overflow-x:auto;"><button onclick="sendTutorPrompt('Beri petunjuk konsep soal ini')" class="neo-btn" style="padding:5px 10px;border-radius:999px;font-size:11px;white-space:nowrap;">Petunjuk konsep</button><button onclick="sendTutorPrompt('Ada cara cepatnya nggak?')" class="neo-btn" style="padding:5px 10px;border-radius:999px;font-size:11px;white-space:nowrap;">Cara cepat?</button><button onclick="sendTutorPrompt('Jelasin pakai analogi gampang')" class="neo-btn" style="padding:5px 10px;border-radius:999px;font-size:11px;white-space:nowrap;">Analogi gampang</button></div><form onsubmit="handleTutorSubmit(event)" style="padding:12px 14px;background:var(--surface);border-top:var(--border);display:flex;gap:8px;"><input id="tutorChatInput" type="text" placeholder="Tanyakan langkah atau rumus..." class="search-input" style="flex:1;" /><button type="submit" class="neo-btn btn-lime" style="padding:10px 16px;font-size:12px;">Kirim</button></form></div></div><div id="sheetPilihMode" class="hidden modal-backdrop" onclick="if(event.target===this) closeModeSelector()"><div class="modal-dialog"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><span class="badge badge-indigo">PILIH MODE PENGERJAAN</span><h3 id="modeSheetTitle" style="font-size:18px;font-weight:800;margin-top:6px;">Matematika (Wajib) · Paket 1</h3><p id="modeSheetMeta" style="font-size:12px;color:var(--muted);font-weight:600;">46 Soal • Durasi Resmi 138 Menit</p></div><button onclick="closeModeSelector()" class="neo-btn" style="width:30px;height:30px;font-size:12px;">✕</button></div><div style="display:flex;flex-direction:column;gap:10px;"><button type="button" onclick="selectQuizModeOption('latihan')" id="cardModeLatihan" class="neo-btn btn-lime" style="width:100%;padding:14px;text-align:left;align-items:flex-start;justify-content:flex-start;gap:12px;"><span style="font-size:22px;">🌱</span><div style="flex:1;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13.5px;font-weight:800;">Mode Latihan (Santai & Paham)</span><span id="radioModeLatihan" class="badge badge-dark">Terpilih ✓</span></div><ul style="font-size:11.5px;font-weight:600;margin-top:6px;padding-left:16px;line-height:1.5;"><li>Tombol <b>Cek Jawaban</b> aktif langsung di tiap soal</li><li><b>Pembahasan 5 Pilar & Soal Serupa</b> langsung terbuka</li><li>Timer jalan sebagai acuan (kalau habis tetap bisa lanjut)</li></ul></div></button><button type="button" onclick="selectQuizModeOption('simulasi')" id="cardModeSimulasi" class="neo-btn" style="width:100%;padding:14px;text-align:left;align-items:flex-start;justify-content:flex-start;gap:12px;"><span style="font-size:22px;">⚡</span><div style="flex:1;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13.5px;font-weight:800;">Mode Simulasi TKA (Ujian Hari-H)</span><span id="radioModeSimulasi" class="badge">Pilih</span></div><ul style="font-size:11.5px;font-weight:600;margin-top:6px;padding-left:16px;line-height:1.5;color:var(--muted);"><li>Tombol <b>Cek Jawaban DIKUNCI</b> selama ujian berlangsung</li><li>Timer ketat — <b>otomatis kumpul</b> saat waktu habis</li><li>Jawaban, 5 Pilar & <b>Guru Autopsi</b> dibuka setelah selesai</li></ul></div></button></div><button onclick="confirmStartQuiz()" id="btnConfirmStartQuiz" class="neo-btn btn-dark" style="width:100%;padding:14px;font-size:13.5px;">
+🚀 Mulai dengan Mode Latihan →
+</button></div></div><div id="modalAturMapel" class="hidden modal-backdrop" onclick="if(event.target===this) closeAturMapelModal()"><div class="modal-dialog"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h3 style="font-size:17px;font-weight:800;">⚙️ Atur Mapel Pilihanmu</h3><p style="font-size:12px;color:var(--muted);">Pilih mapel yang ingin ditampilkan di tab ⭐ Pilihanmu</p></div><button onclick="closeAturMapelModal()" class="neo-btn" style="width:30px;height:30px;font-size:12px;">✕</button></div><div id="aturMapelChecklist" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;"></div><div style="display:flex;gap:10px;"><button onclick="closeAturMapelModal()" class="neo-btn" style="padding:11px 18px;font-size:12.5px;">Batal</button><button onclick="saveAturMapelModal()" class="neo-btn btn-lime" style="flex:1;padding:11px;font-size:12.5px;">Simpan Pilihan Mapel ✓</button></div></div></div><div id="modalStrategi" class="hidden modal-backdrop" onclick="if(event.target===this) closeStrategyModal()"><div class="modal-dialog"><div style="display:flex;justify-content:space-between;align-items:center;"><span class="badge badge-amber">PANDUAN ANTI-BOCOR</span><button onclick="closeStrategyModal()" class="neo-btn" style="width:28px;height:28px;font-size:12px;">✕</button></div><h3 style="font-size:18px;font-weight:800;">Strategi Anti-Ceroboh & Cek Ulang</h3><ul style="font-size:13px;line-height:1.6;padding-left:18px;display:flex;flex-direction:column;gap:8px;"><li><b>1. Tunjuk kalimat tanya terakhir:</b> Pastikan apakah soal meminta nilai $x$, pernyataan yang <i>salah</i>, atau kesimpulan.</li><li><b>2. Cek tanda (+/-) & satuan:</b> Luangkan 5 detik sebelum klik tombol Selanjutnya.</li><li><b>3. Pada PG Kompleks:</b> Uji satu per satu opsi dari atas ke bawah, jangan berhenti di 1 opsi benar.</li></ul><button onclick="closeStrategyModal()" class="neo-btn btn-lime" style="width:100%;padding:12px;font-size:13px;">Siap Dipraktikkan!</button></div></div><div id="panelLogInspector" class="hidden modal-backdrop" onclick="if(event.target===this) toggleLogInspector()"><div class="modal-dialog" style="background:#111111;color:#FFFFFF;max-width:640px;"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:10px;"><div><span class="badge badge-lime">REAL-TIME TELEMETRY</span><h3 style="font-size:16px;font-weight:800;margin-top:4px;">Behavior Log Inspector</h3></div><button onclick="toggleLogInspector()" class="neo-btn" style="padding:4px 10px;font-size:12px;color:#111;">Tutup ✕</button></div><p style="font-size:12px;color:rgba(255,255,255,0.75);">
+Merekam halaman dibuka, pergantian mode Desktop/Mobile, durasi per soal, klik opsi, ganti jawaban, buka 5 pilar, hingga AI Tutor.
+        </p><div id="logListContainer" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;font-family:monospace;font-size:11.5px;max-height:380px;"></div></div></div></div><script>
+    // =========================================================================
+    // 1. BEHAVIOR LOG & TOAST ENGINE
+    // =========================================================================
+    const behaviorLogs = [];
+    let questionStartTimeMs = Date.now();
+
+    function logEvent(eventType, payload = {}) {
+      const entry = {
+        id: 'ev_' + (behaviorLogs.length + 1),
+        event: eventType,
+        ts: new Date().toLocaleTimeString('id-ID'),
+        elapsed_ms: Date.now() - questionStartTimeMs,
+        ...payload
+      };
+      behaviorLogs.unshift(entry);
+      const badge = document.getElementById('logCountBadge');
+      if (badge) badge.textContent = behaviorLogs.length;
+      renderLogInspector();
+    }
+
+    function renderLogInspector() {
+      const cont = document.getElementById('logListContainer');
+      if (!cont) return;
+      cont.innerHTML = behaviorLogs.map(l => `
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:8px 10px;"><div style="display:flex;justify-content:space-between;color:var(--lime);font-weight:700;"><span>[${l.event}]</span><span style="color:rgba(255,255,255,0.5);">${l.ts} (+${l.elapsed_ms}ms)</span></div><div style="color:rgba(255,255,255,0.85);margin-top:4px;word-break:break-all;">${JSON.stringify(l)}</div></div>
+      `).join('');
+    }
+
+    function toggleLogInspector() {
+      document.getElementById('panelLogInspector').classList.toggle('hidden');
+      renderLogInspector();
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('miniToast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.add('hidden'), 2400);
+    }
+
+
+    function showModal(text, icon, showCancel, showInput, onOk) {
+      document.getElementById('customModalText').textContent = text;
+      document.getElementById('customModalIcon').textContent = icon || '⚠️';
+      const inp = document.getElementById('customModalInput');
+      inp.classList.toggle('hidden', !showInput);
+      if (showInput) inp.value = '';
+      document.getElementById('customModalCancel').classList.toggle('hidden', !showCancel);
+      const modal = document.getElementById('customModal');
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      document.getElementById('customModalOk').onclick = () => {
+        modal.classList.add('hidden'); modal.style.display = 'none';
+        if (onOk) onOk(showInput ? inp.value : true);
+      };
+      document.getElementById('customModalCancel').onclick = () => { modal.classList.add('hidden'); modal.style.display = 'none'; };
+    }
+
+    // =========================================================================
+    // 2. TOGGLE PREVIEW DESKTOP vs MOBILE
+    // =========================================================================
+    function toggleViewportMode() {
+      const vp = document.getElementById('appViewport');
+      const btn = document.getElementById('btnViewportToggle');
+      const current = vp.getAttribute('data-viewport');
+      const next = current === 'desktop' ? 'mobile' : 'desktop';
+      vp.setAttribute('data-viewport', next);
+      btn.innerHTML = next === 'desktop' ? '<span>🖥️ Mode: Desktop</span>' : '<span>📱 Mode: Mobile</span>';
+      logEvent('viewport_mode_toggle', { mode: next });
+      showToast(next === 'desktop' ? '🖥️ Tampilan Desktop Aktif' : '📱 Tampilan Mobile v2 Aktif');
+    }
+
+    // =========================================================================
+    // 3. DATA KATALOG 27 MAPEL (REPRESENTATIF) & 3 TIPE SOAL
+    // =========================================================================
+    const MAPEL_CATALOG = [
+      { key: 'matematika', name: 'Matematika (Wajib)', cat: 'Wajib', fav: true, p1: 46, p2: 25, prog: 33, jatahMenitPerSoal: 3.0 },
+      { key: 'indonesia', name: 'Bahasa Indonesia (Wajib)', cat: 'Wajib', fav: true, p1: 20, p2: 25, prog: 60, jatahMenitPerSoal: 2.5 },
+      { key: 'inggris', name: 'Bahasa Inggris (Wajib)', cat: 'Wajib', fav: true, p1: 20, p2: 25, prog: 0, jatahMenitPerSoal: 2.5 },
+      { key: 'fisika', name: 'Fisika (Peminatan)', cat: 'Saintek', fav: true, p1: 20, p2: 24, prog: 15, jatahMenitPerSoal: 2.4 },
+      { key: 'kimia', name: 'Kimia (Peminatan)', cat: 'Saintek', fav: false, p1: 20, p2: 24, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'biologi', name: 'Biologi (Peminatan)', cat: 'Saintek', fav: false, p1: 20, p2: 29, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'ekonomi', name: 'Ekonomi (Peminatan)', cat: 'Soshum', fav: false, p1: 20, p2: 29, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'sosiologi', name: 'Sosiologi (Peminatan)', cat: 'Soshum', fav: false, p1: 20, p2: 30, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'geografi', name: 'Geografi (Peminatan)', cat: 'Soshum', fav: false, p1: 10, p2: 29, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'tkj', name: 'SMK - Teknik Jaringan & Telekomunikasi (TKJ)', cat: 'SMK', fav: false, p1: 25, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'tkr', name: 'SMK - Teknik Otomotif (TKR)', cat: 'SMK', fav: false, p1: 25, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
+      { key: 'jepang', name: 'Bahasa Jepang', cat: 'Bahasa', fav: false, p1: 10, p2: 29, prog: 0, jatahMenitPerSoal: 2.4 }
+    ];
+
+    const QUESTIONS = [
+      {
+        nomor: 1,
+        tipe: 'Pilihan Ganda',
+        topik: 'SPLDV',
+        stimulus: '',
+        prompt: 'Harga 3 buku tulis dan 2 penggaris adalah Rp21.000. Jika harga 2 buku tulis dan 3 penggaris adalah Rp19.000, maka harga 1 buku tulis adalah …',
+        options: [
+          { key: 'A', text: 'Rp4.000' },
+          { key: 'B', text: 'Rp5.000' },
+          { key: 'C', text: 'Rp5.500' },
+          { key: 'D', text: 'Rp6.000' },
+          { key: 'E', text: 'Rp7.000' }
+        ],
+        kunci: 'B',
+        ringkas: 'Eliminasi variabel penggaris (p) dari kedua persamaan linear menghasilkan 5b = 25.000, sehingga harga 1 buku tulis (b) = Rp5.000.',
+        pilar1: 'Diketahui: 3b + 2p = 21.000 dan 2b + 3p = 19.000. Ditanyakan: Nilai b (harga 1 buku tulis).',
+        pilar3: 'Karena kita hanya butuh variabel b, kita samakan koefisien p menjadi 6 agar langsung habis saat dikurangkan.',
+        pilar4: [
+          'Kalikan persamaan (1) × 3 → 9b + 6p = 63.000',
+          'Kalikan persamaan (2) × 2 → 4b + 6p = 38.000',
+          'Kurangkan kedua persamaan → 5b = 25.000 → b = Rp5.000'
+        ],
+        pilar5: 'Trik Cepat: Jumlahkan lalu kurangkan kedua persamaan (5b+5p = 40.000 → b+p = 8.000, dan b-p = 2.000). Maka 2b = 10.000 → b = 5.000 dalam 5 detik!',
+        similar: {
+          q: 'Jika 4 pensil dan 1 penghapus harganya Rp14.000, sedangkan 2 pensil dan 1 penghapus harganya Rp8.000, berapa harga 1 pensil?',
+          opts: ['A. Rp2.000', 'B. Rp3.000', 'C. Rp4.000'],
+          ans: 1,
+          exp: 'Benar! Kurangkan langsung: (4p + h) - (2p + h) = 14.000 - 8.000 → 2p = 6.000 → p = Rp3.000.'
+        }
+      },
+      {
+        nomor: 2,
+        tipe: 'Pilihan Ganda Kompleks',
+        topik: 'FUNGSI KUADRAT',
+        stimulus: 'Perhatikan fungsi kuadrat f(x) = x² - 4x + 3 pada bidang koordinat Cartesius.',
+        prompt: 'Manakah di antara pernyataan berikut yang BENAR mengenai grafik fungsi f(x) tersebut? (Pilih 2 jawaban benar)',
+        options: [
+          { key: 'A', text: 'Grafik membuka ke atas karena koefisien a > 0' },
+          { key: 'B', text: 'Titik puncak berada di koordinat (2, -1)' },
+          { key: 'C', text: 'Grafik memotong sumbu-Y di titik (0, -3)' },
+          { key: 'D', text: 'Grafik tidak memotong sumbu-X' }
+        ],
+        kunci: ['A', 'B'],
+        ringkas: 'Koefisien a = 1 (> 0) membuat kurva membuka ke atas (A benar), dan titik puncak xp = -b/2a = 2 dengan yp = 2² - 4(2) + 3 = -1 (B benar).',
+        pilar1: 'Diketahui: f(x) = x² - 4x + 3 (a=1, b=-4, c=3). Ditanyakan: Seluruh pernyataan sifat grafik yang bernilai benar.',
+        pilar3: 'Soal Pilihan Ganda Kompleks menguji ketelitian memverifikasi beberapa sifat fungsi sekaligus tanpa berhenti di opsi pertama.',
+        pilar4: [
+          'Cek arah bukaan: a = 1 > 0 → membuka ke atas (Opsi A Benar)',
+          'Cek titik puncak: xp = -(-4)/(2·1) = 2, yp = 4 - 8 + 3 = -1 → (2, -1) (Opsi B Benar)',
+          'Cek potong sumbu-Y (x=0): y = 3 → (0, 3), bukan (0, -3) (Opsi C Salah)'
+        ],
+        pilar5: 'Jebakan Umum: Siswa sering hanya mencentang opsi A karena sudah yakin benar, padahal PG Kompleks menuntut semua kunci (A dan B) dicentang.',
+        similar: {
+          q: 'Untuk f(x) = x² - 2x - 3, manakah titik potong sumbu-Y yang benar?',
+          opts: ['A. (0, 3)', 'B. (0, -3)', 'C. (1, -4)'],
+          ans: 1,
+          exp: 'Tepat! Substitusi x = 0 menghasilkan f(0) = -3, jadi memotong sumbu-Y di (0, -3).'
+        }
+      },
+      {
+        nomor: 3,
+        tipe: 'Benar-Salah',
+        topik: 'STATISTIKA DATA',
+        stimulus: 'Data nilai ujian 5 siswa adalah: 60, 70, 70, 80, 95.',
+        prompt: 'Tentukan apakah setiap pernyataan statistik di bawah ini Benar atau Salah!',
+        statements: [
+          { key: 'A', text: 'Modus dari data nilai tersebut adalah 70.' },
+          { key: 'B', text: 'Median (nilai tengah) data tersebut adalah 70.' },
+          { key: 'C', text: 'Rata-rata (mean) data tersebut adalah 80.' }
+        ],
+        kunci: { A: 'Benar', B: 'Benar', C: 'Salah' },
+        ringkas: 'Modus = 70 (muncul 2x), Median data ke-3 = 70, sedangkan Rata-rata = (60+70+70+80+95)/5 = 375/5 = 75 (bukan 80).',
+        pilar1: 'Data terurut (n=5): 60, 70, 70, 80, 95. Evaluasi kebenaran Modus, Median, dan Mean.',
+        pilar3: 'Tabel Benar/Salah menuntut kita menghitung nilai eksak rata-rata dan tidak menebak dari angka yang tampak di tengah.',
+        pilar4: [
+          'Pernyataan A: Nilai 70 muncul 2 kali (paling sering) → Benar',
+          'Pernyataan B: Data ke-3 dari 5 data terurut adalah 70 → Benar',
+          'Pernyataan C: Jumlah = 375, dibagi 5 = 75 ≠ 80 → Salah'
+        ],
+        pilar5: 'Trik Cepat: Jumlahkan digit terakhirnya (0+0+0+0+5 = 5, dibagi 5 pasti berakhiran 5, tidak mungkin genap 80).',
+        similar: {
+          q: 'Berapakah jangkauan (range) dari data 60, 70, 70, 80, 95 di atas?',
+          opts: ['A. 25', 'B. 35', 'C. 45'],
+          ans: 1,
+          exp: 'Mantap! Jangkauan = Nilai terbesar - Nilai terkecil = 95 - 60 = 35.'
+        }
+      }
+    ];
+
+    // =========================================================================
+    // 4. STATE & LIVE COUNTDOWN TIMER
+    // =========================================================================
+    let activeCategory = 'pilihanmu';
+    let currentQIndex = 0;
+    let quizMode = 'latihan';
+    let isReviewMode = false;
+    let pendingQuizConfig = null;
+
+    let userAnswers = {};
+    let raguFlags = {};
+    let checkedFlags = {};
+    let changeCounts = {};
+    let pilarExpanded = false;
+    let fontScaleIdx = 1;
+    const FONT_SCALES = [90, 100, 115, 130];
+    let tutorQuota = 24;
+
+    let timerRemainingSec = 4500;
+    let timerIntervalId = null;
+
+    function formatHMS(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+      const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+      const ss = String(s % 60).padStart(2, '0');
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    function startLiveTimer(durationSec) {
+      stopLiveTimer();
+      timerRemainingSec = durationSec;
+      renderTimerUI();
+      timerIntervalId = setInterval(() => {
+        if (timerRemainingSec > 0) {
+          timerRemainingSec--;
+          renderTimerUI();
+          if (timerRemainingSec === 0) {
+            handleTimerExpired();
+          }
+        }
+      }, 1000);
+    }
+
+    function stopLiveTimer() {
+      if (timerIntervalId) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+      }
+    }
+
+    function renderTimerUI() {
+      const formatted = formatHMS(timerRemainingSec);
+      document.querySelectorAll('.timer-text-sync').forEach(el => {
+        el.textContent = formatted;
+      });
+    }
+
+    function fastForwardTimerTo5Sec() {
+      if (isReviewMode) {
+        showToast('Sedang di Mode Reviu (Timer sudah berhenti)');
+        return;
+      }
+      timerRemainingSec = 5;
+      renderTimerUI();
+      showToast('⏱ Sisa timer diset ke 5 detik untuk tes!');
+      logEvent('dev_fast_forward_timer', { mode: quizMode, remaining_s: 5 });
+    }
+
+    function handleTimerExpired() {
+      stopLiveTimer();
+      if (quizMode === 'latihan') {
+        logEvent('timer_expired_latihan', { action: 'warn_only_keep_working' });
+        document.getElementById('latihanTimeUpBanner').classList.remove('hidden');
+        showToast('⏰ Waktu acuan habis! Di Mode Latihan kamu tetap bisa lanjut.');
+      } else {
+        logEvent('timer_expired_simulasi_autosubmit', { action: 'auto_submit_to_autopsy' });
+        finishQuizNow('timer');
+      }
+    }
+
+    // =========================================================================
+    // 5. SCREEN NAVIGATION & SIDEBAR SYNC
+    // =========================================================================
+    function switchScreen(name) {
+      ['auth', 'home', 'arena', 'result', 'progres', 'akun'].forEach(s => {
+        document.getElementById('screen-' + s).classList.add('hidden');
+        const devBtn = document.getElementById('dev-btn-' + s);
+        if (devBtn) devBtn.classList.toggle('active', s === name);
+      });
+
+      document.getElementById('screen-' + name).classList.remove('hidden');
+      document.getElementById('btnTestTimer5s').classList.toggle('hidden', name !== 'arena');
+
+      // Sembunyikan Sidebar Kiri & Mobile Bottom Nav saat di Login atau Arena Soal agar fokus penuh
+      const hideNavChrome = (name === 'auth' || name === 'arena');
+      document.getElementById('desktopSidebar').classList.toggle('hidden', hideNavChrome);
+      document.getElementById('mobileBottomNav').classList.toggle('hidden', hideNavChrome);
+
+      // Highlight active menu item di Sidebar & Mobile Bottom Nav
+      ['home', 'progres', 'akun'].forEach(navKey => {
+        const isCurrent = (name === navKey) || (name === 'result' && navKey === 'home');
+        const sideBtn = document.getElementById('side-nav-' + navKey);
+        const mobBtn = document.getElementById('m-nav-' + navKey);
+        if (sideBtn) sideBtn.classList.toggle('active', isCurrent);
+        if (mobBtn) mobBtn.classList.toggle('active', isCurrent);
+      });
+
+      if (name !== 'arena') stopLiveTimer();
+      logEvent('screen_view', { screen: name });
+
+      if (name === 'home') renderMapelList();
+      if (name === 'arena') renderArenaQuestion();
+      if (name === 'result') populateResultScreen('user');
+    }
+
+    function doGoogleLogin() {
+      logEvent('auth_login_google', { status: 'authenticated', quota_granted: 25 });
+      showToast('✓ Berhasil masuk sebagai Agus Putra');
+      switchScreen('home');
+    }
+
+    // =========================================================================
+    // 6. MODE SELECTOR (LATIHAN vs SIMULASI) & ATUR MAPEL
+    // =========================================================================
+    function openModeSelector(mapelKey, mapelName, pkgNum, resumeSoalNo = null) {
+      const mObj = MAPEL_CATALOG.find(m => m.key === mapelKey) || MAPEL_CATALOG[0];
+      const soalCount = pkgNum === 1 ? mObj.p1 : mObj.p2;
+      const officialMinutes = Math.round(soalCount * (mObj.jatahMenitPerSoal || 2.4));
+
+      pendingQuizConfig = {
+        mapelKey,
+        mapelName,
+        pkgNum,
+        resumeSoalNo,
+        soalCount,
+        officialMinutes,
+        durationSec: officialMinutes * 60
+      };
+
+      document.getElementById('modeSheetTitle').textContent = `${mapelName} · Paket ${pkgNum}`;
+      document.getElementById('modeSheetMeta').textContent = resumeSoalNo
+        ? `Lanjutkan dari Soal #${resumeSoalNo} • ${soalCount} Soal (${officialMinutes} Menit)`
+        : `${soalCount} Soal Resmi Pusmendik • Jatah Waktu ${officialMinutes} Menit`;
+
+      selectQuizModeOption(quizMode);
+      document.getElementById('sheetPilihMode').classList.remove('hidden');
+      logEvent('mode_selector_open', { mapel: mapelKey, paket: pkgNum, resume: !!resumeSoalNo });
+    }
+
+    function closeModeSelector() {
+      document.getElementById('sheetPilihMode').classList.add('hidden');
+    }
+
+    function selectQuizModeOption(mode) {
+      quizMode = mode;
+      const isLat = (mode === 'latihan');
+      document.getElementById('cardModeLatihan').className = `neo-btn ${isLat ? 'btn-lime' : ''}`;
+      document.getElementById('cardModeSimulasi').className = `neo-btn ${!isLat ? 'btn-lime' : ''}`;
+
+      document.getElementById('radioModeLatihan').className = isLat ? 'badge badge-dark' : 'badge';
+      document.getElementById('radioModeLatihan').textContent = isLat ? 'Terpilih ✓' : 'Pilih';
+
+      document.getElementById('radioModeSimulasi').className = !isLat ? 'badge badge-dark' : 'badge';
+      document.getElementById('radioModeSimulasi').textContent = !isLat ? 'Terpilih ✓' : 'Pilih';
+
+      document.getElementById('btnConfirmStartQuiz').innerHTML = isLat
+        ? '🌱 Mulai dengan Mode Latihan →'
+        : '⚡ Mulai Ujian Mode Simulasi →';
+    }
+
+    function confirmStartQuiz() {
+      if (!pendingQuizConfig) return;
+      closeModeSelector();
+      isReviewMode = false;
+      document.getElementById('latihanTimeUpBanner').classList.add('hidden');
+
+      if (!pendingQuizConfig.resumeSoalNo) {
+        userAnswers = {};
+        raguFlags = {};
+        checkedFlags = {};
+        changeCounts = {};
+        currentQIndex = 0;
+      } else {
+        userAnswers[0] = 'B';
+        checkedFlags[0] = (quizMode === 'latihan');
+        currentQIndex = Math.min(QUESTIONS.length - 1, pendingQuizConfig.resumeSoalNo - 1);
+      }
+
+      document.getElementById('arenaMapelLabel').textContent = `${pendingQuizConfig.mapelName} · Paket ${pendingQuizConfig.pkgNum}`;
+      document.getElementById('resultTitleText').textContent = `${pendingQuizConfig.mapelName} · Paket ${pendingQuizConfig.pkgNum}`;
+
+      logEvent('quiz_start', {
+        mapel: pendingQuizConfig.mapelKey,
+        paket: pendingQuizConfig.pkgNum,
+        mode: quizMode,
+        duration_sec: pendingQuizConfig.durationSec
+      });
+
+      startLiveTimer(pendingQuizConfig.durationSec);
+      switchScreen('arena');
+    }
+
+    function setCategory(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('.cat-chip').forEach(btn => {
+        const isOn = btn.getAttribute('data-cat') === cat;
+        btn.className = `cat-chip neo-btn ${isOn ? 'btn-lime' : ''}`;
+      });
+      logEvent('filter_category', { category: cat });
+      renderMapelList();
+    }
+
+    function updatePilihanmuChipCount() {
+      const favCount = MAPEL_CATALOG.filter(m => m.fav).length;
+      const chip = document.getElementById('chipPilihanmu');
+      if (chip) chip.textContent = `⭐ Pilihanmu (${favCount})`;
+    }
+
+    function openAturMapelModal() {
+      const list = document.getElementById('aturMapelChecklist');
+      list.innerHTML = MAPEL_CATALOG.map(m => `
+        <label class="neo-card" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;"><div><span style="font-size:10px;font-weight:800;color:var(--indigo);text-transform:uppercase;">${m.cat}</span><p style="font-size:13px;font-weight:800;">${m.name}</p></div><input type="checkbox" value="${m.key}" ${m.fav ? 'checked' : ''} style="width:18px;height:18px;accent-color:#111111;cursor:pointer;" /></label>
+      `).join('');
+      document.getElementById('modalAturMapel').classList.remove('hidden');
+      logEvent('atur_mapel_modal_open');
+    }
+
+    function closeAturMapelModal() {
+      document.getElementById('modalAturMapel').classList.add('hidden');
+    }
+
+    function saveAturMapelModal() {
+      const checks = Array.from(document.querySelectorAll('#aturMapelChecklist input[type="checkbox"]:checked')).map(el => el.value);
+      if (checks.length === 0) {
+        showToast('⚠️ Pilih minimal 1 mapel!');
+        return;
+      }
+      MAPEL_CATALOG.forEach(m => { m.fav = checks.includes(m.key); });
+      updatePilihanmuChipCount();
+      closeAturMapelModal();
+      renderMapelList();
+      showToast(`✓ ${checks.length} Mapel Pilihan berhasil disimpan!`);
+      logEvent('atur_mapel_saved', { selected_keys: checks });
+    }
+
+    function renderMapelList() {
+      updatePilihanmuChipCount();
+      const q = (document.getElementById('searchMapelInput')?.value || '').toLowerCase();
+      const filtered = MAPEL_CATALOG.filter(m => {
+        const matchSearch = m.name.toLowerCase().includes(q) || m.cat.toLowerCase().includes(q);
+        const matchCat = activeCategory === 'pilihanmu' ? m.fav : m.cat === activeCategory;
+        return q ? matchSearch : matchCat;
+      });
+
+      const cont = document.getElementById('mapelListContainer');
+      if (filtered.length === 0) {
+        cont.innerHTML = `
+          <div class="neo-card" style="padding:28px;text-align:center;grid-column:1/-1;"><p style="font-size:13px;font-weight:700;color:var(--muted);">Mapel tidak ditemukan di kategori ini.</p><button onclick="openAturMapelModal()" class="neo-btn btn-lime" style="margin-top:12px;padding:8px 16px;font-size:12px;">⚙️ Atur Mapel Pilihan</button></div>
+        `;
+        return;
+      }
+
+      cont.innerHTML = filtered.map(m => {
+        const m1 = Math.round(m.p1 * m.jatahMenitPerSoal);
+        const m2 = Math.round(m.p2 * m.jatahMenitPerSoal);
+        return `
+        <div class="neo-card mapel-card"><div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);">${m.cat} · Pusmendik</span>
+              ${m.prog > 0 ? `<span class="badge badge-lime">${m.prog}% Selesai</span>` : `<span class="badge">Baru</span>`}
+            </div><h3 style="font-size:16px;font-weight:800;margin-top:6px;">${m.name}</h3></div><div style="display:grid;grid-template-columns:${m.p2 ? '1fr 1fr' : '1fr'};gap:8px;"><button onclick="openModeSelector('${m.key}', '${m.name}', 1)" class="neo-btn" style="padding:10px 12px;justify-content:space-between;text-align:left;background:var(--bg);"><div><div style="font-size:12.5px;font-weight:800;">Paket 1</div><div style="font-size:10.5px;color:var(--muted);font-weight:600;">${m.p1} Soal • ${m1}m</div></div><span>→</span></button>
+            ${m.p2 ? `
+            <button onclick="openModeSelector('${m.key}', '${m.name}', 2)" class="neo-btn" style="padding:10px 12px;justify-content:space-between;text-align:left;background:var(--bg);"><div><div style="font-size:12.5px;font-weight:800;">Paket 2</div><div style="font-size:10.5px;color:var(--muted);font-weight:600;">${m.p2} Soal • ${m2}m</div></div><span>→</span></button>` : ''}
+          </div></div>
+      `}).join('');
+    }
+
+    // =========================================================================
+    // 7. ARENA SOAL (2 KOLOM DESKTOP + PANEL KANAN STICKY + SLIDE-OVER AI)
+    // =========================================================================
+    function isQuestionAnsweredAt(idx) {
+      const q = QUESTIONS[idx];
+      const ans = userAnswers[idx];
+      if (!ans) return false;
+      if (Array.isArray(ans)) return ans.length > 0;
+      if (q.tipe === 'Benar-Salah') return q.statements.every(s => ans[s.key]);
+      return true;
+    }
+
+    function renderArenaQuestion() {
+      const q = QUESTIONS[currentQIndex];
+      questionStartTimeMs = Date.now();
+      pilarExpanded = false;
+
+      logEvent('soal_view', { soal_no: q.nomor, tipe: q.tipe, topik: q.topik, mode: isReviewMode ? 'review' : quizMode });
+
+      // Mode Badge
+      const modeBadge = document.getElementById('arenaModeBadge');
+      if (isReviewMode) {
+        modeBadge.textContent = '📖 Mode Reviu';
+        modeBadge.className = 'badge badge-indigo';
+      } else if (quizMode === 'simulasi') {
+        modeBadge.textContent = '⚡ Mode Simulasi';
+        modeBadge.className = 'badge badge-amber';
+      } else {
+        modeBadge.textContent = '🌱 Mode Latihan';
+        modeBadge.className = 'badge badge-lime';
+      }
+
+      document.getElementById('arenaSoalCounter').textContent = `Soal ${q.nomor} / ${QUESTIONS.length}`;
+      document.getElementById('soalNomorTitle').textContent = `SOAL NOMOR ${q.nomor}`;
+      document.getElementById('soalTipeBadge').textContent = q.tipe;
+      document.getElementById('soalTopikBadge').textContent = q.topik;
+
+      // Stimulus
+      const stimBox = document.getElementById('soalStimulusBox');
+      if (q.stimulus) {
+        stimBox.classList.remove('hidden');
+        stimBox.textContent = q.stimulus;
+      } else {
+        stimBox.classList.add('hidden');
+      }
+
+      // Prompt
+      document.getElementById('soalPromptText').textContent = q.prompt;
+
+      // PG Kompleks Notice
+      const isComplex = q.tipe === 'Pilihan Ganda Kompleks';
+      document.getElementById('complexNoticePill').classList.toggle('hidden', !isComplex);
+
+      // Opsi / Tabel Pernyataan
+      const optsCont = document.getElementById('soalOptionsContainer');
+      optsCont.innerHTML = '';
+      const savedAns = userAnswers[currentQIndex];
+
+      if (q.tipe === 'Benar-Salah') {
+        const curBS = savedAns || {};
+        optsCont.innerHTML = `
+          <div style="border:var(--border);border-radius:12px;overflow:hidden;"><div style="background:var(--ink);color:#FFF;font-weight:800;padding:10px 14px;display:flex;justify-content:space-between;font-size:12px;"><span>Pernyataan Analisis</span><span style="width:128px;text-align:center;">Pilihanmu</span></div>
+            ${q.statements.map(st => `
+              <div style="padding:12px 14px;border-top:1px solid #E4E4E7;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#FFF;"><div style="flex:1;"><b>${st.key}.</b> ${st.text}</div><div style="display:flex;gap:6px;flex-shrink:0;"><button onclick="pickBsOption('${st.key}', 'Benar')" class="neo-btn ${curBS[st.key] === 'Benar' ? 'btn-lime' : ''}" style="padding:6px 10px;font-size:11.5px;">Benar</button><button onclick="pickBsOption('${st.key}', 'Salah')" class="neo-btn ${curBS[st.key] === 'Salah' ? 'btn-red-soft' : ''}" style="padding:6px 10px;font-size:11.5px;">Salah</button></div></div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        q.options.forEach(opt => {
+          const isSelected = isComplex
+            ? (Array.isArray(savedAns) && savedAns.includes(opt.key))
+            : (savedAns === opt.key);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => pickOption(opt.key, isComplex);
+          btn.className = `option-btn ${isSelected ? 'selected' : ''}`;
+          btn.innerHTML = `
+            <span class="option-key-circle" style="border-radius:${isComplex ? '6px' : '999px'};">
+              ${isComplex && isSelected ? '✓' : opt.key}
+            </span><span style="flex:1;">${opt.text}</span>
+          `;
+          optsCont.appendChild(btn);
+        });
+      }
+
+      // Sync Prev / Next buttons
+      document.getElementById('btnDesktopPrev').disabled = (currentQIndex === 0);
+      document.getElementById('btnMobilePrev').disabled = (currentQIndex === 0);
+      document.getElementById('btnDesktopNext').disabled = (currentQIndex === QUESTIONS.length - 1);
+
+      // Sync Ragu buttons (Desktop right panel & Mobile footer)
+      const isRagu = !!raguFlags[currentQIndex];
+      const rightRagu = document.getElementById('btnRightRagu');
+      const mobRagu = document.getElementById('btnMobileRagu');
+      rightRagu.className = `neo-btn ${isRagu ? 'btn-amber' : ''}`;
+      rightRagu.textContent = isRagu ? '⚑ Ditandai Ragu-ragu (Klik Batal)' : '⚑ Tandai Soal Ini Ragu-ragu';
+      mobRagu.className = `neo-btn ${isRagu ? 'btn-amber' : ''}`;
+
+      // Sync Sticky Right Panel: Stats & Peta Soal Grid
+      renderRightPanelPetaAndStats();
+
+      // Aturan Mode Latihan vs Simulasi vs Reviu untuk Pembahasan & Tombol Cek
+      const evalSec = document.getElementById('inlineEvaluationSection');
+      const rightLocked = document.getElementById('btnRightSimulasiLocked');
+      const mobLocked = document.getElementById('btnMobileSimulasiLocked');
+      document.getElementById('similarSoalBox').classList.add('hidden');
+
+      if (quizMode === 'simulasi' && !isReviewMode) {
+        evalSec.classList.add('hidden');
+        rightLocked.classList.remove('hidden');
+        mobLocked.classList.remove('hidden');
+        updatePrimaryActionButtons(false);
+      } else {
+        rightLocked.classList.add('hidden');
+        mobLocked.classList.add('hidden');
+        if (checkedFlags[currentQIndex] || isReviewMode) {
+          renderInlinePembahasan();
+          evalSec.classList.remove('hidden');
+          updatePrimaryActionButtons(true);
+        } else {
+          evalSec.classList.add('hidden');
+          updatePrimaryActionButtons(false);
+        }
+      }
+
+      // Sync AI Tutor Context
+      document.getElementById('tutorContextLabel').textContent = `✓ Paham konteks Soal #${q.nomor} (${q.topik})`;
+      document.getElementById('tutorPreviewTitle').textContent = `📌 Intip Teks Soal #${q.nomor} (Klik buka/tutup)`;
+      document.getElementById('tutorPreviewBody').textContent = q.prompt;
+    }
+
+    function renderRightPanelPetaAndStats() {
+      let ansCount = 0, raguCount = 0;
+      const grid = document.getElementById('petaGridContainer');
+      grid.innerHTML = QUESTIONS.map((q, idx) => {
+        const answered = isQuestionAnsweredAt(idx);
+        const isRagu = !!raguFlags[idx];
+        if (answered) ansCount++;
+        if (isRagu) raguCount++;
+
+        let btnCls = 'neo-btn';
+        if (isRagu) btnCls += ' btn-amber';
+        else if (answered) btnCls += ' btn-lime';
+
+        const activeOutline = (idx === currentQIndex) ? 'outline:3px solid var(--indigo);outline-offset:1px;' : '';
+        return `
+          <button onclick="currentQIndex=${idx}; toggleMobilePetaDrawer(false); renderArenaQuestion();" class="${btnCls}" style="height:42px;font-size:13px;${activeOutline}">
+            ${q.nomor}
+          </button>
+        `;
+      }).join('');
+
+      document.getElementById('statCountAnswered').textContent = ansCount;
+      document.getElementById('statCountRagu').textContent = raguCount;
+      document.getElementById('statCountUnanswered').textContent = QUESTIONS.length - ansCount;
+    }
+
+    function updatePrimaryActionButtons(isChecked) {
+      const btnRight = document.getElementById('btnRightPrimary');
+      const btnMob = document.getElementById('btnMobilePrimary');
+      const isLast = currentQIndex === QUESTIONS.length - 1;
+
+      let label = 'Cek Jawaban ✓';
+      let cls = 'neo-btn btn-lime';
+
+      if (isReviewMode) {
+        label = isLast ? 'Kembali ke Layar Autopsi 🏁' : 'Soal Berikutnya →';
+        cls = 'neo-btn btn-dark';
+      } else if (quizMode === 'simulasi') {
+        label = isLast ? 'Selesai & Kumpulkan 🏁' : 'Soal Selanjutnya →';
+        cls = isLast ? 'neo-btn btn-dark' : 'neo-btn btn-lime';
+      } else {
+        if (!isChecked) {
+          label = 'Cek Jawaban ✓';
+          cls = 'neo-btn btn-lime';
+        } else if (isLast) {
+          label = 'Selesai & Lihat Autopsi 🏁';
+          cls = 'neo-btn btn-dark';
+        } else {
+          label = 'Soal Selanjutnya →';
+          cls = 'neo-btn btn-indigo';
+        }
+      }
+
+      btnRight.textContent = label;
+      btnRight.className = cls;
+      btnMob.textContent = label;
+      btnMob.className = cls;
+    }
+
+    function pickOption(key, isComplex) {
+      if (isReviewMode) return;
+      const prev = userAnswers[currentQIndex];
+      if (prev !== undefined) {
+        changeCounts[currentQIndex] = (changeCounts[currentQIndex] || 0) + 1;
+      }
+      if (isComplex) {
+        let arr = Array.isArray(prev) ? [...prev] : [];
+        arr = arr.includes(key) ? arr.filter(k => k !== key) : [...arr, key];
+        userAnswers[currentQIndex] = arr;
+      } else {
+        userAnswers[currentQIndex] = key;
+      }
+      checkedFlags[currentQIndex] = false;
+      logEvent('option_click', {
+        soal_no: currentQIndex + 1,
+        opsi: userAnswers[currentQIndex],
+        change_count: changeCounts[currentQIndex] || 0,
+        mode: quizMode
+      });
+      renderArenaQuestion();
+    }
+
+    function pickBsOption(stmtKey, val) {
+      if (isReviewMode) return;
+      const cur = userAnswers[currentQIndex] || {};
+      cur[stmtKey] = val;
+      userAnswers[currentQIndex] = cur;
+      checkedFlags[currentQIndex] = false;
+      logEvent('option_click_bs', { soal_no: currentQIndex + 1, statement: stmtKey, val, mode: quizMode });
+      renderArenaQuestion();
+    }
+
+    function handlePrimaryArenaAction() {
+      if (isReviewMode) {
+        if (currentQIndex < QUESTIONS.length - 1) navSoal(1);
+        else switchScreen('result');
+        return;
+      }
+
+      if (quizMode === 'simulasi') {
+        if (currentQIndex < QUESTIONS.length - 1) navSoal(1);
+        else finishQuizNow('user');
+        return;
+      }
+
+      if (!checkedFlags[currentQIndex]) {
+        if (!isQuestionAnsweredAt(currentQIndex)) {
+          showToast('⚠️ Pilih jawabanmu dulu sebelum klik Cek Jawaban!');
+          return;
+        }
+        checkedFlags[currentQIndex] = true;
+        logEvent('check_answer', { soal_no: currentQIndex + 1, user_answer: userAnswers[currentQIndex] });
+        renderArenaQuestion();
+        setTimeout(() => {
+          document.getElementById('inlineEvaluationSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      } else {
+        if (currentQIndex < QUESTIONS.length - 1) navSoal(1);
+        else finishQuizNow('user');
+      }
+    }
+
+    function notifySimulasiLocked() {
+      showToast('🔒 Mode Simulasi: Kunci & Pembahasan dibuka setelah klik Selesai!');
+      logEvent('simulasi_locked_check_attempt', { soal_no: currentQIndex + 1 });
+    }
+
+    function evaluateSingleQuestion(idx) {
+      const q = QUESTIONS[idx];
+      const ans = userAnswers[idx];
+      if (!isQuestionAnsweredAt(idx)) return 'kosong';
+      if (q.tipe === 'Pilihan Ganda') return (ans === q.kunci) ? 'benar' : 'salah';
+      if (q.tipe === 'Pilihan Ganda Kompleks') {
+        const u = Array.isArray(ans) ? [...ans].sort().join(',') : '';
+        const k = [...q.kunci].sort().join(',');
+        return (u === k) ? 'benar' : 'salah';
+      }
+      if (q.tipe === 'Benar-Salah') {
+        return q.statements.every(s => ans[s.key] === q.kunci[s.key]) ? 'benar' : 'salah';
+      }
+      return 'kosong';
+    }
+
+    function renderInlinePembahasan() {
+      const q = QUESTIONS[currentQIndex];
+      const status = evaluateSingleQuestion(currentQIndex);
+      const fb = document.getElementById('evalFeedbackBanner');
+      const isCorrect = (status === 'benar');
+
+      fb.style.background = isCorrect ? 'var(--lime)' : 'var(--red-soft)';
+      fb.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;font-weight:800;">${isCorrect ? '✅ Mantap! Jawabanmu Tepat!' : (status === 'kosong' ? '⚪ Soal Ini Belum Dijawab' : '❌ Belum Tepat — Yuk Pelajari Pembahasannya!')}</span><span class="badge">Soal #${q.nomor}</span></div>
+      `;
+
+      const kunciStr = typeof q.kunci === 'object' && !Array.isArray(q.kunci)
+        ? Object.entries(q.kunci).map(([k,v]) => `${k}:${v}`).join(', ')
+        : (Array.isArray(q.kunci) ? q.kunci.join(', ') : q.kunci);
+
+      document.getElementById('pembKeyTitle').textContent = `Kunci Jawaban: ${kunciStr}`;
+      document.getElementById('pembRingkasBody').innerHTML = `<b>Inti Logika (Mode Ringkas):</b> ${q.ringkas}`;
+      document.getElementById('pilar1Text').textContent = q.pilar1;
+      document.getElementById('pilar3Text').textContent = q.pilar3;
+      document.getElementById('pilar4List').innerHTML = q.pilar4.map(s => `<li>${s}</li>`).join('');
+      document.getElementById('pilar5Text').textContent = q.pilar5;
+    }
+
+    function togglePembahasanModeUI() {
+      pilarExpanded = !pilarExpanded;
+      document.getElementById('pembLengkapBody').classList.toggle('hidden', !pilarExpanded);
+      document.getElementById('btnTogglePilarMode').textContent = pilarExpanded
+        ? '🔼 Ciutkan ke Ringkas'
+        : '📖 Buka 5 Pilar Lengkap';
+      logEvent('pembahasan_5pilar_toggle', { soal_no: currentQIndex + 1, mode: pilarExpanded ? 'lengkap' : 'ringkas' });
+    }
+
+    function toggleSimilarSoalBox() {
+      const box = document.getElementById('similarSoalBox');
+      const willShow = box.classList.contains('hidden');
+      box.classList.toggle('hidden');
+      if (willShow) {
+        const sim = QUESTIONS[currentQIndex].similar;
+        document.getElementById('simQuestionText').textContent = sim.q;
+        document.getElementById('simFeedbackText').classList.add('hidden');
+        document.getElementById('simOptionsList').innerHTML = sim.opts.map((o, idx) => `
+          <button onclick="checkSimilarSoal(${idx})" class="neo-btn" style="width:100%;padding:10px 14px;justify-content:flex-start;font-size:13px;">
+            ${o}
+          </button>
+        `).join('');
+        logEvent('similar_question_open', { soal_no: currentQIndex + 1 });
+      }
+    }
+
+    function checkSimilarSoal(idx) {
+      const sim = QUESTIONS[currentQIndex].similar;
+      const fb = document.getElementById('simFeedbackText');
+      fb.classList.remove('hidden');
+      const ok = idx === sim.ans;
+      fb.textContent = (ok ? '✅ ' : '❌ ') + sim.exp;
+      logEvent('similar_question_answer', { soal_no: currentQIndex + 1, correct: ok });
+    }
+
+    function navSoal(delta) {
+      const next = currentQIndex + delta;
+      if (next >= 0 && next < QUESTIONS.length) {
+        currentQIndex = next;
+        renderArenaQuestion();
+      }
+    }
+
+    function toggleFlagRagu() {
+      raguFlags[currentQIndex] = !raguFlags[currentQIndex];
+      logEvent('flag_ragu', { soal_no: currentQIndex + 1, ragu: raguFlags[currentQIndex] });
+      renderArenaQuestion();
+    }
+
+    function cycleFontScale() {
+      fontScaleIdx = (fontScaleIdx + 1) % FONT_SCALES.length;
+      const sc = FONT_SCALES[fontScaleIdx];
+      document.getElementById('appViewport').setAttribute('data-scale', String(sc));
+      document.getElementById('btnFontScale').textContent = `Aa ${sc}%`;
+      showToast(`Ukuran teks soal: ${sc}%`);
+      logEvent('font_scale_change', { scale: sc });
+    }
+
+    function toggleMobilePetaDrawer(open) {
+      const panel = document.getElementById('arenaRightPanel');
+      panel.classList.toggle('mobile-drawer-open', open);
+    }
+
+    function confirmExitArena() {
+      showModal('Keluar ke Beranda? Progres latihanmu tetap aman.', '🚪', true, false, () => { stopLiveTimer(); switchScreen('home'); });
+    }
+
+    // =========================================================================
+    // 8. LAYAR HASIL & AUTOPSI
+    // =========================================================================
+    let lastEndedBy = 'user';
+    function finishQuizNow(endedBy = 'user') {
+      stopLiveTimer();
+      toggleMobilePetaDrawer(false);
+      lastEndedBy = endedBy;
+      populateResultScreen(endedBy);
+      switchScreen('result');
+    }
+
+    function populateResultScreen(endedBy = lastEndedBy) {
+      let benar = 0, salah = 0, kosong = 0;
+      const reviewItemsHtml = QUESTIONS.map((q, idx) => {
+        const st = evaluateSingleQuestion(idx);
+        if (st === 'benar') benar++;
+        else if (st === 'salah') salah++;
+        else kosong++;
+
+        const badge = st === 'benar'
+          ? '<span class="badge badge-green">✓ Benar</span>'
+          : (st === 'salah' ? '<span class="badge badge-red">✕ Salah</span>' : '<span class="badge">⚪ Kosong</span>');
+
+        return `
+          <div onclick="jumpToReviewQuestion(${idx})" class="neo-card" style="padding:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;"><span class="option-key-circle" style="background:${st === 'benar' ? 'var(--lime)' : 'var(--red-soft)'};border-radius:8px;">${q.nomor}</span><div><p style="font-size:13.5px;font-weight:800;">${q.topik} · ${q.tipe}</p><p style="font-size:11.5px;color:var(--muted);">Klik untuk bedah Pembahasan 5 Pilar & AI Tutor →</p></div></div>
+            ${badge}
+          </div>
+        `;
+      }).join('');
+
+      const pct = Math.round((benar / QUESTIONS.length) * 100);
+      document.getElementById('resScoreBig').textContent = `${pct}%`;
+      document.getElementById('resCountBenar').textContent = benar;
+      document.getElementById('resCountSalah').textContent = salah;
+      document.getElementById('resCountKosong').textContent = kosong;
+      document.getElementById('resultReviewList').innerHTML = reviewItemsHtml;
+
+      document.getElementById('resultModeBadge').textContent = quizMode === 'simulasi'
+        ? '⚡ HASIL SIMULASI TKA'
+        : '🌱 HASIL LATIHAN';
+
+      const autoBanner = document.getElementById('resultAutoSubmitBanner');
+      const endedText = document.getElementById('resEndedByText');
+      if (endedBy === 'timer') {
+        autoBanner.classList.remove('hidden');
+        endedText.innerHTML = '⏰ <b>Auto-Submit (Waktu Simulasi Habis)</b>';
+      } else {
+        autoBanner.classList.add('hidden');
+        endedText.innerHTML = '🏁 <b>Diselesaikan oleh User</b>';
+      }
+    }
+
+    function jumpToReviewQuestion(idx) {
+      currentQIndex = idx;
+      isReviewMode = true;
+      checkedFlags[idx] = true;
+      logEvent('autopsi_jump_to_review', { soal_no: idx + 1 });
+      switchScreen('arena');
+    }
+
+    // =========================================================================
+    // 9. AI TUTOR SLIDE-OVER & RUANG COACH CHAT
+    // =========================================================================
+    function openAiTutorSheet() {
+      document.getElementById('sheetAiTutor').classList.remove('hidden');
+      const list = document.getElementById('tutorMessagesList');
+      const q = QUESTIONS[currentQIndex];
+      const modeNote = (quizMode === 'simulasi' && !isReviewMode)
+        ? 'Karena kamu sedang di <b>Mode Simulasi</b>, aku akan memberikan petunjuk konsep & rumus tanpa membocorkan huruf kunci jawabannya.'
+        : `Aku sudah membaca <b>Soal #${q.nomor} (${q.topik})</b> beserta kunci resminya. Bagian mana yang ingin kamu tanyakan?`;
+
+      if (!list.innerHTML.trim()) {
+        list.innerHTML = `
+          <div class="neo-card" style="padding:12px;background:#FFFFFF;"><span style="font-size:10px;font-weight:800;color:var(--indigo);text-transform:uppercase;">AI Tutor Matematika</span><p style="margin-top:4px;line-height:1.5;">Halo Agus! ${modeNote}</p></div>
+        `;
+      }
+      logEvent('ai_tutor_open', { soal_no: currentQIndex + 1, mode: quizMode });
+    }
+
+    function closeAiTutorSheet() {
+      document.getElementById('sheetAiTutor').classList.add('hidden');
+    }
+
+    function toggleTutorQuestionPreview() {
+      document.getElementById('tutorPreviewBody').classList.toggle('hidden');
+    }
+
+    function sendTutorPrompt(text) {
+      document.getElementById('tutorChatInput').value = text;
+      handleTutorSubmit(new Event('submit'));
+    }
+
+    function syncQuotaLabels() {
+      document.getElementById('tutorQuotaPill').textContent = `${tutorQuota}/25 Tanya`;
+      document.getElementById('sidebarQuotaText').textContent = `${tutorQuota} / 25`;
+      document.querySelectorAll('.ai-quota-sync').forEach(el => { el.textContent = tutorQuota; });
+    }
+
+    function handleTutorSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const inp = document.getElementById('tutorChatInput');
+      const msg = inp.value.trim();
+      if (!msg) return;
+      inp.value = '';
+      tutorQuota = Math.max(0, tutorQuota - 1);
+      syncQuotaLabels();
+
+      const q = QUESTIONS[currentQIndex];
+      const list = document.getElementById('tutorMessagesList');
+      const replyText = (quizMode === 'simulasi' && !isReviewMode)
+        ? `💡 <b>Petunjuk Konsep (${q.topik}):</b> ${q.pilar1} <br><br>Gunakan alasan ini: ${q.pilar3}`
+        : `${q.ringkas} <br><br>💡 <b>Trik Ujian:</b> ${q.pilar5}`;
+
+      list.innerHTML += `
+        <div style="display:flex;justify-content:flex-end;"><div style="background:var(--ink);color:#FFF;border-radius:14px 14px 2px 14px;padding:10px 14px;max-width:85%;font-weight:600;">${msg}</div></div><div class="neo-card" style="padding:12px;background:#F0FFB8;max-width:92%;"><span style="font-size:10px;font-weight:800;text-transform:uppercase;">AI Tutor · Soal #${q.nomor}</span><p style="margin-top:4px;line-height:1.5;">${replyText}</p></div>
+      `;
+      list.scrollTop = list.scrollHeight;
+      logEvent('ai_tutor_ask', { soal_no: q.nomor, prompt: msg, quota_remaining: tutorQuota });
+    }
+
+    function handleCoachRoomSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const inp = document.getElementById('coachRoomInput');
+      const msg = inp.value.trim();
+      if (!msg) return;
+      inp.value = '';
+      const box = document.getElementById('coachRoomMessages');
+      box.innerHTML += `
+        <div style="display:flex;justify-content:flex-end;"><div style="background:var(--ink);color:#FFF;border-radius:14px 14px 2px 14px;padding:10px 14px;max-width:80%;font-weight:600;">${msg}</div></div><div class="neo-card" style="padding:12px;background:#F0FFB8;"><span style="font-size:10px;font-weight:800;text-transform:uppercase;">Coach Matematika</span><p style="margin-top:4px;line-height:1.5;">Siap Agus! Untuk menguasai topik tersebut, pastikan kamu menghafal rumus sumbu simetri $x_p = -b/2a$ lalu uji langsung di Paket 1 Matematika ya.</p></div>
+      `;
+      box.scrollTop = box.scrollHeight;
+      logEvent('coach_room_chat', { message: msg });
+    }
+
+    // =========================================================================
+    // 10. MODALS (STRATEGI & TANGGAL TKA)
+    // =========================================================================
+    function openStrategyModal(label) {
+      document.getElementById('modalStrategi').classList.remove('hidden');
+      logEvent('strategy_modal_open', { label });
+    }
+    function closeStrategyModal() {
+      document.getElementById('modalStrategi').classList.add('hidden');
+    }
+    function openDateModal() {
+      showModal('Target tanggal TKA (cth: 26 Okt 2026):', '📅', true, true, (val) => {
+        if (val) {
+          document.getElementById('headerCountdownText').textContent = '🎯 Target: ' + val;
+          logEvent('tka_date_update', { new_date: val });
+        }
+      });
+    }
+
+    // Inisialisasi awal
+    userAnswers[0] = 'B';
+    userAnswers[1] = ['A'];
+    userAnswers[2] = { A: 'Benar', B: 'Benar', C: 'Benar' };
+    switchScreen('home');
+</script></body></html>
