@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   QUESTIONS,
@@ -11,6 +11,7 @@ import {
   getMapel,
 } from './data';
 import {
+  ChatInput,
   LogPanel,
   NeoBtn,
   Toast,
@@ -34,6 +35,60 @@ function formatHMS(sec: number): string {
 const FONT_SCALES = [90, 100, 115, 130];
 
 type Answer = string | string[] | Record<string, string> | undefined;
+
+/* ================= Timer terisolasi ================= */
+
+/**
+ * Timer countdown dengan state sendiri: detak tiap detik HANYA me-render
+ * chip timer ini, bukan seluruh halaman arena (hemat re-render).
+ * Callback kedaluwarsa selalu versi terbaru via ref (tanpa stale closure).
+ */
+const ArenaTimer = memo(function ArenaTimer({
+  durasiDetik,
+  mode,
+  onSimulasiExpired,
+  onLatihanExpired,
+}: {
+  durasiDetik: number;
+  mode: QuizMode;
+  onSimulasiExpired: () => void;
+  onLatihanExpired: () => void;
+}) {
+  const [timerSec, setTimerSec] = useState(durasiDetik);
+  const cbRef = useRef({ onSimulasiExpired, onLatihanExpired, mode });
+  // Sinkronisasi ref di effect (bukan saat render) — pola "latest ref" resmi
+  useEffect(() => {
+    cbRef.current = { onSimulasiExpired, onLatihanExpired, mode };
+  });
+
+  useEffect(() => {
+    if (timerSec <= 0) return;
+    const t = setTimeout(() => {
+      if (timerSec - 1 <= 0) {
+        setTimerSec(0);
+        const cb = cbRef.current;
+        if (cb.mode === 'latihan') cb.onLatihanExpired();
+        else cb.onSimulasiExpired();
+      } else {
+        setTimerSec(timerSec - 1);
+      }
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [timerSec]);
+
+  const timerDanger = timerSec <= 300;
+
+  return (
+    <div
+      className={`border-2 border-[#111] shadow-[0_3px_0_#111] px-2 py-1 rounded-lg font-mono text-xs font-extrabold flex items-center gap-1 shrink-0 ${
+        timerDanger ? 'bg-red-100 text-red-900 animate-pulse' : 'bg-[#FAFAF7]'
+      }`}
+    >
+      <span>⏱</span>
+      <span>{formatHMS(timerSec)}</span>
+    </div>
+  );
+});
 
 /* ================= Komponen utama ================= */
 
@@ -60,7 +115,6 @@ function ArenaClient() {
   const [showTutor, setShowTutor] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [timerSec, setTimerSec] = useState(durasiDetik);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
     {
@@ -74,7 +128,6 @@ function ArenaClient() {
   const [simSoalOpen, setSimSoalOpen] = useState(false);
   const [simFeedback, setSimFeedback] = useState<string | null>(null);
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
-  const [chatInput, setChatInput] = useState('');
   const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,37 +182,23 @@ function ArenaClient() {
     router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${QUESTIONS.length}`);
   };
 
-  // Reset timer saat durasi berubah (pola "prev value" resmi React, bukan effect)
-  const [prevDurasi, setPrevDurasi] = useState(durasiDetik);
-  if (prevDurasi !== durasiDetik) {
-    setPrevDurasi(durasiDetik);
-    setTimerSec(durasiDetik);
-    setTimeUpLatihan(false);
-  }
-
+  // --- timer: state countdown hidup di <ArenaTimer> (terisolasi).
+  // Callback kedaluwarsa stabil via ref agar tanpa stale closure.
+  const finishQuizRef = useRef(finishQuiz);
   useEffect(() => {
-    if (timerSec <= 0) return;
-    const t = setTimeout(() => {
-      if (timerSec - 1 <= 0) {
-        // waktu habis — di dalam callback, bukan sinkron di body effect
-        if (mode === 'latihan') {
-          setTimeUpLatihan(true);
-          logEvent('timer_expired_latihan', {});
-          showToastMsg('⏰ Waktu acuan habis! Lanjut santai.');
-        } else {
-          logEvent('timer_expired_simulasi_autosubmit', {});
-          finishQuiz('timer');
-        }
-        setTimerSec(0);
-      } else {
-        setTimerSec(timerSec - 1);
-      }
-    }, 1000);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerSec, mode]);
+    finishQuizRef.current = finishQuiz;
+  });
 
-  const timerDanger = timerSec <= 300;
+  const handleTimerSimulasiExpired = useCallback(() => {
+    logEvent('timer_expired_simulasi_autosubmit', {});
+    finishQuizRef.current('timer');
+  }, [logEvent]);
+
+  const handleTimerLatihanExpired = useCallback(() => {
+    setTimeUpLatihan(true);
+    logEvent('timer_expired_latihan', {});
+    showToastMsg('⏰ Waktu acuan habis! Lanjut santai.');
+  }, [logEvent, showToastMsg]);
 
   // --- navigasi soal ---
   const goSoal = (idx: number) => {
@@ -258,7 +297,6 @@ function ArenaClient() {
     const now = Date.now();
     if (lastChatRef.current.msg === msg && now - lastChatRef.current.ts < 500) return;
     lastChatRef.current = { msg, ts: now };
-    setChatInput('');
     setTutorQuota((qt) => Math.max(0, qt - 1));
     const reply =
       mode === 'simulasi'
@@ -308,8 +346,8 @@ function ArenaClient() {
   const soalLabel = `${mapelShort} · P${paket}`;
 
   return (
-    <div className="min-h-screen bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-screen bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+    <div className="min-h-dvh bg-[#18181B] flex justify-center">
+      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== TOP BAR ===== */}
         <header className="bg-white border-b-2 border-[#111] px-3 py-2.5 flex items-center justify-between gap-1.5 shrink-0 sticky top-0 z-30">
           <NeoBtn
@@ -334,14 +372,13 @@ function ArenaClient() {
               </span>
             </div>
           </div>
-          <div
-            className={`border-2 border-[#111] shadow-[0_3px_0_#111] px-2 py-1 rounded-lg font-mono text-xs font-extrabold flex items-center gap-1 shrink-0 ${
-              timerDanger ? 'bg-red-100 text-red-900 animate-pulse' : 'bg-[#FAFAF7]'
-            }`}
-          >
-            <span>⏱</span>
-            <span>{formatHMS(timerSec)}</span>
-          </div>
+          <ArenaTimer
+            key={`${mapelKey}-p${paket}`}
+            durasiDetik={durasiDetik}
+            mode={mode}
+            onSimulasiExpired={handleTimerSimulasiExpired}
+            onLatihanExpired={handleTimerLatihanExpired}
+          />
           <NeoBtn
             onClick={cycleFontScale}
             className="px-2 py-1 rounded-lg bg-white text-[11px] shrink-0"
@@ -372,8 +409,8 @@ function ArenaClient() {
         {/* ===== PROGRESS BAR ===== */}
         <div className="w-full h-1.5 bg-neutral-200 border-b border-[#111] shrink-0">
           <div
-            className="h-full bg-[#B6FF00] transition-all duration-300"
-            style={{ width: `${Math.round(((qIndex + 1) / QUESTIONS.length) * 100)}%` }}
+            className="h-full w-full bg-[#B6FF00] transition-transform duration-300 origin-left"
+            style={{ transform: `scaleX(${(((qIndex + 1) / QUESTIONS.length)).toFixed(4)})` }}
           />
         </div>
 
@@ -801,24 +838,10 @@ function ArenaClient() {
                 ))}
               </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  sendChat(chatInput);
-                }}
-                className="p-3 bg-white border-t-2 border-[#111] flex gap-2 shrink-0"
-              >
-                <input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  type="text"
-                  placeholder="Tanya langkah atau konsep soal ini..."
-                  className="flex-1 border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none min-w-0"
-                />
-                <NeoBtn type="submit" className="bg-[#B6FF00] px-4 py-2 rounded-xl text-xs">
-                  Kirim
-                </NeoBtn>
-              </form>
+              <ChatInput
+                placeholder="Tanya langkah atau konsep soal ini..."
+                onSend={sendChat}
+              />
             </div>
           </div>
         )}
@@ -872,7 +895,7 @@ export default function ArenaPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#18181B] flex items-center justify-center">
+        <div className="min-h-dvh bg-[#18181B] flex items-center justify-center">
           <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl px-6 py-4 text-sm font-extrabold">
             Memuat arena…
           </div>
