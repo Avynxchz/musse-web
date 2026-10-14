@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 /* ================= Behavior log (shared) ================= */
@@ -92,6 +92,13 @@ export function LogPanel({
 export function useToast() {
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup: cegah setState setelah unmount (memory leak)
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   const showToastMsg = useCallback((msg: string) => {
     setToast(msg);
