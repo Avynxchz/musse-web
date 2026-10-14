@@ -97,6 +97,8 @@ export default function RuangPage() {
   const [coachQuota, setCoachQuota] = useState(24);
   const chatBoxRef = useRef<HTMLDivElement | null>(null);
   const greetedMapelRef = useRef<string>('');
+  // Guard anti double-submit chat (<500ms, pesan sama)
+  const lastCoachMsgRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
 
   const coach = COACH_DATA[mapelCoach] ?? COACH_DATA.matematika;
   const mapelLabel = MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? 'Matematika';
@@ -120,6 +122,11 @@ export default function RuangPage() {
   const sendCoachMsg = (text: string) => {
     const msg = text.trim();
     if (!msg) return;
+    // Guard: cegah pesan duplikat dari double-click (<500ms, pesan sama)
+    // eslint-disable-next-line react-hooks/purity -- Date.now() di event handler (bukan render), aman
+    const now = Date.now();
+    if (lastCoachMsgRef.current.msg === msg && now - lastCoachMsgRef.current.ts < 500) return;
+    lastCoachMsgRef.current = { msg, ts: now };
     if (coachQuota <= 0) {
       showToastMsg('⚠️ Kuota tanya habis hari ini');
       return;
