@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MAPEL_CATALOG, Mapel, MapelCat, QuizMode, getMapel } from '../arena/data';
 import {
@@ -29,6 +29,71 @@ interface ModeSheetConfig {
   paket: 1 | 2;
   resume?: boolean;
 }
+
+/**
+ * Kartu mapel ter-memo: tidak re-render saat user mengetik di search
+ * (referensi objek mapel tidak berubah), + content-visibility agar
+ * browser skip render kartu di luar viewport.
+ */
+const MapelCard = memo(function MapelCard({
+  m,
+  onOpen,
+}: {
+  m: Mapel;
+  onOpen: (mapelKey: string, mapelName: string, paket: 1 | 2) => void;
+}) {
+  const menit1 = Math.round(m.p1 * m.jatahMenitPerSoal);
+  const menit2 = Math.round(m.p2 * m.jatahMenitPerSoal);
+  return (
+    <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-white [content-visibility:auto] [contain-intrinsic-size:auto_180px]">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+            {m.cat} · Resmi Pusmendik
+          </span>
+          <h4 className="text-sm font-extrabold text-[#111]">{m.name}</h4>
+        </div>
+        {m.prog > 0 ? (
+          <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-extrabold">
+            {m.prog}% Selesai
+          </span>
+        ) : (
+          <span className="bg-neutral-100 border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-bold">
+            Baru
+          </span>
+        )}
+      </div>
+      <div className={`mt-3 grid ${m.p2 ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
+        <NeoBtn
+          onClick={() => onOpen(m.key, m.name, 1)}
+          className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between"
+        >
+          <span>
+            <span className="block text-xs font-extrabold">Paket 1</span>
+            <span className="block text-[10px] text-neutral-500 font-semibold">
+              {m.p1} Soal • {menit1} Menit
+            </span>
+          </span>
+          <span className="text-xs font-extrabold">→</span>
+        </NeoBtn>
+        {m.p2 > 0 && (
+          <NeoBtn
+            onClick={() => onOpen(m.key, m.name, 2)}
+            className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between"
+          >
+            <span>
+              <span className="block text-xs font-extrabold">Paket 2</span>
+              <span className="block text-[10px] text-neutral-500 font-semibold">
+                {m.p2} Soal • {menit2} Menit
+              </span>
+            </span>
+            <span className="text-xs font-extrabold">→</span>
+          </NeoBtn>
+        )}
+      </div>
+    </div>
+  );
+});
 
 export default function BerandaPage() {
   const router = useRouter();
@@ -140,8 +205,8 @@ export default function BerandaPage() {
 
   /* ================= render ================= */
   return (
-    <div className="min-h-screen bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-screen bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+    <div className="min-h-dvh bg-[#18181B] flex justify-center">
+      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== Header sticky ===== */}
         <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0 sticky top-0 z-20">
           <div className="flex items-center gap-2.5">
@@ -307,56 +372,7 @@ export default function BerandaPage() {
                 </div>
               )}
               {filtered.map((m) => (
-                <div
-                  key={m.key}
-                  className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-white"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
-                        {m.cat} · Resmi Pusmendik
-                      </span>
-                      <h4 className="text-sm font-extrabold text-[#111]">{m.name}</h4>
-                    </div>
-                    {m.prog > 0 ? (
-                      <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-extrabold">
-                        {m.prog}% Selesai
-                      </span>
-                    ) : (
-                      <span className="bg-neutral-100 border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-bold">
-                        Baru
-                      </span>
-                    )}
-                  </div>
-                  <div className={`mt-3 grid ${m.p2 ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
-                    <NeoBtn
-                      onClick={() => openModeSheet(m.key, m.name, 1)}
-                      className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between"
-                    >
-                      <span>
-                        <span className="block text-xs font-extrabold">Paket 1</span>
-                        <span className="block text-[10px] text-neutral-500 font-semibold">
-                          {m.p1} Soal • {menitPaket(m, 1)} Menit
-                        </span>
-                      </span>
-                      <span className="text-xs font-extrabold">→</span>
-                    </NeoBtn>
-                    {m.p2 > 0 && (
-                      <NeoBtn
-                        onClick={() => openModeSheet(m.key, m.name, 2)}
-                        className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between"
-                      >
-                        <span>
-                          <span className="block text-xs font-extrabold">Paket 2</span>
-                          <span className="block text-[10px] text-neutral-500 font-semibold">
-                            {m.p2} Soal • {menitPaket(m, 2)} Menit
-                          </span>
-                        </span>
-                        <span className="text-xs font-extrabold">→</span>
-                      </NeoBtn>
-                    )}
-                  </div>
-                </div>
+                <MapelCard key={m.key} m={m} onOpen={openModeSheet} />
               ))}
             </div>
           </div>
