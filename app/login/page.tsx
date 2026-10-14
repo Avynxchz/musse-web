@@ -1,24 +1,18 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Toast, useToast } from '../components/ui';
 
 /* ================= Halaman Login (dummy) ================= */
 
 export default function LoginPage() {
   const router = useRouter();
-  const [toast, setToast] = useState<string | null>(null);
+  const { toast, showToastMsg } = useToast();
   const [loading, setLoading] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
     console.log('[login]', event, payload);
-  }, []);
-
-  const showToastMsg = useCallback((msg: string) => {
-    setToast(msg);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
 
   const handleGoogleLogin = useCallback(() => {
@@ -119,11 +113,7 @@ export default function LoginPage() {
         </div>
 
         {/* ===== Toast ===== */}
-        {toast && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 bg-[#111] text-white border-2 border-[#B6FF00] px-4 py-2 rounded-full text-xs font-extrabold whitespace-nowrap">
-            {toast}
-          </div>
-        )}
+        <Toast message={toast} className="bottom-8" />
       </div>
     </div>
   );
