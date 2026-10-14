@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MAPELS, KATEGORI, STATS, RIWAYAT, SOAL_DUMMY } from './data';
+import { MAPELS, KATEGORI, STATS, RIWAYAT, SOAL_LIST, AUTOPSI_TIRUAN, AI_TUTOR_TIRUAN } from './data';
 
 type Screen = 'latihan' | 'progres' | 'ruangai' | 'akun' | 'soal' | 'hasil';
 type Sheet = null | 'mode' | 'ai' | 'peta';
@@ -103,7 +103,7 @@ function Latihan({ go, openSheet }: { go: (s: Screen) => void; openSheet: (s: Sh
         <button style={{ flex: 'none', border: '1.5px solid #111', borderRadius: 20, padding: '8px 14px', fontSize: 12, fontWeight: 700, background: '#fff', cursor: 'pointer' }}>⚙️ Atur</button>
       </div>
 
-      {MAPELS.map((m) => (
+      {MAPELS.filter((m) => kat === 'Pilihanmu' || m.kategori === kat).map((m) => (
         <Card key={m.id}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ fontSize: 24 }}>{m.emoji}</span>
@@ -220,36 +220,44 @@ function Akun() {
 }
 
 function Soal({ go, openSheet }: { go: (s: Screen) => void; openSheet: (s: Sheet) => void }) {
-  const [jawab, setJawab] = useState(0);
+  const [idx, setIdx] = useState(0);
+  const [jawab, setJawab] = useState<number | null>(null);
   const [ragu, setRagu] = useState(false);
+  const soal = SOAL_LIST[idx];
+  const gantiSoal = (d: number) => {
+    const n = Math.min(Math.max(0, idx + d), SOAL_LIST.length - 1);
+    setIdx(n); setJawab(null); setRagu(false);
+  };
   return (
     <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
       <div style={{ fontSize: 10, fontWeight: 800, color: '#4F46E5', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Zona Fokus · Full-screen (80%)</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <button onClick={() => go('latihan')} style={{ border: '1.5px solid #111', background: '#fff', borderRadius: '50%', width: 36, height: 36, fontSize: 16, cursor: 'pointer' }}>✕</button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12, color: '#666', fontWeight: 700, marginBottom: 4 }}>Soal {SOAL_DUMMY.no}/{SOAL_DUMMY.total}</div>
+          <div style={{ fontSize: 12, color: '#666', fontWeight: 700, marginBottom: 4 }}>Soal {soal.nomor}/{SOAL_LIST.length} (tiruan)</div>
           <Pbar pct={48} />
         </div>
-        <Badge><span style={{ background: '#e11d48', color: '#fff', borderRadius: 20, padding: '6px 12px', fontVariantNumeric: 'tabular-nums' }}>⏱ {SOAL_DUMMY.timer}</span></Badge>
+        <Badge><span style={{ background: '#e11d48', color: '#fff', borderRadius: 20, padding: '6px 12px', fontVariantNumeric: 'tabular-nums' }}>⏱ 48:15</span></Badge>
         <button style={{ border: '1.5px solid #111', background: '#fff', borderRadius: 12, padding: '8px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Aa</button>
         <button onClick={() => openSheet('peta')} style={{ border: '1.5px solid #111', background: '#fff', borderRadius: 12, padding: '8px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>▦</button>
       </div>
 
-      <div style={{ fontSize: 11, color: '#999', fontWeight: 700, marginBottom: 6 }}>TIPE: {SOAL_DUMMY.tipe}</div>
+      <div style={{ fontSize: 11, color: '#999', fontWeight: 700, marginBottom: 6 }}>TIPE: {soal.tipe}</div>
+      {soal.stimulus && <div style={{ fontSize: 13, color: '#666', background: '#f4f4f4', borderRadius: 10, padding: 10, marginBottom: 10 }}>{soal.stimulus}</div>}
       <div style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 14 }}>
-        <b>{SOAL_DUMMY.no}.</b> Jika f(x) = 2x² − 5x + 3, maka nilai f′(2) adalah ....
+        <b>{soal.nomor}.</b> {soal.pertanyaan}
       </div>
 
-      {SOAL_DUMMY.opsi.map((o, i) => (
+      {soal.opsi.map((o, i) => (
         <div key={i} onClick={() => setJawab(i)} style={{ border: '1.5px solid', borderColor: jawab === i ? '#111' : '#ddd', borderRadius: 12, padding: '12px 14px', marginBottom: 8, fontSize: 14, display: 'flex', gap: 10, cursor: 'pointer', background: jawab === i ? '#f6ffdc' : '#fff', boxShadow: jawab === i ? '0 2px 0 #111' : 'none' }}>
-          <span style={{ fontWeight: 800, border: '1.5px solid #111', width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, background: jawab === i ? '#B6FF00' : '#fff' }}>{'ABC'[i]}</span>
-          {o}
+          <span style={{ fontWeight: 800, border: '1.5px solid #111', width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, background: jawab === i ? '#B6FF00' : '#fff' }}>{o.key}</span>
+          {o.text}
         </div>
       ))}
 
       <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 12 }}>
-        <button style={{ flex: 1, border: '1.5px solid #111', background: '#fff', borderRadius: 12, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>←</button>
+        <button onClick={() => gantiSoal(-1)} style={{ flex: 1, border: '1.5px solid #111', background: '#fff', borderRadius: 12, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: idx === 0 ? 0.4 : 1 }}>←</button>
+        <button onClick={() => gantiSoal(1)} style={{ flex: 1, border: '1.5px solid #111', background: '#fff', borderRadius: 12, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: idx === SOAL_LIST.length - 1 ? 0.4 : 1 }}>→</button>
         <button onClick={() => setRagu(!ragu)} style={{ flex: 1, border: '1.5px solid #111', background: ragu ? '#fef08a' : '#fff', borderRadius: 12, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>⚑ Ragu</button>
         <button style={{ flex: 1, border: '1.5px solid #111', background: '#B6FF00', borderRadius: 12, padding: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Cek Jawaban</button>
       </div>
@@ -280,8 +288,8 @@ function Hasil({ go }: { go: (s: Screen) => void }) {
         <Card style={{ flex: 1, textAlign: 'center', padding: '10px 6px', marginBottom: 0 }}><div style={{ fontSize: 20, fontWeight: 800 }}>2</div><div style={{ fontSize: 10, color: '#666' }}>Kosong</div></Card>
       </div>
       <Card style={{ borderLeft: '4px solid #e11d48' }}>
-        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>🔍 Autopsi Tryout-mu</div>
-        <div style={{ fontSize: 12, color: '#666' }}><b>Kebocoran waktu:</b> soal 5, 9, 14 dijawab &lt;30 detik — kemungkinan menebak.<br /><b>Strategi:</b> baca soal 2x sebelum lihat opsi.</div>
+        <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 4 }}>{AUTOPSI_TIRUAN.judul}</div>
+        <div style={{ fontSize: 12, color: '#666' }}><b>Temuan:</b> {AUTOPSI_TIRUAN.temuan}<br /><b>Strategi:</b> {AUTOPSI_TIRUAN.strategi}</div>
         <Btn>🎯 Latih Soal Topik Ini</Btn>
       </Card>
       <Sect>Review pembahasan</Sect>
@@ -375,9 +383,9 @@ export default function SketsaPage() {
             <Badge lime>4/5 hari ini</Badge>
           </div>
           <div style={{ fontSize: 11, color: '#999', marginBottom: 10 }}>📍 Membahas Soal 12 · Matematika</div>
-          <div style={{ background: '#111', color: '#fff', borderRadius: 12, padding: '10px 12px', fontSize: 13, marginBottom: 8, maxWidth: '85%' }}>Halo! Soal 12 tentang turunan fungsi kuadrat. Bagian mana yang bingung?</div>
-          <div style={{ background: '#B6FF00', borderRadius: 12, padding: '10px 12px', fontSize: 13, marginBottom: 8, maxWidth: '85%', marginLeft: 'auto' }}>Kenapa jawabannya A?</div>
-          <div style={{ background: '#111', color: '#fff', borderRadius: 12, padding: '10px 12px', fontSize: 13, marginBottom: 8, maxWidth: '85%' }}>Karena f′(2) = 4(2) − 5 = 3...</div>
+          {AI_TUTOR_TIRUAN.map((m, i) => (
+            <div key={i} style={{ background: m.dari === 'ai' ? '#111' : '#B6FF00', color: m.dari === 'ai' ? '#fff' : '#111', borderRadius: 12, padding: '10px 12px', fontSize: 13, marginBottom: 8, maxWidth: '85%', marginLeft: m.dari === 'user' ? 'auto' : 0 }}>{m.teks}</div>
+          ))}
           <div>
             {['Kenapa jawabannya itu?', 'Ada cara cepatnya?', 'Jelasin konsepnya'].map((q) => (
               <span key={q} style={{ border: '1.5px solid #111', borderRadius: 16, padding: '8px 12px', fontSize: 12, fontWeight: 700, background: '#fff', margin: '0 6px 6px 0', display: 'inline-block' }}>{q}</span>
