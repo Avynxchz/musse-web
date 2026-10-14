@@ -150,8 +150,12 @@ export default function BerandaPage() {
   const confirmStartQuiz = useCallback(() => {
     if (!modeSheet) return;
     // Guard: cegah double-push dari double-click tombol Mulai
+    // Reset otomatis setelah 3 detik sebagai pengaman kalau navigasi gagal
     if (startingRef.current) return;
     startingRef.current = true;
+    setTimeout(() => {
+      startingRef.current = false;
+    }, 3000);
     logEvent('quiz_start', {
       mapel: modeSheet.mapelKey,
       paket: modeSheet.paket,
