@@ -315,6 +315,7 @@
 .hover\:bg-red-50:hover{background-color:#fef2f2}
 .hover\:text-\[\#111111\]:hover{color:#111111}
 
+.z-\[60\]{z-index:60}
 </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start py-0 sm:py-6">
@@ -539,7 +540,7 @@
               SPLDV
             </span>
           </div>
-          <button onclick="logEvent('bug_report_click', { soal_no: currentQIndex + 1 }); alert('Laporan kendala untuk Soal #' + (currentQIndex+1) + ' dicatat!')" class="text-[11px] font-bold text-neutral-400 hover:text-[#111111]">
+          <button onclick="logEvent('bug_report_click', { soal_no: currentQIndex + 1 }); showModal('Laporan kendala untuk Soal #' + (currentQIndex+1) + ' dicatat! Terima kasih 🙏', '✅', false)" class="text-[11px] font-bold text-neutral-400 hover:text-[#111111]">
             ⚑ Lapor Soal
           </button>
         </div>
@@ -1003,6 +1004,19 @@
       <div id="logListContainer" class="flex-1 overflow-y-auto mt-3 space-y-2 font-mono text-[11px]"></div>
     </div>
 
+
+    <!-- MODAL CUSTOM (pengganti alert/confirm browser) -->
+    <div id="customModal" class="hidden absolute inset-0 z-[60] bg-black/50 flex items-center justify-center p-6">
+      <div class="neo-card rounded-2xl p-5 bg-white w-full max-w-[300px] text-center">
+        <div id="customModalIcon" class="text-3xl mb-2">⚠️</div>
+        <p id="customModalText" class="text-sm font-bold text-[#111111] mb-4"></p>
+        <div id="customModalButtons" class="flex gap-2">
+          <button id="customModalOk" class="neo-btn flex-1 bg-[#B6FF00] py-2.5 rounded-xl text-xs font-extrabold">OK</button>
+          <button id="customModalCancel" class="neo-btn flex-1 bg-white py-2.5 rounded-xl text-xs font-extrabold hidden">Batal</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -1393,7 +1407,7 @@
       if (!checkedFlags[currentQIndex]) {
         const ans = userAnswers[currentQIndex];
         if (!ans || (Array.isArray(ans) && ans.length === 0)) {
-          alert('Pilih jawabanmu dulu sebelum klik Cek Jawaban ya!');
+          showModal('Pilih jawabanmu dulu sebelum klik Cek Jawaban ya!', '☝️', false);
           return;
         }
         checkedFlags[currentQIndex] = true;
@@ -1537,9 +1551,7 @@
     }
 
     function confirmExitArena() {
-      if (confirm('Keluar ke Beranda? Progres latihanmu tetap aman.')) {
-        switchScreen('home');
-      }
+      showModal('Keluar ke Beranda? Progres latihanmu tetap aman.', '🚪', true, () => switchScreen('home'));
     }
 
     // =========================================================================
@@ -1614,6 +1626,23 @@
         document.getElementById('headerCountdownText').textContent = '🎯 ' + d.slice(5);
         logEvent('tka_date_update', { new_date: d });
       }
+    }
+
+
+    // Modal custom pengganti alert()/confirm()
+    function showModal(text, icon, showCancel, onOk) {
+      document.getElementById('customModalText').textContent = text;
+      document.getElementById('customModalIcon').textContent = icon || '⚠️';
+      const btnCancel = document.getElementById('customModalCancel');
+      btnCancel.classList.toggle('hidden', !showCancel);
+      document.getElementById('customModal').classList.remove('hidden');
+      const btnOk = document.getElementById('customModalOk');
+      btnOk.onclick = () => {
+        document.getElementById('customModal').classList.add('hidden');
+        if (onOk) onOk();
+      };
+      btnCancel.onclick = () => document.getElementById('customModal').classList.add('hidden');
+      logEvent('modal_show', { text: text.substring(0, 40) });
     }
 
     // Init default screen = Beranda (atau klik "1. Login" di bar atas untuk lihat layar Auth)
