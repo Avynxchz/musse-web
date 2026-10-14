@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question } from '../arena/data';
 import { LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
+import { dbRowToQuestion, getSoal } from '../../lib/soal';
 
 /* ================= Sheet Bedah Soal ================= */
 
@@ -78,14 +79,17 @@ function BedahSoalSheet({
             <p className="font-semibold text-[#111] leading-relaxed">{q.prompt}</p>
 
             {/* opsi jawaban — kunci ditandai lime */}
-            {q.tipe === 'Benar-Salah' && q.statements ? (
+            {(q.tipe === 'Benar-Salah' || q.tipe === 'Matriks' || q.tipe === 'Pernyataan-Label') && q.statements ? (
               <div className="border-2 border-[#111] rounded-xl overflow-hidden">
                 <div className="bg-[#111] text-white font-extrabold px-3 py-2 flex justify-between">
                   <span>Pernyataan</span>
                   <span className="w-28 text-center">Kunci</span>
                 </div>
                 {q.statements.map((st) => {
-                  const benar = (q.kunci as Record<string, 'Benar' | 'Salah'>)[st.key];
+                  const kunciMap = q.kunci as Record<string, string>;
+                  const benar = kunciMap[st.key];
+                  const labels: string[] =
+                    q.tipe === 'Benar-Salah' ? ['Benar', 'Salah'] : (q.labelOptions ?? Object.values(kunciMap));
                   return (
                     <div
                       key={st.key}
@@ -95,8 +99,8 @@ function BedahSoalSheet({
                         <b className="mr-1">{st.key}.</b>
                         {st.text}
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        {(['Benar', 'Salah'] as const).map((v) => (
+                      <div className="flex gap-1 shrink-0 flex-wrap justify-end">
+                        {labels.map((v) => (
                           <span
                             key={v}
                             className={`px-2.5 py-1 rounded-lg font-extrabold text-[11px] border-2 border-[#111] ${
@@ -269,7 +273,26 @@ function HasilContent() {
   const totalParam = parseInt(searchParams.get('total') || '', 10);
   const autoSubmit = searchParams.get('autosubmit') === '1';
 
-  const total = Number.isFinite(totalParam) && totalParam > 0 ? totalParam : QUESTIONS.length;
+  // Soal dari Supabase (fallback ke dummy)
+  const [questions, setQuestions] = useState<Question[]>(QUESTIONS);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await getSoal(mapelKey, paket);
+        if (!cancelled && rows.length > 0) {
+          setQuestions(rows.map(dbRowToQuestion));
+        }
+      } catch {
+        // fallback ke dummy, tidak blank
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mapelKey, paket]);
+
+  const total = Number.isFinite(totalParam) && totalParam > 0 ? totalParam : questions.length;
   const benar = Number.isFinite(benarParam) && benarParam >= 0 ? Math.min(benarParam, total) : 0;
   // Dummy: 1 salah (kalau ada sisa), sisanya kosong
   const salah = total - benar > 0 ? 1 : 0;
@@ -286,12 +309,12 @@ function HasilContent() {
 
   /* ---------- status per soal (dummy) ---------- */
   const statusPerSoal: ('benar' | 'salah' | 'kosong')[] = useMemo(() => {
-    return QUESTIONS.map((_, i) => {
+    return questions.map((_, i) => {
       if (i < benar) return 'benar';
       if (i === benar && salah > 0) return 'salah';
       return 'kosong';
     });
-  }, [benar, salah]);
+  }, [questions, benar, salah]);
 
   const openStrategi = useCallback(() => {
     setStrategiOpen(true);
@@ -443,7 +466,7 @@ function HasilContent() {
                 Bedah Soal per Nomor
               </h4>
               <div className="space-y-2 lg:grid-cols-3">
-                {QUESTIONS.map((q, i) => {
+                {questions.map((q, i) => {
                   const st = statusPerSoal[i];
                   const badge =
                     st === 'benar' ? (
@@ -534,10 +557,10 @@ function HasilContent() {
         )}
 
         {/* ===== Sheet Bedah Soal ===== */}
-        {bedahIdx !== null && QUESTIONS[bedahIdx] && (
+        {bedahIdx !== null && questions[bedahIdx] && (
           <BedahSoalSheet
-            key={QUESTIONS[bedahIdx].nomor}
-            q={QUESTIONS[bedahIdx]}
+            key={questions[bedahIdx].nomor}
+            q={questions[bedahIdx]}
             onClose={() => setBedahIdx(null)}
             logEvent={logEvent}
           />
