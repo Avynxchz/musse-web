@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { QUESTIONS, getMapel } from '../arena/data';
+import { QUESTIONS, formatKunci, getMapel, type Question } from '../arena/data';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
 
@@ -37,6 +37,256 @@ function NeoBtn({
   );
 }
 
+/* ================= Sheet Bedah Soal ================= */
+
+function BedahSoalSheet({
+  q,
+  onClose,
+  logEvent,
+}: {
+  q: Question;
+  onClose: () => void;
+  logEvent: (event: string, payload: Record<string, unknown>) => void;
+}) {
+  const [pilarOpen, setPilarOpen] = useState(false);
+  const [similarOpen, setSimilarOpen] = useState(false);
+  const [similarPick, setSimilarPick] = useState<number | null>(null);
+
+  const isKunciOpt = (key: string) =>
+    typeof q.kunci === 'string'
+      ? q.kunci === key
+      : Array.isArray(q.kunci)
+        ? q.kunci.includes(key)
+        : false;
+
+  const pickSimilar = (i: number) => {
+    setSimilarPick(i);
+    logEvent('bedah_similar_answer', { soal_no: q.nomor, correct: i === q.similar.ans });
+  };
+
+  return (
+    <div
+      className="absolute inset-0 z-50 bg-black/50 flex flex-col justify-end"
+      onClick={onClose}
+      role="dialog"
+      aria-label={`Bedah Soal ${q.nomor}`}
+    >
+      <div
+        className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl max-h-[88%] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* header */}
+        <div className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
+          <div>
+            <h3 className="text-sm font-extrabold">Bedah Soal #{q.nomor}</h3>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+                {q.tipe}
+              </span>
+              <span className="bg-white border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-bold text-neutral-600">
+                {q.topik}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="border-2 border-[#111] shadow-[0_3px_0_#111] w-7 h-7 rounded-lg bg-white font-extrabold text-xs"
+            aria-label="Tutup bedah soal"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* body scroll */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+          {/* kartu soal */}
+          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white space-y-3">
+            {q.stimulus && (
+              <div className="bg-[#FAFAF7] border-2 border-dashed border-neutral-300 rounded-xl p-3 text-xs leading-relaxed">
+                {q.stimulus}
+              </div>
+            )}
+            <p className="font-semibold text-[#111] leading-relaxed">{q.prompt}</p>
+
+            {/* opsi jawaban — kunci ditandai lime */}
+            {q.tipe === 'Benar-Salah' && q.statements ? (
+              <div className="border-2 border-[#111] rounded-xl overflow-hidden">
+                <div className="bg-[#111] text-white font-extrabold px-3 py-2 flex justify-between">
+                  <span>Pernyataan</span>
+                  <span className="w-28 text-center">Kunci</span>
+                </div>
+                {q.statements.map((st) => {
+                  const benar = (q.kunci as Record<string, 'Benar' | 'Salah'>)[st.key];
+                  return (
+                    <div
+                      key={st.key}
+                      className="p-3 border-t border-neutral-200 flex items-center justify-between gap-2 bg-white"
+                    >
+                      <div className="flex-1">
+                        <b className="mr-1">{st.key}.</b>
+                        {st.text}
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        {(['Benar', 'Salah'] as const).map((v) => (
+                          <span
+                            key={v}
+                            className={`px-2.5 py-1 rounded-lg font-extrabold text-[11px] border-2 border-[#111] ${
+                              benar === v ? 'bg-[#B6FF00]' : 'bg-neutral-100 text-neutral-500'
+                            }`}
+                          >
+                            {benar === v ? '✓ ' : ''}
+                            {v}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {q.options?.map((opt) => {
+                  const kunci = isKunciOpt(opt.key);
+                  return (
+                    <div
+                      key={opt.key}
+                      className={`border-2 border-[#111] p-3 rounded-xl flex items-center gap-3 font-bold ${
+                        kunci ? 'bg-[#B6FF00]' : 'bg-white'
+                      }`}
+                    >
+                      <span className="w-6 h-6 rounded-full border-2 border-[#111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0">
+                        {opt.key}
+                      </span>
+                      <span className="flex-1">{opt.text}</span>
+                      {kunci && <span className="text-xs font-extrabold">✓ Kunci</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* kartu pembahasan */}
+          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white">
+            <div className="flex items-center justify-between border-b-2 border-[#111] pb-2.5">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded">
+                  Kunci Resmi Pusmendik
+                </span>
+                <h4 className="text-sm font-extrabold mt-1">Kunci Jawaban: {formatKunci(q)}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPilarOpen((v) => !v);
+                  logEvent('bedah_pembahasan_toggle', {
+                    soal_no: q.nomor,
+                    mode: pilarOpen ? 'ringkas' : 'lengkap',
+                  });
+                }}
+                className="border-2 border-[#111] shadow-[0_3px_0_#111] bg-[#E0E7FF] px-3 py-1 rounded-full text-[11px] font-extrabold shrink-0"
+              >
+                {pilarOpen ? '🔼 Ciutkan ke Ringkas' : '📖 Buka 5 Pilar'}
+              </button>
+            </div>
+            <p className="mt-3 leading-relaxed text-neutral-800">
+              <b>Inti Logika:</b> {q.ringkas}
+            </p>
+            {pilarOpen && (
+              <div className="mt-3 space-y-3 border-t-2 border-dashed border-neutral-300 pt-3">
+                <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
+                  <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
+                    Pilar 1 · Diketahui & Konsep Kunci
+                  </div>
+                  <p className="mt-1 font-medium">{q.pilar1}</p>
+                </div>
+                <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
+                  <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
+                    Pilar 2 & 3 · Glosarium & Alasan Logis
+                  </div>
+                  <p className="mt-1 font-medium">{q.pilar3}</p>
+                </div>
+                <div className="bg-[#F0FFB8] border border-[#111] rounded-xl p-3">
+                  <div className="font-extrabold text-[#111] uppercase text-[10px]">
+                    Pilar 4 · Langkah Penyelesaian Rinci
+                  </div>
+                  <ol className="mt-1.5 space-y-1.5 list-decimal list-inside font-semibold">
+                    {q.pilar4.map((s, i) => (
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ol>
+                </div>
+                <div className="bg-[#FFEDD5] border border-[#111] rounded-xl p-3">
+                  <div className="font-extrabold text-amber-900 uppercase text-[10px]">
+                    Pilar 5 · Trik Cepat & Jebakan Umum
+                  </div>
+                  <p className="mt-1 font-medium">{q.pilar5}</p>
+                </div>
+              </div>
+            )}
+            <div className="mt-4 pt-3 border-t border-neutral-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setSimilarOpen((v) => !v);
+                  if (!similarOpen) logEvent('bedah_similar_open', { soal_no: q.nomor });
+                }}
+                className="border-2 border-[#111] shadow-[0_3px_0_#111] bg-[#B6FF00] text-[#111] py-2 px-3 rounded-xl text-xs font-extrabold"
+              >
+                🔄 Soal Serupa
+              </button>
+            </div>
+          </div>
+
+          {/* kartu soal serupa interaktif */}
+          {similarOpen && (
+            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-[#E0E7FF]">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white border border-[#111] px-2 py-0.5 rounded">
+                Uji Paham · Soal Serupa
+              </span>
+              <p className="text-xs font-bold mt-2">{q.similar.q}</p>
+              <div className="mt-2.5 space-y-1.5">
+                {q.similar.opts.map((o, i) => {
+                  const picked = similarPick === i;
+                  const benar = i === q.similar.ans;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => pickSimilar(i)}
+                      disabled={similarPick !== null}
+                      className={`border-2 border-[#111] w-full px-3 py-2 rounded-xl text-left text-xs font-bold block transition-all ${
+                        similarPick === null
+                          ? 'bg-white hover:bg-[#B6FF00]'
+                          : picked && benar
+                            ? 'bg-[#B6FF00]'
+                            : picked
+                              ? 'bg-red-200'
+                              : benar
+                                ? 'bg-[#B6FF00]'
+                                : 'bg-white opacity-60'
+                      } ${similarPick !== null ? '' : 'shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111]'}`}
+                    >
+                      {o}
+                    </button>
+                  );
+                })}
+              </div>
+              {similarPick !== null && (
+                <div className="mt-2.5 p-2.5 rounded-xl border border-[#111] bg-white text-xs font-bold">
+                  {similarPick === q.similar.ans ? '✅ ' : '❌ '}
+                  {q.similar.exp}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ================= Isi halaman ================= */
 
 function HasilContent() {
@@ -63,10 +313,9 @@ function HasilContent() {
 
   /* ---------- state ---------- */
   const [strategiOpen, setStrategiOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [bedahIdx, setBedahIdx] = useState<number | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [showLogPanel, setShowLogPanel] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---------- behavior log ---------- */
   const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
@@ -78,12 +327,6 @@ function HasilContent() {
     };
     setLogs((prev) => [entry, ...prev].slice(0, 100));
     console.log('[hasil]', event, payload);
-  }, []);
-
-  const showToastMsg = useCallback((msg: string) => {
-    setToast(msg);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
 
   /* ---------- status per soal (dummy) ---------- */
@@ -197,6 +440,7 @@ function HasilContent() {
               </span>
             </div>
 
+            <div className="space-y-3">
             {/* Observasi */}
             <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 text-xs space-y-1">
               <p className="font-extrabold text-[#111]">👀 Yang Saya Lihat:</p>
@@ -233,8 +477,8 @@ function HasilContent() {
                 </NeoBtn>
                 <NeoBtn
                   onClick={() => {
+                    setBedahIdx(1);
                     logEvent('autopsi_bedah_soal', { soal_no: 2 });
-                    showToastMsg('🎯 Bedah Soal #2 — halaman reviu belum tersedia');
                   }}
                   className="flex-1 bg-[#B6FF00] py-2 px-3 rounded-xl text-xs"
                 >
@@ -243,12 +487,14 @@ function HasilContent() {
               </div>
             </div>
 
+            </div>
+
             {/* Daftar bedah soal */}
             <div>
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-500 mb-2">
                 Bedah Soal per Nomor
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-2 lg:grid-cols-3">
                 {QUESTIONS.map((q, i) => {
                   const st = statusPerSoal[i];
                   const badge =
@@ -270,8 +516,8 @@ function HasilContent() {
                       key={q.nomor}
                       type="button"
                       onClick={() => {
+                        setBedahIdx(i);
                         logEvent('autopsi_jump_to_review', { soal_no: q.nomor });
-                        showToastMsg(`📖 Pembahasan Soal #${q.nomor} — halaman reviu belum tersedia`);
                       }}
                       className="w-full text-left border-2 border-[#111] rounded-xl p-2.5 flex items-center justify-between bg-white hover:bg-[#FAFAF7]"
                     >
@@ -339,11 +585,14 @@ function HasilContent() {
           </div>
         )}
 
-        {/* ===== Toast ===== */}
-        {toast && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#111] text-white border-2 border-[#B6FF00] px-4 py-2 rounded-full text-xs font-extrabold whitespace-nowrap">
-            {toast}
-          </div>
+        {/* ===== Sheet Bedah Soal ===== */}
+        {bedahIdx !== null && QUESTIONS[bedahIdx] && (
+          <BedahSoalSheet
+            key={QUESTIONS[bedahIdx].nomor}
+            q={QUESTIONS[bedahIdx]}
+            onClose={() => setBedahIdx(null)}
+            logEvent={logEvent}
+          />
         )}
 
         {/* ===== Panel behavior log ===== */}
