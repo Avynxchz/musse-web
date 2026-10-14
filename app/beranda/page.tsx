@@ -185,7 +185,7 @@ export default function BerandaPage() {
   /* ================= render ================= */
   return (
     <div className="min-h-screen bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-screen bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+      <div className="relative w-full max-w-[430px] md:max-w-[1200px] min-h-screen bg-[#FAFAF7] flex flex-col md:flex-row sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== Header sticky ===== */}
         <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0 sticky top-0 z-20">
           <div className="flex items-center gap-2.5">
@@ -224,7 +224,8 @@ export default function BerandaPage() {
         </header>
 
         {/* ===== Konten scroll ===== */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5 pb-28">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5 pb-28">
+          <div className="md:grid md:grid-cols-2 md:gap-5 space-y-5 md:space-y-0">
           {/* Kartu Lanjutkan Terakhir */}
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-[#111] text-white relative overflow-hidden">
             <div className="flex items-center justify-between">
@@ -276,6 +277,7 @@ export default function BerandaPage() {
             >
               Strategi
             </NeoBtn>
+          </div>
           </div>
 
           {/* Section katalog mapel */}
@@ -332,7 +334,7 @@ export default function BerandaPage() {
             </div>
 
             {/* Daftar kartu mapel */}
-            <div className="space-y-3">
+            <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
               {filtered.length === 0 && (
                 <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-6 text-center bg-white">
                   <p className="text-xs font-bold text-neutral-500">
@@ -405,7 +407,7 @@ export default function BerandaPage() {
         </div>
 
         {/* ===== Bottom nav ===== */}
-        <nav className="bg-white border-t-2 border-[#111] px-6 py-2 flex items-center justify-around shrink-0 sticky bottom-0 z-20">
+        <nav className="bg-white border-t-2 border-[#111] px-6 py-2 flex items-center justify-around shrink-0 sticky bottom-0 z-20 md:hidden">
           <button type="button" className="flex flex-col items-center gap-0.5 text-[#111] font-extrabold">
             <span className="bg-[#B6FF00] border-2 border-[#111] px-3 py-0.5 rounded-full text-xs">
               📝
@@ -414,7 +416,7 @@ export default function BerandaPage() {
           </button>
           <button
             type="button"
-            onClick={() => showToastMsg('🚧 Ruang & Progres (segera hadir)')}
+            onClick={() => router.push('/ruang')}
             className="flex flex-col items-center gap-0.5 text-neutral-500 font-bold"
           >
             <span className="px-3 py-0.5 text-xs">🧠</span>
@@ -422,7 +424,7 @@ export default function BerandaPage() {
           </button>
           <button
             type="button"
-            onClick={() => showToastMsg('🚧 Akun (segera hadir)')}
+            onClick={() => router.push('/akun')}
             className="flex flex-col items-center gap-0.5 text-neutral-500 font-bold"
           >
             <span className="px-3 py-0.5 text-xs">👤</span>
