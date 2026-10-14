@@ -42,11 +42,27 @@ export interface SoalRow {
 }
 
 /** Ambil soal dari Supabase berdasarkan mapel + paket, urut nomor */
+// Mapping key katalog Next.js -> nilai `mapel` di database Supabase
+const MAPEL_DB_MAP: Record<string, string> = {
+  matematika: 'matematika',
+  indonesia: 'bahasa_indonesia',
+  inggris: 'bahasa_inggris',
+  fisika: 'fisika',
+  kimia: 'kimia',
+  biologi: 'biologi',
+  ekonomi: 'ekonomi',
+  sosiologi: 'sosiologi',
+  tkj: 'teknik_jaringan',
+  tkr: 'teknik_otomotif',
+  jepang: 'bahasa_jepang',
+};
+
 export async function getSoal(mapel: string, paket: number): Promise<SoalRow[]> {
+  const dbMapel = MAPEL_DB_MAP[mapel] ?? mapel;
   const { data, error } = await supabase
     .from('soal')
     .select('*')
-    .eq('mapel', mapel)
+    .eq('mapel', dbMapel)
     .eq('paket', paket)
     .order('nomor');
   if (error) throw error;
