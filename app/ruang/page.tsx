@@ -1,79 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-/* ================= Behavior log (dummy: console + counter) ================= */
-
-interface LogEntry {
-  id: number;
-  event: string;
-  ts: string;
-  payload: Record<string, unknown>;
-}
-
-let logId = 1;
-
-/* ================= Komponen kecil ================= */
-
-function NeoBtn({
-  children,
-  onClick,
-  className = '',
-  type,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-  type?: 'button' | 'submit';
-}) {
-  return (
-    <button
-      type={type ?? 'button'}
-      onClick={onClick}
-      className={`border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-all font-extrabold ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function BottomNav({ active }: { active: 'latihan' | 'ruang' | 'akun' }) {
-  const router = useRouter();
-  const items = [
-    { key: 'latihan', icon: '📝', label: 'Latihan', href: '/beranda' },
-    { key: 'ruang', icon: '🧠', label: 'Ruang & Progres', href: '/ruang' },
-    { key: 'akun', icon: '👤', label: 'Akun', href: '/akun' },
-  ] as const;
-  return (
-    <nav className="bg-white border-t-2 border-[#111] px-6 py-2 flex items-center justify-around shrink-0 sticky bottom-0 z-20">
-      {items.map((it) => {
-        const on = active === it.key;
-        return (
-          <button
-            key={it.key}
-            type="button"
-            onClick={() => {
-              if (!on) router.push(it.href);
-            }}
-            className={`flex flex-col items-center gap-0.5 ${on ? 'text-[#111] font-extrabold' : 'text-neutral-500 font-bold'}`}
-          >
-            <span
-              className={
-                on
-                  ? 'bg-[#B6FF00] border-2 border-[#111] px-3 py-0.5 rounded-full text-xs'
-                  : 'px-3 py-0.5 text-xs'
-              }
-            >
-              {it.icon}
-            </span>
-            <span className="text-[11px]">{it.label}</span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
+import {
+  BottomNav,
+  LogCounter,
+  LogPanel,
+  NeoBtn,
+  Toast,
+  useBehaviorLog,
+  useToast,
+} from '../components/ui';
 
 /* ================= Data dummy coach per mapel ================= */
 
@@ -150,10 +87,8 @@ export default function RuangPage() {
   const router = useRouter();
 
   const [mapelCoach, setMapelCoach] = useState('matematika');
-  const [toast, setToast] = useState<string | null>(null);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [showLogPanel, setShowLogPanel] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { toast, showToastMsg } = useToast();
+  const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('ruang');
 
   /* ===== Chat Coach per mapel ===== */
   const [showCoach, setShowCoach] = useState(false);
@@ -162,23 +97,6 @@ export default function RuangPage() {
   const [coachQuota, setCoachQuota] = useState(24);
   const chatBoxRef = useRef<HTMLDivElement | null>(null);
   const greetedMapelRef = useRef<string>('');
-
-  const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
-    const entry: LogEntry = {
-      id: logId++,
-      event,
-      ts: new Date().toLocaleTimeString('id-ID'),
-      payload,
-    };
-    setLogs((prev) => [entry, ...prev].slice(0, 100));
-    console.log('[ruang]', event, payload);
-  }, []);
-
-  const showToastMsg = useCallback((msg: string) => {
-    setToast(msg);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2400);
-  }, []);
 
   const coach = COACH_DATA[mapelCoach] ?? COACH_DATA.matematika;
   const mapelLabel = MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? 'Matematika';
@@ -231,14 +149,7 @@ export default function RuangPage() {
             <p className="text-[11px] text-neutral-500">Analisis kumulatif & konsultasi AI Coach per mapel</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowLogPanel((v) => !v)}
-              className="text-[11px] font-extrabold bg-[#B6FF00] border-2 border-[#111] rounded-full px-2.5 py-1"
-              title="Behavior log"
-            >
-              📡 {logs.length}
-            </button>
+            <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
             <span className="border-2 border-[#111] shadow-[0_4px_0_#111] bg-[#B6FF00] px-2.5 py-1 rounded-full text-[11px] font-extrabold">
               Akurasi 74%
             </span>
@@ -413,43 +324,16 @@ export default function RuangPage() {
         )}
 
         {/* ===== Toast ===== */}
-        {toast && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#111] text-white border-2 border-[#B6FF00] px-4 py-2 rounded-full text-xs font-extrabold whitespace-nowrap">
-            {toast}
-          </div>
-        )}
+        <Toast message={toast} className="bottom-20" />
 
         {/* ===== Panel behavior log ===== */}
         {showLogPanel && (
-          <div className="absolute inset-0 z-50 bg-[#111]/95 text-white flex flex-col p-4">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase bg-[#B6FF00] text-[#111] px-2 py-0.5 rounded">
-                  Telemetry
-                </span>
-                <h3 className="text-sm font-extrabold mt-1">Behavior Log</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLogPanel(false)}
-                className="bg-white/10 px-2.5 py-1 rounded-lg text-xs font-bold"
-              >
-                Tutup ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto mt-3 space-y-2 font-mono text-[11px]">
-              {logs.length === 0 && <p className="text-white/50">Belum ada event. Klik-klik dulu…</p>}
-              {logs.map((l) => (
-                <div key={l.id} className="bg-white/5 border border-white/15 rounded-lg p-2.5">
-                  <div className="flex justify-between text-[#B6FF00] font-bold">
-                    <span>[{l.event}]</span>
-                    <span className="text-white/50">{l.ts}</span>
-                  </div>
-                  <div className="text-white/80 mt-1 break-all">{JSON.stringify(l.payload)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LogPanel
+            logs={logs}
+            onClose={() => setShowLogPanel(false)}
+            badge="Telemetry"
+            title="Behavior Log"
+          />
         )}
       </div>
     </div>
