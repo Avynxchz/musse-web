@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 /* ================= Behavior log (shared) ================= */
@@ -37,7 +37,7 @@ export function useBehaviorLog(prefix: string) {
 }
 
 /** Panel viewer behavior log (overlay). */
-export function LogPanel({
+export const LogPanel = memo(function LogPanel({
   logs,
   onClose,
   badge,
@@ -84,7 +84,7 @@ export function LogPanel({
       </div>
     </div>
   );
-}
+});
 
 /* ================= Toast (shared) ================= */
 
@@ -110,7 +110,7 @@ export function useToast() {
 }
 
 /** Bubble toast. className utk posisi/variasi per halaman (mis. "bottom-20", "bottom-24 shadow-lg"). */
-export function Toast({ message, className = '' }: { message: string | null; className?: string }) {
+export const Toast = memo(function Toast({ message, className = '' }: { message: string | null; className?: string }) {
   if (!message) return null;
   return (
     <div
@@ -119,12 +119,12 @@ export function Toast({ message, className = '' }: { message: string | null; cla
       {message}
     </div>
   );
-}
+});
 
 /* ================= Neo-Brutalism UI (shared) ================= */
 
 /** Tombol Neo-Brutalism standar. */
-export function NeoBtn({
+export const NeoBtn = memo(function NeoBtn({
   children,
   onClick,
   className = '',
@@ -150,12 +150,12 @@ export function NeoBtn({
       {children}
     </button>
   );
-}
+});
 
 export type NavKey = 'latihan' | 'ruang' | 'akun';
 
 /** Bottom navigation 3 tab (mobile). */
-export function BottomNav({ active }: { active: NavKey }) {
+export const BottomNav = memo(function BottomNav({ active }: { active: NavKey }) {
   const router = useRouter();
   const items = [
     { key: 'latihan', icon: '📝', label: 'Latihan', href: '/beranda' },
@@ -190,10 +190,10 @@ export function BottomNav({ active }: { active: NavKey }) {
       })}
     </nav>
   );
-}
+});
 
 /** Tombol counter 📡 pembuka panel behavior log (header). */
-export function LogCounter({ count, onClick }: { count: number; onClick: () => void }) {
+export const LogCounter = memo(function LogCounter({ count, onClick }: { count: number; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -204,4 +204,43 @@ export function LogCounter({ count, onClick }: { count: number; onClick: () => v
       📡 {count}
     </button>
   );
-}
+});
+
+/* ================= Chat input (shared) ================= */
+
+/**
+ * Input chat terisolasi: ketikan user HANYA me-render komponen ini,
+ * bukan seluruh halaman (hemat re-render di HP spek rendah).
+ * Perilaku identik: submit kosong = no-op, setelah kirim input dikosongkan.
+ */
+export const ChatInput = memo(function ChatInput({
+  placeholder,
+  onSend,
+}: {
+  placeholder: string;
+  onSend: (text: string) => void;
+}) {
+  const [value, setValue] = useState('');
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!value.trim()) return;
+        onSend(value);
+        setValue('');
+      }}
+      className="p-3 bg-white border-t-2 border-[#111] flex gap-2 shrink-0"
+    >
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        type="text"
+        placeholder={placeholder}
+        className="flex-1 border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none min-w-0"
+      />
+      <NeoBtn type="submit" className="bg-[#B6FF00] px-4 py-2 rounded-xl text-xs">
+        Kirim
+      </NeoBtn>
+    </form>
+  );
+});
