@@ -1,44 +1,16 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MAPEL_CATALOG, Mapel, MapelCat, QuizMode, getMapel } from '../arena/data';
-
-/* ================= Behavior log (dummy: console + counter) ================= */
-
-interface LogEntry {
-  id: number;
-  event: string;
-  ts: string;
-  payload: Record<string, unknown>;
-}
-
-let logId = 1;
-
-/* ================= Komponen kecil ================= */
-
-function NeoBtn({
-  children,
-  onClick,
-  className = '',
-  title,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-  title?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-all font-extrabold ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
+import {
+  BottomNav,
+  LogPanel,
+  NeoBtn,
+  Toast,
+  useBehaviorLog,
+  useToast,
+} from '../components/ui';
 
 type Category = 'pilihanmu' | MapelCat;
 
@@ -73,29 +45,8 @@ export default function BerandaPage() {
   const [dateOpen, setDateOpen] = useState(false);
   const [dateInput, setDateInput] = useState('');
   const [countdownText, setCountdownText] = useState('H-12 TKA');
-  const [toast, setToast] = useState<string | null>(null);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [showLogPanel, setShowLogPanel] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  /* ---------- behavior log ---------- */
-  const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
-    const entry: LogEntry = {
-      id: logId++,
-      event,
-      ts: new Date().toLocaleTimeString('id-ID'),
-      payload,
-    };
-    setLogs((prev) => [entry, ...prev].slice(0, 100));
-    // eslint-disable-next-line no-console
-    console.log('[beranda]', event, payload);
-  }, []);
-
-  const showToastMsg = useCallback((msg: string) => {
-    setToast(msg);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2400);
-  }, []);
+  const { toast, showToastMsg } = useToast();
+  const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
 
   /* ---------- mapel list (dengan fav override) ---------- */
   const mapelList: Mapel[] = useMemo(
@@ -407,30 +358,7 @@ export default function BerandaPage() {
         </div>
 
         {/* ===== Bottom nav ===== */}
-        <nav className="bg-white border-t-2 border-[#111] px-6 py-2 flex items-center justify-around shrink-0 sticky bottom-0 z-20">
-          <button type="button" className="flex flex-col items-center gap-0.5 text-[#111] font-extrabold">
-            <span className="bg-[#B6FF00] border-2 border-[#111] px-3 py-0.5 rounded-full text-xs">
-              📝
-            </span>
-            <span className="text-[11px]">Latihan</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/ruang')}
-            className="flex flex-col items-center gap-0.5 text-neutral-500 font-bold"
-          >
-            <span className="px-3 py-0.5 text-xs">🧠</span>
-            <span className="text-[11px]">Ruang &amp; Progres</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/akun')}
-            className="flex flex-col items-center gap-0.5 text-neutral-500 font-bold"
-          >
-            <span className="px-3 py-0.5 text-xs">👤</span>
-            <span className="text-[11px]">Akun</span>
-          </button>
-        </nav>
+        <BottomNav active="latihan" />
 
         {/* ===== Bottom-sheet Pilih Mode ===== */}
         {modeSheet && (
@@ -681,45 +609,17 @@ export default function BerandaPage() {
         )}
 
         {/* ===== Toast ===== */}
-        {toast && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-[#111] text-white border-2 border-[#B6FF00] px-4 py-2 rounded-full text-xs font-extrabold shadow-lg whitespace-nowrap">
-            {toast}
-          </div>
-        )}
+        <Toast message={toast} className="bottom-24 shadow-lg" />
 
         {/* ===== Panel behavior log ===== */}
         {showLogPanel && (
-          <div className="absolute inset-0 z-40 bg-[#111]/95 text-white flex flex-col p-4">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase bg-[#B6FF00] text-[#111] px-2 py-0.5 rounded">
-                  Real-Time Telemetry
-                </span>
-                <h3 className="text-sm font-extrabold mt-1">Behavior Log (Beranda)</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLogPanel(false)}
-                className="bg-white/10 px-2.5 py-1 rounded-lg text-xs font-bold"
-              >
-                Tutup ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto mt-3 space-y-2 font-mono text-[11px]">
-              {logs.length === 0 && (
-                <p className="text-white/50">Belum ada event. Klik-klik dulu…</p>
-              )}
-              {logs.map((l) => (
-                <div key={l.id} className="bg-white/5 border border-white/15 rounded-lg p-2.5">
-                  <div className="flex justify-between text-[#B6FF00] font-bold">
-                    <span>[{l.event}]</span>
-                    <span className="text-white/50">{l.ts}</span>
-                  </div>
-                  <div className="text-white/80 mt-1 break-all">{JSON.stringify(l.payload)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LogPanel
+            logs={logs}
+            onClose={() => setShowLogPanel(false)}
+            badge="Real-Time Telemetry"
+            title="Behavior Log (Beranda)"
+            zIndex="z-40"
+          />
         )}
       </div>
     </div>
