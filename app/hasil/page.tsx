@@ -3,39 +3,7 @@
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question } from '../arena/data';
-
-/* ================= Behavior log (dummy: console + counter) ================= */
-
-interface LogEntry {
-  id: number;
-  event: string;
-  ts: string;
-  payload: Record<string, unknown>;
-}
-
-let logId = 1;
-
-/* ================= Komponen kecil ================= */
-
-function NeoBtn({
-  children,
-  onClick,
-  className = '',
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-all font-extrabold ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
+import { LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
 
 /* ================= Sheet Bedah Soal ================= */
 
@@ -314,20 +282,7 @@ function HasilContent() {
   /* ---------- state ---------- */
   const [strategiOpen, setStrategiOpen] = useState(false);
   const [bedahIdx, setBedahIdx] = useState<number | null>(null);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [showLogPanel, setShowLogPanel] = useState(false);
-
-  /* ---------- behavior log ---------- */
-  const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
-    const entry: LogEntry = {
-      id: logId++,
-      event,
-      ts: new Date().toLocaleTimeString('id-ID'),
-      payload,
-    };
-    setLogs((prev) => [entry, ...prev].slice(0, 100));
-    console.log('[hasil]', event, payload);
-  }, []);
+  const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('hasil');
 
   /* ---------- status per soal (dummy) ---------- */
   const statusPerSoal: ('benar' | 'salah' | 'kosong')[] = useMemo(() => {
@@ -363,14 +318,7 @@ function HasilContent() {
             </h2>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowLogPanel((v) => !v)}
-              className="text-[11px] font-extrabold bg-[#B6FF00] border-2 border-[#111] rounded-full px-2.5 py-1"
-              title="Behavior log"
-            >
-              📡 {logs.length}
-            </button>
+            <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
             <NeoBtn onClick={() => router.push('/beranda')} className="bg-white px-3 py-1.5 rounded-xl text-xs">
               Ke Beranda →
             </NeoBtn>
@@ -597,35 +545,12 @@ function HasilContent() {
 
         {/* ===== Panel behavior log ===== */}
         {showLogPanel && (
-          <div className="absolute inset-0 z-50 bg-[#111]/95 text-white flex flex-col p-4">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase bg-[#B6FF00] text-[#111] px-2 py-0.5 rounded">
-                  Telemetry
-                </span>
-                <h3 className="text-sm font-extrabold mt-1">Behavior Log</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLogPanel(false)}
-                className="bg-white/10 px-2.5 py-1 rounded-lg text-xs font-bold"
-              >
-                Tutup ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto mt-3 space-y-2 font-mono text-[11px]">
-              {logs.length === 0 && <p className="text-white/50">Belum ada event. Klik-klik dulu…</p>}
-              {logs.map((l) => (
-                <div key={l.id} className="bg-white/5 border border-white/15 rounded-lg p-2.5">
-                  <div className="flex justify-between text-[#B6FF00] font-bold">
-                    <span>[{l.event}]</span>
-                    <span className="text-white/50">{l.ts}</span>
-                  </div>
-                  <div className="text-white/80 mt-1 break-all">{JSON.stringify(l.payload)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LogPanel
+            logs={logs}
+            onClose={() => setShowLogPanel(false)}
+            badge="Telemetry"
+            title="Behavior Log"
+          />
         )}
       </div>
     </div>
