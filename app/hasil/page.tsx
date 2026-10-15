@@ -307,6 +307,11 @@ function HasilContent() {
   const [bedahIdx, setBedahIdx] = useState<number | null>(null);
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('hasil');
 
+  // Page view logging
+  useEffect(() => {
+    logEvent('page_view', { page: 'hasil' });
+  }, []);
+
   /* ---------- status per soal (dummy) ---------- */
   const statusPerSoal: ('benar' | 'salah' | 'kosong')[] = useMemo(() => {
     return questions.map((_, i) => {
