@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BottomNav,
@@ -22,6 +22,11 @@ export default function AkunPage() {
   const [inputTanggal, setInputTanggal] = useState('');
   const { toast, showToastMsg } = useToast();
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('akun');
+
+  // Page view logging
+  useEffect(() => {
+    logEvent('page_view', { page: 'akun' });
+  }, []);
 
   const bukaModalTanggal = () => {
     setInputTanggal('');
@@ -113,6 +118,11 @@ export default function AkunPage() {
 
           <p className="text-center text-[11px] text-neutral-400">
             Data dummy — profil & pengaturan nyata menyusul setelah konek backend.
+          </p>
+
+          <p className="text-center text-[10px] text-neutral-400 leading-relaxed px-2">
+            Kami mencatat pola penggunaan (halaman dibuka, fitur dipakai) untuk
+            meningkatkan app. Tidak ada data pribadi yang dibagikan.
           </p>
         </div>
 
