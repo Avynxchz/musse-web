@@ -163,7 +163,7 @@ export const BottomNav = memo(function BottomNav({ active }: { active: NavKey })
     { key: 'akun', icon: '👤', label: 'Akun', href: '/akun' },
   ] as const;
   return (
-    <nav className="bg-white border-t-2 border-[#111] px-6 py-2 flex items-center justify-around shrink-0 sticky bottom-0 z-20">
+    <nav className="bg-white border-t-2 border-[#111] px-6 py-2 flex items-center justify-around shrink-0 fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-20">
       {items.map((it) => {
         const on = active === it.key;
         return (
