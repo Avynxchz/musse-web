@@ -153,6 +153,8 @@ function ArenaClient() {
           setQuestions(QUESTIONS);
           setSoalSource('dummy');
         }
+        // Mulai timer durasi untuk soal pertama
+        soalStartTimeRef.current = Date.now();
       } catch (e) {
         if (cancelled) return;
         // Gagal fetch → fallback dummy agar tidak blank
@@ -168,9 +170,40 @@ function ArenaClient() {
     };
   }, [mapelKey, paket]);
 
+  // Page view logging
+  useEffect(() => {
+    logEvent('page_view', { page: 'arena' });
+  }, []);
+
+  // Scroll depth tracking untuk pembahasan (80% dari area scroll utama)
+  useEffect(() => {
+    const scrollEl = scrollBodyRef.current;
+    if (!scrollEl) return;
+    const onScroll = () => {
+      // Hanya track jika pembahasan sedang tampil (sudah cek jawaban)
+      const isChecked = !!checked[qIndex];
+      if (!isChecked || !q) return;
+      const soalNo = q.nomor;
+      if (pembahasanScrolledRef.current[soalNo]) return;
+      const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+      if (scrollHeight <= clientHeight) return;
+      const scrolledRatio = (scrollTop + clientHeight) / scrollHeight;
+      if (scrolledRatio >= 0.8) {
+        pembahasanScrolledRef.current[soalNo] = true;
+        logEvent('pembahasan_scroll_full', { soal_no: soalNo, mode });
+      }
+    };
+    scrollEl.addEventListener('scroll', onScroll, { passive: true });
+    return () => scrollEl.removeEventListener('scroll', onScroll);
+  });
+
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Timer untuk durasi per soal (behavior logging) - harus di atas fetch effect
+  const soalStartTimeRef = useRef<number>(Date.now());
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const evalRef = useRef<HTMLDivElement>(null);
+  // Flag untuk tracking scroll depth pembahasan (sekali per soal)
+  const pembahasanScrolledRef = useRef<Record<number, boolean>>({});
   // Guard anti double-submit / double-finish (race condition)
   const finishingRef = useRef(false);
   const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
@@ -215,6 +248,16 @@ function ArenaClient() {
     }, 3000);
     const hasil = questions.map((qq, i) => evaluateQuestion(qq, answers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
+    // Log durasi soal terakhir
+    const durasiMs = Date.now() - soalStartTimeRef.current;
+    const durasiDetik = Math.round(durasiMs / 1000);
+    if (questions[qIndex]) {
+      logEvent('soal_duration', {
+        soal_no: questions[qIndex].nomor,
+        durasi_detik: durasiDetik,
+        mode,
+      });
+    }
     logEvent('attempt_finish', {
       mode,
       ended_by: endedBy,
@@ -245,6 +288,20 @@ function ArenaClient() {
   // --- navigasi soal ---
   const goSoal = (idx: number) => {
     if (idx < 0 || idx >= questions.length) return;
+    // Log durasi soal sebelumnya
+    const durasiMs = Date.now() - soalStartTimeRef.current;
+    const durasiDetik = Math.round(durasiMs / 1000);
+    if (questions[qIndex]) {
+      logEvent('soal_duration', {
+        soal_no: questions[qIndex].nomor,
+        durasi_detik: durasiDetik,
+        mode,
+      });
+    }
+    // Reset timer untuk soal baru
+    soalStartTimeRef.current = Date.now();
+    // Reset flag scroll pembahasan untuk soal baru
+    // (gunakan nomor soal sebagai key)
     setQIndex(idx);
     setPilarExpanded(false);
     setSimSoalOpen(false);
@@ -303,6 +360,18 @@ function ArenaClient() {
       }
       setChecked((prev) => ({ ...prev, [qIndex]: true }));
       logEvent('check_answer', { soal_no: q.nomor, jawaban: ans });
+      // Catat pilar pembahasan yang tersedia saat user cek jawaban
+      const pilarTersedia: string[] = [];
+      if (q.pilar1?.trim()) pilarTersedia.push('pilar1');
+      if (q.pilar3?.trim()) pilarTersedia.push('pilar3');
+      if (q.pilar4?.length) pilarTersedia.push('pilar4');
+      if (q.pilar5?.trim()) pilarTersedia.push('pilar5');
+      logEvent('pembahasan_view', {
+        soal_no: q.nomor,
+        tipe: q.tipe,
+        pilar_tersedia: pilarTersedia,
+        mode,
+      });
       setTimeout(() => evalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
     } else {
       if (isLast) finishQuiz('user');
@@ -673,8 +742,21 @@ function ArenaClient() {
                     </div>
                     <NeoBtn
                       onClick={() => {
-                        setPilarExpanded((v) => !v);
+                        const willExpand = !pilarExpanded;
+                        setPilarExpanded(willExpand);
                         logEvent('pembahasan_5pilar_toggle', { soal_no: q.nomor });
+                        if (willExpand) {
+                          // Catat pilar mana yang tersedia isinya
+                          const pilarTersedia: string[] = [];
+                          if (q.pilar1?.trim()) pilarTersedia.push('pilar1');
+                          if (q.pilar3?.trim()) pilarTersedia.push('pilar3');
+                          if (q.pilar4?.length) pilarTersedia.push('pilar4');
+                          if (q.pilar5?.trim()) pilarTersedia.push('pilar5');
+                          logEvent('pilar_open', {
+                            soal_no: q.nomor,
+                            pilar_tersedia: pilarTersedia,
+                          });
+                        }
                       }}
                       className="bg-[#E0E7FF] px-3 py-1 rounded-full text-[11px]"
                     >
