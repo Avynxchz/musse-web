@@ -1,15 +1,13 @@
-// Fetch soal asli dari Supabase + konversi ke format Question arena.
+// Fetch soal asli dari Supabase STORAGE (per-paket JSON), bukan PostgREST.
+// Alasan: payload JSONB pembahasan terlalu besar untuk PostgREST (koneksi diputus).
+// Storage file-based jauh lebih reliable untuk data statis seperti soal.
 // Dibuat untuk migrasi 10%: semua mapel, 5 soal per paket.
 
-import { createClient } from '@supabase/supabase-js';
 import type { Question, TipeSoal } from '../app/arena/data';
 
-const supabase = createClient(
-  'https://auhqgzrrgvjbfvzvayzg.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1aHFnenJyZ3ZqYmZ2enZheXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzUwNDgsImV4cCI6MjEwNjg1MTA0OH0.lthMo0A1QcAGOnp4NJ65-FDsP7yOCpA-OikA-Ei1gqY'
-);
+const SUPABASE_URL = 'https://auhqgzrrgvjbfvzvayzg.supabase.co';
 
-/** Format baris tabel `soal` di Supabase */
+/** Format 1 soal di file JSON Storage (sama dengan baris tabel `soal`) */
 export interface SoalRow {
   id: string;
   mapel: string;
@@ -41,8 +39,7 @@ export interface SoalRow {
   } | null;
 }
 
-/** Ambil soal dari Supabase berdasarkan mapel + paket, urut nomor */
-// Mapping key katalog Next.js -> nilai `mapel` di database Supabase
+// Mapping key katalog Next.js -> nilai `mapel` di nama file Storage
 const MAPEL_DB_MAP: Record<string, string> = {
   matematika: 'matematika',
   indonesia: 'bahasa_indonesia',
@@ -57,30 +54,18 @@ const MAPEL_DB_MAP: Record<string, string> = {
   jepang: 'bahasa_jepang',
 };
 
+/** Ambil soal dari Supabase Storage: 1 file JSON per (mapel, paket), sudah lengkap dengan pembahasan */
 export async function getSoal(mapel: string, paket: number): Promise<SoalRow[]> {
   const dbMapel = MAPEL_DB_MAP[mapel] ?? mapel;
-  // STAGE 1 (ringan): ambil soal tanpa pembahasan & soal_serupa.
-  // Payload JSONB pembahasan besar bikin koneksi Supabase diputus.
-  // Pembahasan di-load terpisah via getPembahasan() saat user klik Cek Jawaban.
-  const { data, error } = await supabase
-    .from('soal')
-    .select('id,mapel,mapel_nama,paket,nomor,tipe,stimulus,pertanyaan,pilihan,pernyataan,kunci')
-    .eq('mapel', dbMapel)
-    .eq('paket', paket)
-    .order('nomor');
-  if (error) throw error;
-  return (data ?? []) as SoalRow[];
-}
-
-/** STAGE 2: ambil pembahasan + soal_serupa untuk 1 soal (dipanggil saat Cek Jawaban) */
-export async function getPembahasan(soalId: string): Promise<Pick<SoalRow, 'pembahasan' | 'soal_serupa'> | null> {
-  const { data, error } = await supabase
-    .from('soal')
-    .select('pembahasan,soal_serupa')
-    .eq('id', soalId)
-    .single();
-  if (error) return null;
-  return data;
+  const url = `${SUPABASE_URL}/storage/v1/object/public/soal/${dbMapel}_paket_${paket}.json`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Gagal memuat soal (${res.status}): ${dbMapel} paket ${paket}`);
+  }
+  const rows = (await res.json()) as SoalRow[];
+  // Pastikan urut nomor
+  rows.sort((a, b) => a.nomor - b.nomor);
+  return rows;
 }
 
 /** Parse kunci format "A:Benar" menjadi {A: 'Benar'} + daftar label unik */
@@ -103,7 +88,7 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/** Konversi 1 baris DB → format Question yang dipakai arena */
+/** Konversi 1 baris soal → format Question yang dipakai arena */
 export function dbRowToQuestion(row: SoalRow): Question {
   const tipe = row.tipe as TipeSoal;
 
