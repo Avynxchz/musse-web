@@ -389,8 +389,8 @@ export default function BerandaPage() {
 
         {/* ===== Bottom-sheet Pilih Mode ===== */}
         {modeSheet && (
-          <div className="absolute inset-0 z-40 bg-black/60 flex flex-col justify-end">
-            <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-3 max-h-[85dvh] overflow-y-auto">
+          <div className="fixed inset-0 z-40 bg-black/60 flex justify-center items-end">
+            <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-3 max-h-[85dvh] overflow-y-auto w-full max-w-[430px]">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
@@ -502,7 +502,7 @@ export default function BerandaPage() {
 
         {/* ===== Modal Atur Mapel ===== */}
         {aturOpen && (
-          <div className="absolute inset-0 z-40 bg-black/60 flex flex-col justify-end">
+          <div className="fixed inset-0 z-40 bg-black/60 flex justify-center items-end">
             <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl h-[80%] flex flex-col overflow-hidden">
               <div className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
                 <div>
@@ -555,7 +555,7 @@ export default function BerandaPage() {
 
         {/* ===== Modal Strategi ===== */}
         {strategiOpen && (
-          <div className="absolute inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full space-y-3">
               <div className="flex items-center justify-between">
                 <span className="bg-amber-300 border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
@@ -596,7 +596,7 @@ export default function BerandaPage() {
 
         {/* ===== Modal Tanggal TKA (custom, bukan prompt) ===== */}
         {dateOpen && (
-          <div className="absolute inset-0 z-40 bg-black/50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-6">
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full max-w-[300px] text-center">
               <div className="text-3xl mb-2">📅</div>
               <p className="text-sm font-bold text-[#111] mb-3">
