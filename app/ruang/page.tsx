@@ -91,6 +91,11 @@ export default function RuangPage() {
   const { toast, showToastMsg } = useToast();
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('ruang');
 
+  // Page view logging
+  useEffect(() => {
+    logEvent('page_view', { page: 'ruang' });
+  }, []);
+
   /* ===== Chat Coach per mapel ===== */
   const [showCoach, setShowCoach] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
