@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MAPEL_CATALOG, Mapel, MapelCat, QuizMode, getMapel } from '../arena/data';
 import {
@@ -114,6 +114,11 @@ export default function BerandaPage() {
   const startingRef = useRef(false);
   const { toast, showToastMsg } = useToast();
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
+
+  // Page view logging
+  useEffect(() => {
+    logEvent('page_view', { page: 'beranda' });
+  }, []);
 
   /* ---------- mapel list (dengan fav override) ---------- */
   const mapelList: Mapel[] = useMemo(
