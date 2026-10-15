@@ -383,6 +383,8 @@ export default function BerandaPage() {
         </div>
 
         {/* ===== Bottom nav ===== */}
+        {/* Spacer agar konten tidak tertutup navbar fixed */}
+        <div className="h-20 shrink-0" />
         <BottomNav active="latihan" />
 
         {/* ===== Bottom-sheet Pilih Mode ===== */}
