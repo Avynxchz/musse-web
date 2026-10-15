@@ -241,6 +241,8 @@ export default function RuangPage() {
         </div>
 
         {/* ===== Bottom nav ===== */}
+        {/* Spacer agar konten tidak tertutup navbar fixed */}
+        <div className="h-20 shrink-0" />
         <BottomNav active="ruang" />
 
         {/* ===== COACH CHAT SHEET ===== */}
