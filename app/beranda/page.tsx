@@ -388,13 +388,13 @@ export default function BerandaPage() {
         {/* ===== Bottom-sheet Pilih Mode ===== */}
         {modeSheet && (
           <div className="absolute inset-0 z-40 bg-black/60 flex flex-col justify-end">
-            <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-5 space-y-4">
+            <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-3 max-h-[85dvh] overflow-y-auto">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
                     Pilih Mode Pengerjaan
                   </span>
-                  <h3 className="text-base font-extrabold mt-1">
+                  <h3 className="text-sm font-extrabold mt-0.5">
                     {modeSheet.mapelName} · Paket {modeSheet.paket}
                   </h3>
                   <p className="text-xs text-neutral-500 font-semibold">
@@ -416,15 +416,15 @@ export default function BerandaPage() {
                 </NeoBtn>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <button
                   type="button"
                   onClick={() => setQuizMode('latihan')}
-                  className={`border-2 border-[#111] shadow-[0_3px_0_#111] w-full p-3.5 rounded-2xl text-left flex items-start gap-3 ${
+                  className={`border-2 border-[#111] shadow-[0_3px_0_#111] w-full p-3 rounded-2xl text-left flex items-start gap-3 ${
                     quizMode === 'latihan' ? 'bg-[#B6FF00]' : 'bg-white'
                   }`}
                 >
-                  <span className="w-8 h-8 rounded-xl border-2 border-[#111] bg-white flex items-center justify-center text-base shrink-0 mt-0.5">
+                  <span className="w-7 h-7 rounded-xl border-2 border-[#111] bg-white flex items-center justify-center text-sm shrink-0 mt-0.5">
                     🌱
                   </span>
                   <span className="flex-1">
@@ -440,14 +440,12 @@ export default function BerandaPage() {
                         {quizMode === 'latihan' ? 'Terpilih ✓' : 'Pilih'}
                       </span>
                     </span>
-                    <ul className="text-[11px] text-[#111]/85 font-semibold mt-1.5 space-y-0.5 list-disc list-inside">
+                    <ul className="text-[10px] text-[#111]/85 font-semibold mt-1 space-y-0 list-disc list-inside">
                       <li>
-                        Tombol <b>Cek Jawaban</b> aktif langsung di tiap soal
+                        <b>Cek Jawaban</b> langsung per soal
                       </li>
-                      <li>
-                        <b>Pembahasan 5 Pilar &amp; Soal Serupa</b> langsung terbuka
-                      </li>
-                      <li>Timer jalan sebagai acuan (kalau habis tetap bisa lanjut)</li>
+                      <li>Pembahasan &amp; soal serupa terbuka</li>
+                      <li>Timer acuan (bisa lanjut)</li>
                     </ul>
                   </span>
                 </button>
@@ -455,11 +453,11 @@ export default function BerandaPage() {
                 <button
                   type="button"
                   onClick={() => setQuizMode('simulasi')}
-                  className={`border-2 border-[#111] shadow-[0_3px_0_#111] w-full p-3.5 rounded-2xl text-left flex items-start gap-3 ${
+                  className={`border-2 border-[#111] shadow-[0_3px_0_#111] w-full p-3 rounded-2xl text-left flex items-start gap-3 ${
                     quizMode === 'simulasi' ? 'bg-[#B6FF00]' : 'bg-white'
                   }`}
                 >
-                  <span className="w-8 h-8 rounded-xl border-2 border-[#111] bg-[#E0E7FF] flex items-center justify-center text-base shrink-0 mt-0.5">
+                  <span className="w-7 h-7 rounded-xl border-2 border-[#111] bg-[#E0E7FF] flex items-center justify-center text-sm shrink-0 mt-0.5">
                     ⚡
                   </span>
                   <span className="flex-1">
@@ -475,15 +473,15 @@ export default function BerandaPage() {
                         {quizMode === 'simulasi' ? 'Terpilih ✓' : 'Pilih'}
                       </span>
                     </span>
-                    <ul className="text-[11px] text-neutral-600 font-semibold mt-1.5 space-y-0.5 list-disc list-inside">
+                    <ul className="text-[10px] text-neutral-600 font-semibold mt-1 space-y-0 list-disc list-inside">
                       <li>
-                        Tombol <b>Cek Jawaban DIKUNCI</b> selama ujian berlangsung
+                        <b>Cek Jawaban dikunci</b> selama ujian
                       </li>
                       <li>
-                        Timer ketat — <b>otomatis kumpul</b> saat waktu habis
+                        Timer ketat — <b>otomatis kumpul</b>
                       </li>
                       <li>
-                        Jawaban, 5 Pilar &amp; <b>Guru Autopsi</b> dibuka setelah selesai
+                        Pembahasan &amp; <b>Guru Autopsi</b> setelah selesai
                       </li>
                     </ul>
                   </span>
