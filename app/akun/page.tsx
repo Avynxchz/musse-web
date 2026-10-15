@@ -117,6 +117,8 @@ export default function AkunPage() {
         </div>
 
         {/* ===== Bottom nav ===== */}
+        {/* Spacer agar konten tidak tertutup navbar fixed */}
+        <div className="h-20 shrink-0" />
         <BottomNav active="akun" />
 
         {/* ===== Modal tanggal custom ===== */}
