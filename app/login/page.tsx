@@ -23,6 +23,11 @@ export default function LoginPage() {
     console.log('[login]', event, payload);
   }, []);
 
+  // Page view logging
+  useEffect(() => {
+    logEvent('page_view', { page: 'login' });
+  }, []);
+
   const handleGoogleLogin = useCallback(() => {
     if (loading) return;
     setLoading(true);
