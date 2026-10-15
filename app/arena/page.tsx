@@ -407,7 +407,7 @@ function ArenaClient() {
         {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
         {soalError && soalSource === 'dummy' && (
           <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
-            ⚠️ Soal asli gagal dimuat — pakai soal contoh
+            ⚠️ {soalError}
           </div>
         )}
         {/* ===== TOP BAR ===== */}
