@@ -26,6 +26,22 @@ export const MAPEL_CATALOG: Mapel[] = [
   { key: 'tkj', name: 'SMK - Teknik Jaringan (TKJ)', cat: 'SMK', fav: false, p1: 25, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
   { key: 'tkr', name: 'SMK - Teknik Otomotif (TKR)', cat: 'SMK', fav: false, p1: 25, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
   { key: 'jepang', name: 'Bahasa Jepang', cat: 'Bahasa', fav: false, p1: 10, p2: 29, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'akuntansi', name: 'SMK - Akuntansi', cat: 'SMK', fav: false, p1: 5, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'antropologi', name: 'Antropologi (Peminatan)', cat: 'Soshum', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'arab', name: 'Bahasa Arab', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'indonesia_lanjut', name: 'B. Indonesia Lanjut', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'inggris_lanjut', name: 'B. Inggris Lanjut', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'jerman', name: 'Bahasa Jerman', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'korea', name: 'Bahasa Korea', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'mandarin', name: 'Bahasa Mandarin', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'prancis', name: 'Bahasa Prancis', cat: 'Bahasa', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'geografi', name: 'Geografi (Peminatan)', cat: 'Soshum', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'kewirausahaan', name: 'SMK - Kewirausahaan', cat: 'SMK', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'mp', name: 'SMK - Manajemen Perkantoran', cat: 'SMK', fav: false, p1: 5, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'matlanjut', name: 'Matematika Lanjut', cat: 'Saintek', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'ppkn', name: 'PPKn (Wajib)', cat: 'Wajib', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'sejarah', name: 'Sejarah (Peminatan)', cat: 'Soshum', fav: false, p1: 5, p2: 5, prog: 0, jatahMenitPerSoal: 2.4 },
+  { key: 'mesin', name: 'SMK - Teknik Mesin', cat: 'SMK', fav: false, p1: 5, p2: 0, prog: 0, jatahMenitPerSoal: 2.4 },
 ];
 
 // ---------- Soal ----------
