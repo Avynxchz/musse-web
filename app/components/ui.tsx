@@ -210,6 +210,34 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
   return <>{parts}</>;
 });
 
+/** Render teks dengan LaTeX menjadi HTML string (untuk dangerouslySetInnerHTML) */
+export function renderLatexToHtml(text: string): string {
+  if (!text || !text.includes("$")) return text;
+  const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let out = "";
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) out += esc(text.slice(lastIndex, match.index));
+    const displayMode = match[1] !== undefined;
+    const code = displayMode ? match[1] : match[2];
+    try {
+      const html = katex.renderToString(normalizeLatex(code), {
+        throwOnError: true, displayMode, strict: false, trust: false,
+      });
+      out += displayMode
+        ? `<span class="katex-block my-1 block overflow-x-auto">${html}</span>`
+        : `<span class="katex-inline">${html}</span>`;
+    } catch {
+      out += `<span class="italic bg-[#F0FFB8] px-1 rounded font-serif">${esc(code)}</span>`;
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) out += esc(text.slice(lastIndex));
+  return out;
+}
+
 export type NavKey = 'latihan' | 'ruang' | 'akun';
 
 /** Bottom navigation 3 tab (mobile). */
