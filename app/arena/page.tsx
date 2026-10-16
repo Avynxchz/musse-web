@@ -1223,3 +1223,4 @@ export default function ArenaPage() {
     </Suspense>
   );
 }
+
