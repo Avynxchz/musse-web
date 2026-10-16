@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question } from '../arena/data';
-import { LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
+import { Latex, LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 
 /* ================= Sheet Bedah Soal ================= */
@@ -163,7 +163,7 @@ function BedahSoalSheet({
               </button>
             </div>
             <p className="mt-3 leading-relaxed text-neutral-800">
-              <b>Inti Logika:</b> {q.ringkas}
+              <b>Inti Logika:</b> <Latex text={q.ringkas} />
             </p>
             {pilarOpen && (
               <div className="mt-3 space-y-3 border-t-2 border-dashed border-neutral-300 pt-3">
@@ -171,13 +171,13 @@ function BedahSoalSheet({
                   <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
                     Pilar 1 · Diketahui & Konsep Kunci
                   </div>
-                  <p className="mt-1 font-medium">{q.pilar1}</p>
+                  <p className="mt-1 font-medium"><Latex text={q.pilar1} /></p>
                 </div>
                 <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
                   <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
                     Pilar 2 & 3 · Glosarium & Alasan Logis
                   </div>
-                  <p className="mt-1 font-medium">{q.pilar3}</p>
+                  <p className="mt-1 font-medium"><Latex text={q.pilar3} /></p>
                 </div>
                 <div className="bg-[#F0FFB8] border border-[#111] rounded-xl p-3">
                   <div className="font-extrabold text-[#111] uppercase text-[10px]">
@@ -185,7 +185,7 @@ function BedahSoalSheet({
                   </div>
                   <ol className="mt-1.5 space-y-1.5 list-decimal list-inside font-semibold">
                     {(q.pilar4 ?? []).map((s, i) => (
-                      <li key={i}>{s}</li>
+                      <li key={i}><Latex text={s} /></li>
                     ))}
                   </ol>
                 </div>
@@ -193,7 +193,7 @@ function BedahSoalSheet({
                   <div className="font-extrabold text-amber-900 uppercase text-[10px]">
                     Pilar 5 · Trik Cepat & Jebakan Umum
                   </div>
-                  <p className="mt-1 font-medium">{q.pilar5}</p>
+                  <p className="mt-1 font-medium"><Latex text={q.pilar5} /></p>
                 </div>
               </div>
             )}
