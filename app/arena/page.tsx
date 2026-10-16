@@ -16,6 +16,7 @@ import {
   LogPanel,
   NeoBtn,
   Toast,
+  renderLatexToHtml,
   type LogEntry,
 } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
@@ -1226,7 +1227,7 @@ function ArenaClient() {
                       key={i}
                       className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-3 max-w-[92%]"
                     >
-                      <p className="font-medium" dangerouslySetInnerHTML={{ __html: m.html }} />
+                      <p className="font-medium" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
                     </div>
                   )
                 )}
