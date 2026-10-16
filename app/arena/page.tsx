@@ -646,7 +646,7 @@ function ArenaClient() {
                         >
                           {isComplex && selected ? '✓' : opt.key}
                         </span>
-                        <span className="flex-1">{opt.text}</span>
+                        <span className="flex-1"><Latex text={opt.text} /></span>
                       </button>
                     );
                   })}
@@ -867,7 +867,7 @@ function ArenaClient() {
                           onClick={() => checkSimilar(i)}
                           className="w-full bg-white px-3 py-2 rounded-xl text-left text-xs block"
                         >
-                          {o}
+                          <Latex text={o} />
                         </NeoBtn>
                       ))}
                     </div>
