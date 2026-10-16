@@ -146,7 +146,11 @@ export function dbRowToQuestion(row: SoalRow): Question {
   const ringkas = (p.why_correct ?? p.reasoning ?? '').trim().slice(0, 300);
   const pilar1 = [diketahui, ditanyakan].filter(Boolean).join(' ').trim() || topik;
   const pilar3 = (p.reasoning ?? '').trim();
-  const pilar4 = Array.isArray(p.steps) ? p.steps : [];
+  const pilar4 = Array.isArray(p.steps)
+    ? p.steps.map((s: any) =>
+        typeof s === 'string' ? s : `${s.title ?? ''}${s.explanation ? ': ' + s.explanation : ''}`.trim()
+      ).filter(Boolean)
+    : [];
   const pilar5 = Array.isArray(p.tips) ? p.tips.join(' ').trim() : String(p.tips ?? '').trim();
 
   // Soal serupa
