@@ -1027,7 +1027,7 @@ function ArenaClient() {
 
         {/* ===== DRAWER PETA SOAL ===== */}
         {showPeta && (
-          <div className="absolute inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowPeta(false)}>
+          <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowPeta(false)}>
             <div
               className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-4"
               onClick={(e) => e.stopPropagation()}
@@ -1085,7 +1085,7 @@ function ArenaClient() {
 
         {/* ===== AI TUTOR SHEET ===== */}
         {showTutor && (
-          <div className="absolute inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowTutor(false)}>
+          <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowTutor(false)}>
             <div
               className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl h-[82%] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
@@ -1165,7 +1165,7 @@ function ArenaClient() {
 
         {/* ===== MODAL KONFIRMASI KELUAR ===== */}
         {showExitConfirm && (
-          <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
             <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 w-full max-w-[300px] text-center">
               <div className="text-3xl mb-2">🚪</div>
               <p className="text-sm font-bold mb-4">Keluar ke Beranda? Progres latihanmu tetap aman.</p>
