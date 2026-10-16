@@ -103,6 +103,8 @@ export interface Question {
   glossary?: GlossaryTerm[];
   commonMistakes?: string[];
   stepsDetailed?: StepDetail[];
+  // URL gambar soal dari Supabase Storage (bucket soal-images)
+  gambar_url?: string[];
   similar: SimilarSoal;
 }
 
