@@ -152,6 +152,44 @@ export const NeoBtn = memo(function NeoBtn({
   );
 });
 
+/** Render LaTeX sederhana: ubah $...$ jadi italic dengan background, handle \frac{a}{b} */
+export const Latex = memo(function Latex({ text }: { text: string }) {
+  if (!text || !text.includes('$')) return <>{text}</>;
+
+  const parts: React.ReactNode[] = [];
+  // Split by $...$ pattern
+  const regex = /\$([^$]+)\$/g;
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Teks biasa sebelum $
+    if (match.index > lastIndex) {
+      parts.push(<span key={key++}>{text.slice(lastIndex, match.index)}</span>);
+    }
+    // Render LaTeX: handle \frac{a}{b} -> a/b
+    let latex = match[1];
+    latex = latex.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
+    latex = latex.replace(/\\/g, '');
+    parts.push(
+      <span
+        key={key++}
+        className="italic bg-[#F0FFB8] px-1 rounded font-serif"
+      >
+        {latex}
+      </span>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  // Sisa teks setelah $ terakhir
+  if (lastIndex < text.length) {
+    parts.push(<span key={key++}>{text.slice(lastIndex)}</span>);
+  }
+
+  return <>{parts}</>;
+});
+
 export type NavKey = 'latihan' | 'ruang' | 'akun';
 
 /** Bottom navigation 3 tab (mobile). */
