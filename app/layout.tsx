@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Grotesk, Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-body",
