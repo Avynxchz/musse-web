@@ -35,7 +35,7 @@ function BedahSoalSheet({
 
   return (
     <div
-      className="absolute inset-0 z-50 bg-black/50 flex flex-col justify-end"
+      className="fixed inset-0 z-50 bg-black/50 flex flex-col justify-end"
       onClick={onClose}
       role="dialog"
       aria-label={`Bedah Soal ${q.nomor}`}
@@ -523,7 +523,7 @@ function HasilContent() {
 
         {/* ===== Modal strategi ===== */}
         {strategiOpen && (
-          <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full space-y-3">
               <div className="flex items-center justify-between">
                 <span className="bg-amber-300 border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
