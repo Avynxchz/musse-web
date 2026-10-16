@@ -795,35 +795,179 @@ function ArenaClient() {
                   </div>
 
                   {pilarExpanded && (
-                    <div className="mt-4 space-y-3 border-t-2 border-dashed border-neutral-300 pt-3 text-xs">
-                      <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
-                        <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
-                          Pilar 1 · Diketahui & Konsep Kunci
+                    <div className="mt-4 space-y-5 border-t-2 border-dashed border-neutral-300 pt-4 text-xs">
+                      {/* ===== PILAR 1: Identifikasi & Fondasi Teori ===== */}
+                      <section>
+                        <div className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+                          Pilar 1 · Identifikasi & Fondasi Teori
                         </div>
-                        <p className="mt-1 font-medium"><Latex text={q.pilar1} /></p>
-                      </div>
-                      <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
-                        <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
-                          Pilar 2 & 3 · Glosarium & Alasan Logis
+                        <h4 className="font-extrabold text-sm mt-0.5">
+                          Identifikasi Masalah (Dik & Dit) & Konsep Kunci
+                        </h4>
+                        {q.diketahui || q.ditanyakan ? (
+                          <div className="grid gap-2 mt-2 sm:grid-cols-2">
+                            {q.diketahui ? (
+                              <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3">
+                                <div className="text-[10px] font-extrabold uppercase text-neutral-500">
+                                  📋 Diketahui (Dik)
+                                </div>
+                                <div className="mt-1 font-medium leading-relaxed">
+                                  <Latex text={q.diketahui} />
+                                </div>
+                              </div>
+                            ) : null}
+                            {q.ditanyakan ? (
+                              <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3">
+                                <div className="text-[10px] font-extrabold uppercase text-neutral-500">
+                                  ❓ Ditanyakan (Dit)
+                                </div>
+                                <div className="mt-1 font-medium leading-relaxed">
+                                  <Latex text={q.ditanyakan} />
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 mt-2">
+                            <div className="font-medium leading-relaxed">
+                              <Latex text={q.pilar1} />
+                            </div>
+                          </div>
+                        )}
+                        {(q.conceptKunci?.length ?? 0) > 0 && (
+                          <div className="mt-2.5">
+                            <div className="text-[10px] font-extrabold uppercase text-neutral-500">
+                              🔑 Konsep & Rumus Utama yang Menghubungkan:
+                            </div>
+                            <ul className="mt-1.5 space-y-1.5">
+                              {q.conceptKunci!.map((c, i) => (
+                                <li
+                                  key={i}
+                                  className="bg-white border-2 border-[#111] rounded-xl px-3 py-2 font-bold flex items-center gap-2"
+                                >
+                                  <span className="text-green-700 font-extrabold">✓</span>
+                                  <span>{c}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </section>
+
+                      {/* ===== PILAR 2: Glosarium ===== */}
+                      {(q.glossary?.length ?? 0) > 0 && (
+                        <section>
+                          <div className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+                            Pilar 2 · Notasi Matematika
+                          </div>
+                          <h4 className="font-extrabold text-sm mt-0.5">
+                            Glosarium Simbol & Istilah
+                          </h4>
+                          <div className="mt-2 space-y-2">
+                            {q.glossary!.map((g, i) => (
+                              <div
+                                key={i}
+                                className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3"
+                              >
+                                <span className="inline-block bg-white border border-[#111] rounded px-2 py-0.5 text-[11px] font-extrabold">
+                                  {g.term}
+                                </span>
+                                <div className="mt-1 font-medium leading-relaxed">
+                                  <Latex text={g.meaning} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                      )}
+
+                      {/* ===== PILAR 3: Intuisi Berpikir ===== */}
+                      <section>
+                        <div className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+                          Pilar 3 · Intuisi Berpikir
                         </div>
-                        <p className="mt-1 font-medium"><Latex text={q.pilar3} /></p>
-                      </div>
-                      <div className="bg-[#F0FFB8] border border-[#111] rounded-xl p-3">
-                        <div className="font-extrabold uppercase text-[10px]">
-                          Pilar 4 · Langkah Penyelesaian Rinci
+                        <h4 className="font-extrabold text-sm mt-0.5">
+                          Mengapa Rumus Ini Dipakai?
+                        </h4>
+                        <div className="mt-1.5 font-medium leading-relaxed">
+                          <Latex text={q.pilar3} />
                         </div>
-                        <ol className="mt-1.5 space-y-1.5 list-decimal list-inside font-semibold">
-                          {(q.pilar4 ?? []).map((s, i) => (
-                            <li key={i}>{s}</li>
+                      </section>
+
+                      {/* ===== PILAR 4: Langkah Sistematis ===== */}
+                      <section>
+                        <div className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+                          Pilar 4 · Langkah Sistematis
+                        </div>
+                        <h4 className="font-extrabold text-sm mt-0.5">
+                          Langkah-Langkah Pengerjaan Rinci
+                        </h4>
+                        <ol className="mt-2.5 space-y-3.5">
+                          {(
+                            q.stepsDetailed?.length
+                              ? q.stepsDetailed
+                              : (q.pilar4 ?? []).map((s) => ({ title: '', explanation: s }))
+                          ).map((s, i) => (
+                            <li key={i} className="flex gap-2.5">
+                              <span className="shrink-0 w-6 h-6 rounded-full bg-[#111] text-white text-[11px] font-extrabold flex items-center justify-center">
+                                {i + 1}
+                              </span>
+                              <div className="flex-1 border-l-2 border-neutral-200 pl-2.5 min-w-0">
+                                {s.title ? (
+                                  <div className="text-[10px] font-extrabold uppercase text-neutral-500">
+                                    Langkah {String(i + 1).padStart(2, '0')} ·{' '}
+                                    <span className="text-[#111]">{s.title}</span>
+                                  </div>
+                                ) : null}
+                                <div className="mt-1 font-medium leading-relaxed">
+                                  <Latex text={s.explanation} />
+                                </div>
+                              </div>
+                            </li>
                           ))}
                         </ol>
-                      </div>
-                      <div className="bg-[#FFEDD5] border border-[#111] rounded-xl p-3">
-                        <div className="font-extrabold text-amber-900 uppercase text-[10px]">
-                          Pilar 5 · Trik Cepat & Jebakan Umum
+                      </section>
+
+                      {/* ===== PILAR 5: Trik & Jebakan ===== */}
+                      <section>
+                        <div className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
+                          Pilar 5 · Trik Ujian & Jebakan
                         </div>
-                        <p className="mt-1 font-medium"><Latex text={q.pilar5} /></p>
-                      </div>
+                        <h4 className="font-extrabold text-sm mt-0.5">
+                          Tips Cepat & Antisipasi Jebakan
+                        </h4>
+                        <div className="grid gap-2 mt-2 sm:grid-cols-2">
+                          {q.pilar5 ? (
+                            <div className="bg-[#F0FFB8] border-2 border-[#111] rounded-xl p-3">
+                              <div className="text-[11px] font-extrabold">
+                                ⚡ Trik Cepat & Efisiensi Ujian
+                              </div>
+                              <ul className="mt-1.5 space-y-1 font-medium leading-relaxed list-disc list-inside">
+                                <li>
+                                  <Latex text={q.pilar5} />
+                                </li>
+                              </ul>
+                            </div>
+                          ) : null}
+                          {(q.commonMistakes?.length ?? 0) > 0 ? (
+                            <div className="bg-[#FFEDD5] border-2 border-[#111] rounded-xl p-3">
+                              <div className="text-[11px] font-extrabold text-red-800">
+                                ⚠️ Jebakan Umum yang Harus Dihindari
+                              </div>
+                              <ul className="mt-1.5 space-y-1.5 font-medium leading-relaxed">
+                                {q.commonMistakes!.map((m, i) => (
+                                  <li key={i} className="flex gap-1.5">
+                                    <span className="shrink-0">⚠️</span>
+                                    <span>
+                                      <Latex text={m} />
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+                      </section>
                     </div>
                   )}
 
