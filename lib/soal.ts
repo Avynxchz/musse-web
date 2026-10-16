@@ -147,7 +147,7 @@ export function dbRowToQuestion(row: SoalRow): Question {
   const pilar1 = [diketahui, ditanyakan].filter(Boolean).join(' ').trim() || topik;
   const pilar3 = (p.reasoning ?? '').trim();
   const pilar4 = Array.isArray(p.steps) ? p.steps : [];
-  const pilar5 = (p.tips ?? '').trim();
+  const pilar5 = Array.isArray(p.tips) ? p.tips.join(' ').trim() : String(p.tips ?? '').trim();
 
   // Soal serupa
   const ss = row.soal_serupa ?? {};
