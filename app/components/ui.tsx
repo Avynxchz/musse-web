@@ -152,37 +152,57 @@ export const NeoBtn = memo(function NeoBtn({
   );
 });
 
-/** Render LaTeX sederhana: ubah $...$ jadi italic dengan background, handle \frac{a}{b} */
+import katex from "katex";
+
+/** Normalisasi LaTeX dari data: backslash ganda jadi tunggal, "frac {a} {b}" jadi "\frac{a}{b}" */
+function normalizeLatex(src: string): string {
+  return src
+    .replace(/\\/g, "\\") // \\cup → \cup (data double-escaped)
+    .replace(/\\?(d|t)?frac\s*\{/g, "\\frac{") // frac/dfrac/tfrac (dgn/tanpa backslash & spasi) → \frac{
+    .replace(/\}\s*\{/g, "}{"); // } { → }{
+}
+
+/** Satu potong rumus KaTeX; fallback ke teks biasa kalau gagal parse (tidak crash) */
+function KatexChunk({ code, displayMode }: { code: string; displayMode: boolean }) {
+  try {
+    const html = katex.renderToString(normalizeLatex(code), {
+      throwOnError: true,
+      displayMode,
+      strict: false,
+      trust: false,
+    });
+    return (
+      <span
+        className={displayMode ? "katex-block my-1 block overflow-x-auto" : "katex-inline"}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  } catch {
+    return <span className="italic bg-[#F0FFB8] px-1 rounded font-serif">{code}</span>;
+  }
+}
+
+/** Render teks campuran: $$...$$ (display), $...$ (inline), sisanya teks biasa */
 export const Latex = memo(function Latex({ text }: { text: string }) {
-  if (!text || !text.includes('$')) return <>{text}</>;
+  if (!text) return <></>;
+  if (!text.includes("$")) return <>{text}</>;
 
   const parts: React.ReactNode[] = [];
-  // Split by $...$ pattern
-  const regex = /\$([^$]+)\$/g;
+  const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
   let lastIndex = 0;
-  let match;
+  let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = regex.exec(text)) !== null) {
-    // Teks biasa sebelum $
     if (match.index > lastIndex) {
       parts.push(<span key={key++}>{text.slice(lastIndex, match.index)}</span>);
     }
-    // Render LaTeX: handle \frac{a}{b} atau frac {a} {b} -> a/b
-    let latex = match[1];
-    latex = latex.replace(/\\?frac\s*\{([^}]+)\}\s*\{([^}]+)\}/g, '$1/$2');
-    latex = latex.replace(/\\/g, '').trim();
+    const displayMode = match[1] !== undefined;
     parts.push(
-      <span
-        key={key++}
-        className="italic bg-[#F0FFB8] px-1 rounded font-serif"
-      >
-        {latex}
-      </span>
+      <KatexChunk key={key++} code={displayMode ? match[1] : match[2]} displayMode={displayMode} />
     );
     lastIndex = match.index + match[0].length;
   }
-  // Sisa teks setelah $ terakhir
   if (lastIndex < text.length) {
     parts.push(<span key={key++}>{text.slice(lastIndex)}</span>);
   }
