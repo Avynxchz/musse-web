@@ -145,9 +145,34 @@ function ArenaClient() {
         const rows = await getSoal(mapelKey, paket);
         if (cancelled) return;
         if (rows.length > 0) {
-          setQuestions(rows.map(dbRowToQuestion));
-          setSoalSource('supabase');
-          setSoalError(null);
+          // Parse per-soal: 1 soal rusak tidak menggagalkan semua
+          const parsed: Question[] = [];
+          const failed: number[] = [];
+          for (const row of rows) {
+            try {
+              parsed.push(dbRowToQuestion(row));
+            } catch (err) {
+              failed.push(row.nomor ?? -1);
+              console.error(`[soal] Gagal parse soal nomor ${row.nomor}:`, err);
+            }
+          }
+          if (parsed.length > 0) {
+            setQuestions(parsed);
+            setSoalSource('supabase');
+            setSoalError(
+              failed.length > 0
+                ? `\u26a0\ufe0f ${failed.length} soal gagal dimuat (nomor: ${failed.join(', ')})`
+                : null
+            );
+            if (failed.length > 0) {
+              logEvent('soal_parse_failed', { failed_nomor: failed, mapel: mapelKey, paket });
+            }
+          } else {
+            // Semua soal gagal di-parse → pakai dummy
+            setQuestions(QUESTIONS);
+            setSoalSource('dummy');
+            setSoalError('\u26a0\ufe0f Semua soal gagal di-parse, pakai soal contoh');
+          }
         } else {
           // Supabase kosong untuk mapel+paket ini → pakai dummy
           setQuestions(QUESTIONS);
