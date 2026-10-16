@@ -52,6 +52,22 @@ const MAPEL_DB_MAP: Record<string, string> = {
   tkj: 'teknik_jaringan',
   tkr: 'teknik_otomotif',
   jepang: 'bahasa_jepang',
+  akuntansi: 'akuntansi',
+  antropologi: 'antropologi',
+  arab: 'bahasa_arab',
+  indonesia_lanjut: 'bahasa_indonesia_lanjut',
+  inggris_lanjut: 'bahasa_inggris_lanjut',
+  jerman: 'bahasa_jerman',
+  korea: 'bahasa_korea',
+  mandarin: 'bahasa_mandarin',
+  prancis: 'bahasa_prancis',
+  geografi: 'geografi',
+  kewirausahaan: 'kewirausahaan',
+  mp: 'manajemen_perkantoran',
+  matlanjut: 'matematika_lanjut',
+  ppkn: 'ppkn',
+  sejarah: 'sejarah',
+  mesin: 'teknik_mesin',
 };
 
 /** Ambil soal dari Supabase Storage: 1 file JSON per (mapel, paket), sudah lengkap dengan pembahasan */
