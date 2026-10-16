@@ -812,7 +812,7 @@ function ArenaClient() {
                           Pilar 4 · Langkah Penyelesaian Rinci
                         </div>
                         <ol className="mt-1.5 space-y-1.5 list-decimal list-inside font-semibold">
-                          {q.pilar4.map((s, i) => (
+                          {(q.pilar4 ?? []).map((s, i) => (
                             <li key={i}>{s}</li>
                           ))}
                         </ol>
