@@ -70,6 +70,16 @@ export interface SimilarSoal {
   exp: string; // penjelasan
 }
 
+export interface GlossaryTerm {
+  term: string;
+  meaning: string;
+}
+
+export interface StepDetail {
+  title: string;
+  explanation: string;
+}
+
 export interface Question {
   id?: string; // id baris Supabase (undefined untuk soal dummy)
   nomor: number;
@@ -86,6 +96,13 @@ export interface Question {
   pilar3: string;
   pilar4: string[];
   pilar5: string;
+  // Field terstruktur (diisi dari Supabase; undefined untuk soal dummy lama)
+  diketahui?: string;
+  ditanyakan?: string;
+  conceptKunci?: string[];
+  glossary?: GlossaryTerm[];
+  commonMistakes?: string[];
+  stepsDetailed?: StepDetail[];
   similar: SimilarSoal;
 }
 
