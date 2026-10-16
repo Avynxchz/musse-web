@@ -42,6 +42,7 @@ export interface SoalRow {
     pembahasan_singkat?: string;
     pembahasan_serupa?: string;
   } | null;
+  gambar_url?: string[];
 }
 
 // Mapping key katalog Next.js -> nilai `mapel` di nama file Storage
@@ -236,6 +237,7 @@ export function dbRowToQuestion(row: SoalRow): Question {
     glossary: glossary.length ? glossary : undefined,
     commonMistakes: commonMistakes.length ? commonMistakes : undefined,
     stepsDetailed: stepsDetailed.length ? stepsDetailed : undefined,
+    gambar_url: Array.isArray(row.gambar_url) && row.gambar_url.length ? row.gambar_url : undefined,
     similar,
   };
 }
