@@ -117,6 +117,7 @@ function ArenaClient() {
   const [showPeta, setShowPeta] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [zoomImg, setZoomImg] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
@@ -426,7 +427,7 @@ function ArenaClient() {
     logEvent('ai_tutor_open', { soal_no: q.nomor, mode });
   };
 
-  const sendChat = (text: string) => {
+  const sendChat = async (text: string) => {
     const msg = text.trim();
     if (!msg) return;
     // Guard: cegah pesan duplikat dari double-click submit (<500ms, pesan sama)
@@ -435,16 +436,72 @@ function ArenaClient() {
     if (lastChatRef.current.msg === msg && now - lastChatRef.current.ts < 500) return;
     lastChatRef.current = { msg, ts: now };
     setTutorQuota((qt) => Math.max(0, qt - 1));
-    const reply =
-      mode === 'simulasi'
-        ? `<b>Petunjuk konsep (${q.topik}):</b><br/>${q.pilar1}`
-        : `${q.ringkas}<br/><br/>💡 <b>Trik:</b> ${q.pilar5}`;
+
+    // Tampilkan pesan user + indikator loading
     setChatMsgs((prev) => [
       ...prev,
       { from: 'user', html: msg },
-      { from: 'ai', html: reply },
+      { from: 'ai', html: '⏳ <i>AI sedang berpikir...</i>' },
     ]);
     logEvent('ai_tutor_ask', { soal_no: q.nomor, prompt: msg.slice(0, 60) });
+
+    // Fallback template (dipakai kalau backend AI tidak tersedia)
+    const templateReply =
+      mode === 'simulasi'
+        ? `<b>Petunjuk konsep (${q.topik}):</b><br/>${q.pilar1}`
+        : `${q.ringkas}<br/><br/>💡 <b>Trik:</b> ${q.pilar5}`;
+
+    try {
+      const res = await fetch('/api/tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: mapelKey,
+          paket,
+          nomor: q.nomor,
+          message: msg,
+        }),
+      });
+      const data = await res.json();
+
+      let replyHtml: string;
+      if (data.status === 'success' && data.reply) {
+        // AI beneran jawab! Format plain text -> HTML sederhana
+        const escaped = data.reply
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n\n/g, '<br/><br/>')
+          .replace(/\n/g, '<br/>');
+        replyHtml = `<b>🤖 AI Tutor:</b><br/>${escaped}`;
+        // Update kuota dari backend kalau ada
+        if (data.quota && typeof data.quota.remaining === 'number') {
+          setTutorQuota(data.quota.remaining);
+        }
+      } else if (data.status === 'rate_limited') {
+        replyHtml = `⏸️ <b>${data.message || 'Kuota habis, coba lagi nanti.'}</b>`;
+      } else {
+        // Backend error -> fallback ke template
+        replyHtml = `${templateReply}<br/><br/><i class="text-neutral-500">(Mode template: AI penuh sedang tidak tersedia)</i>`;
+      }
+
+      // Ganti pesan loading dengan jawaban asli
+      setChatMsgs((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { from: 'ai', html: replyHtml };
+        return next;
+      });
+    } catch {
+      // Network error -> fallback ke template
+      setChatMsgs((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = {
+          from: 'ai',
+          html: `${templateReply}<br/><br/><i class="text-neutral-500">(Mode template: koneksi AI gagal)</i>`,
+        };
+        return next;
+      });
+    }
   };
 
   // --- soal serupa ---
@@ -613,6 +670,27 @@ function ArenaClient() {
               {q.stimulus && (
                 <div className="bg-[#FAFAF7] border-2 border-dashed border-neutral-300 rounded-xl p-3 text-xs leading-relaxed">
                   {q.stimulus}
+                </div>
+              )}
+              {/* Gambar soal (jika ada) — tap untuk zoom */}
+              {q.gambar_url && q.gambar_url.length > 0 && (
+                <div className="space-y-2">
+                  {q.gambar_url.map((url, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setZoomImg(url)}
+                      className="w-full block border-2 border-[#111] rounded-xl overflow-hidden bg-[#FAFAF7]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt={`Gambar soal ${i + 1}`}
+                        className="w-full h-auto max-h-64 object-contain"
+                        loading="lazy"
+                      />
+                      <div className="text-[10px] font-bold text-neutral-500 py-1">🔍 Tap untuk perbesar</div>
+                    </button>
+                  ))}
                 </div>
               )}
               <div className="font-semibold leading-relaxed text-[0.95em]"><Latex text={q.prompt} /></div>
@@ -1025,6 +1103,17 @@ function ArenaClient() {
           </NeoBtn>
         </footer>
 
+        {/* ===== MODAL ZOOM GAMBAR ===== */}
+        {zoomImg && (
+          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setZoomImg(null)}>
+            <div className="bg-white border-2 border-[#111] rounded-2xl p-2 max-w-full max-h-full overflow-auto">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={zoomImg} alt="Gambar soal diperbesar" className="max-w-full h-auto" />
+              <div className="text-center text-xs font-bold py-2">Tap di luar untuk tutup</div>
+            </div>
+          </div>
+        )}
+
         {/* ===== DRAWER PETA SOAL ===== */}
         {showPeta && (
           <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowPeta(false)}>
@@ -1098,7 +1187,7 @@ function ArenaClient() {
                   <div>
                     <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
                     <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
-                    <p className="text-[9px] text-neutral-400">Mode template (AI penuh segera hadir)</p>
+                    <p className="text-[9px] text-neutral-400">AI beneran (Railway) + fallback template</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
