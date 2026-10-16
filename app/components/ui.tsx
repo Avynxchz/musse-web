@@ -168,10 +168,10 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
     if (match.index > lastIndex) {
       parts.push(<span key={key++}>{text.slice(lastIndex, match.index)}</span>);
     }
-    // Render LaTeX: handle \frac{a}{b} -> a/b
+    // Render LaTeX: handle \frac{a}{b} atau frac {a} {b} -> a/b
     let latex = match[1];
-    latex = latex.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
-    latex = latex.replace(/\\/g, '');
+    latex = latex.replace(/\\?frac\s*\{([^}]+)\}\s*\{([^}]+)\}/g, '$1/$2');
+    latex = latex.replace(/\\/g, '').trim();
     parts.push(
       <span
         key={key++}
