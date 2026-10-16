@@ -24,10 +24,15 @@ export interface SoalRow {
     diketahui?: string;
     ditanyakan?: string;
     reasoning?: string;
-    steps?: string[];
-    tips?: string;
+    steps?: Array<string | { step?: number; title?: string; explanation?: string }>;
+    tips?: string | string[];
     why_correct?: string;
-    common_mistakes?: string;
+    common_mistakes?: string | string[];
+    concept_kunci?: string[];
+    concept_tags?: string[];
+    glossary?: Array<{ term?: string; meaning?: string }>;
+    difficulty?: string;
+    estimated_time_seconds?: number;
   } | null;
   soal_serupa: {
     pertanyaan?: string;
@@ -169,6 +174,31 @@ export function dbRowToQuestion(row: SoalRow): Question {
     : [];
   const pilar5 = Array.isArray(p.tips) ? p.tips.join(' ').trim() : String(p.tips ?? '').trim();
 
+  // Field terstruktur untuk layout 5 pilar ala app lama
+  const conceptKunci = Array.isArray(p.concept_kunci)
+    ? p.concept_kunci.map((c) => String(c ?? '').trim()).filter(Boolean)
+    : [];
+  const glossary = Array.isArray(p.glossary)
+    ? p.glossary
+        .map((g) => ({
+          term: String(g?.term ?? '').trim(),
+          meaning: String(g?.meaning ?? '').trim(),
+        }))
+        .filter((g) => g.term || g.meaning)
+    : [];
+  const commonMistakes = Array.isArray(p.common_mistakes)
+    ? p.common_mistakes.map((c) => String(c ?? '').trim()).filter(Boolean)
+    : p.common_mistakes
+      ? [String(p.common_mistakes).trim()].filter(Boolean)
+      : [];
+  const stepsDetailed = Array.isArray(p.steps)
+    ? p.steps.map((s) =>
+        typeof s === 'string'
+          ? { title: '', explanation: s }
+          : { title: String(s?.title ?? '').trim(), explanation: String(s?.explanation ?? '').trim() }
+      )
+    : [];
+
   // Soal serupa
   const ss = row.soal_serupa ?? {};
   const ssPilihan = Array.isArray(ss.pilihan) ? ss.pilihan : [];
@@ -200,6 +230,12 @@ export function dbRowToQuestion(row: SoalRow): Question {
     pilar3,
     pilar4,
     pilar5,
+    diketahui: diketahui || undefined,
+    ditanyakan: ditanyakan || undefined,
+    conceptKunci: conceptKunci.length ? conceptKunci : undefined,
+    glossary: glossary.length ? glossary : undefined,
+    commonMistakes: commonMistakes.length ? commonMistakes : undefined,
+    stepsDetailed: stepsDetailed.length ? stepsDetailed : undefined,
     similar,
   };
 }
