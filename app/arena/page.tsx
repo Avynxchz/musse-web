@@ -12,6 +12,7 @@ import {
 } from './data';
 import {
   ChatInput,
+  Latex,
   LogPanel,
   NeoBtn,
   Toast,
@@ -614,7 +615,7 @@ function ArenaClient() {
                   {q.stimulus}
                 </div>
               )}
-              <div className="font-semibold leading-relaxed text-[0.95em]">{q.prompt}</div>
+              <div className="font-semibold leading-relaxed text-[0.95em]"><Latex text={q.prompt} /></div>
 
               {q.tipe === 'Pilihan Ganda Kompleks' && (
                 <div className="bg-[#E0E7FF] border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-extrabold">
@@ -790,7 +791,7 @@ function ArenaClient() {
                   </div>
 
                   <div className="mt-3 text-xs leading-relaxed text-neutral-800">
-                    <b>Inti Logika:</b> {q.ringkas}
+                    <b>Inti Logika:</b> <Latex text={q.ringkas} />
                   </div>
 
                   {pilarExpanded && (
@@ -799,13 +800,13 @@ function ArenaClient() {
                         <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
                           Pilar 1 · Diketahui & Konsep Kunci
                         </div>
-                        <p className="mt-1 font-medium">{q.pilar1}</p>
+                        <p className="mt-1 font-medium"><Latex text={q.pilar1} /></p>
                       </div>
                       <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
                         <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
                           Pilar 2 & 3 · Glosarium & Alasan Logis
                         </div>
-                        <p className="mt-1 font-medium">{q.pilar3}</p>
+                        <p className="mt-1 font-medium"><Latex text={q.pilar3} /></p>
                       </div>
                       <div className="bg-[#F0FFB8] border border-[#111] rounded-xl p-3">
                         <div className="font-extrabold uppercase text-[10px]">
@@ -821,7 +822,7 @@ function ArenaClient() {
                         <div className="font-extrabold text-amber-900 uppercase text-[10px]">
                           Pilar 5 · Trik Cepat & Jebakan Umum
                         </div>
-                        <p className="mt-1 font-medium">{q.pilar5}</p>
+                        <p className="mt-1 font-medium"><Latex text={q.pilar5} /></p>
                       </div>
                     </div>
                   )}
@@ -997,6 +998,7 @@ function ArenaClient() {
                   <div>
                     <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
                     <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                    <p className="text-[9px] text-neutral-400">Mode template (AI penuh segera hadir)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
