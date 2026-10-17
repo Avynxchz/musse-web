@@ -2,11 +2,38 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { QUESTIONS, formatKunci, getMapel, type Question } from '../arena/data';
+import { QUESTIONS, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
 import { Latex, LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 
 /* ================= Sheet Bedah Soal ================= */
+
+// Render isi pernyataan persis app lama (tanpa lightbox di halaman hasil):
+// 1) HTML resmi CBT bila ada, 2) gambar + teks — gambar di depan bila teks
+//    diawali kata kerja ("merupakan…", "adalah…", dst), 3) teks saja.
+const STMT_IMG_FIRST_RE = /^(merupakan|adalah|sama dengan|lebih|kurang|termasuk)\b/i;
+function StatementBodyHasil({ st }: { st: Statement }) {
+  if (st.html) {
+    return <span className="opsi-html" dangerouslySetInnerHTML={{ __html: st.html }} />;
+  }
+  const txt = (st.text || '').trim();
+  const imgEl = st.image_url ? (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={st.image_url}
+      alt={`Pernyataan ${st.key}`}
+      className="bs-stmt-img"
+      loading="lazy"
+    />
+  ) : null;
+  if (!txt) return <>{imgEl}</>;
+  if (!imgEl) return <span>{txt}</span>;
+  return STMT_IMG_FIRST_RE.test(txt) ? (
+    <>{imgEl}<span> {txt}</span></>
+  ) : (
+    <><span>{txt} </span>{imgEl}</>
+  );
+}
 
 function BedahSoalSheet({
   q,
@@ -21,26 +48,29 @@ function BedahSoalSheet({
   const [similarOpen, setSimilarOpen] = useState(false);
   const [similarPick, setSimilarPick] = useState<number | null>(null);
   const opsiRef = useRef<HTMLDivElement>(null);
+  const stmtRef = useRef<HTMLDivElement>(null);
 
-  // Klasifikasi gambar opsi seperti app lama: rumus (data-latex) atau kecil
-  // (height <=65px) -> opt-math-img (sebaris teks); besar -> opt-diagram-img (blok)
+  // Klasifikasi gambar opsi & pernyataan seperti app lama: rumus (data-latex) atau
+  // kecil (height <=65px) -> opt-math-img (sebaris teks); besar -> opt-diagram-img (blok)
   useEffect(() => {
-    const container = opsiRef.current;
-    if (!container) return;
+    const containers = [opsiRef.current, stmtRef.current];
     const cleanups: Array<() => void> = [];
-    Array.from(container.querySelectorAll('.opsi-html img')).forEach((img) => {
-      const el = img as HTMLImageElement;
-      const classify = () => {
-        const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
-        el.classList.add(isFormula ? 'opt-math-img' : 'opt-diagram-img');
-      };
-      if (el.complete && el.naturalHeight > 0) {
-        classify();
-      } else {
-        const onLoad = () => classify();
-        el.addEventListener('load', onLoad);
-        cleanups.push(() => el.removeEventListener('load', onLoad));
-      }
+    containers.forEach((container) => {
+      if (!container) return;
+      Array.from(container.querySelectorAll('.opsi-html img')).forEach((img) => {
+        const el = img as HTMLImageElement;
+        const classify = () => {
+          const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
+          el.classList.add(isFormula ? 'opt-math-img' : 'opt-diagram-img');
+        };
+        if (el.complete && el.naturalHeight > 0) {
+          classify();
+        } else {
+          const onLoad = () => classify();
+          el.addEventListener('load', onLoad);
+          cleanups.push(() => el.removeEventListener('load', onLoad));
+        }
+      });
     });
     return () => {
       cleanups.forEach((fn) => fn());
@@ -106,7 +136,7 @@ function BedahSoalSheet({
 
             {/* opsi jawaban — kunci ditandai lime */}
             {(q.tipe === 'Benar-Salah' || q.tipe === 'Matriks' || q.tipe === 'Pernyataan-Label') && q.statements ? (
-              <div className="border-2 border-[#111] rounded-xl overflow-hidden">
+              <div className="border-2 border-[#111] rounded-xl overflow-hidden" ref={stmtRef}>
                 <div className="bg-[#111] text-white font-extrabold px-3 py-2 flex justify-between">
                   <span>Pernyataan</span>
                   <span className="w-28 text-center">Kunci</span>
@@ -123,7 +153,7 @@ function BedahSoalSheet({
                     >
                       <div className="flex-1">
                         <b className="mr-1">{st.key}.</b>
-                        {st.text}
+                        <StatementBodyHasil st={st} />
                       </div>
                       <div className="flex gap-1 shrink-0 flex-wrap justify-end">
                         {labels.map((v) => (
@@ -149,6 +179,8 @@ function BedahSoalSheet({
                 .opsi-html p { margin: 0; display: inline; }
                 .opsi-html img.opt-math-img { display: inline-block; margin: 0 3px; padding: 0 2px; max-height: 3.2em; width: auto; vertical-align: middle; border: none; background: transparent; object-fit: contain; }
                 .opsi-html img.opt-diagram-img { display: block; margin: 6px 0; max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px; }
+                /* Gambar dalam pernyataan (persis app lama: kecil inline sebaris teks) */
+                .bs-stmt-img { max-width: 100%; max-height: 48px; width: auto; height: auto; vertical-align: middle; object-fit: contain; }
               `}</style>
               <div className="space-y-2" ref={opsiRef}>
                 {q.options?.map((opt) => {
