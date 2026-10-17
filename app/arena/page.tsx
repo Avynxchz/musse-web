@@ -425,6 +425,7 @@ function ArenaClient() {
   // --- navigasi soal ---
   const goSoal = (idx: number) => {
     if (idx < 0 || idx >= questions.length) return;
+    try {
     // Log durasi soal sebelumnya
     const durasiMs = Date.now() - soalStartTimeRef.current;
     const durasiDetik = Math.round(durasiMs / 1000);
@@ -435,6 +436,7 @@ function ArenaClient() {
         mode,
       });
     }
+    } catch (e) { /* abaikan error logging */ }
     // Reset timer untuk soal baru
     soalStartTimeRef.current = Date.now();
     // Reset flag scroll pembahasan untuk soal baru
@@ -443,7 +445,9 @@ function ArenaClient() {
     setPilarExpanded(false);
     setSimSoalOpen(false);
     setSimFeedback(null);
+    try {
     logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
+    } catch (e) { /* abaikan */ }
     scrollBodyRef.current?.scrollTo({ top: 0 });
   };
 
