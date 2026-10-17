@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question } from '../arena/data';
 import { Latex, LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
@@ -20,6 +20,32 @@ function BedahSoalSheet({
   const [pilarOpen, setPilarOpen] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
   const [similarPick, setSimilarPick] = useState<number | null>(null);
+  const opsiRef = useRef<HTMLDivElement>(null);
+
+  // Klasifikasi gambar opsi seperti app lama: rumus (data-latex) atau kecil
+  // (height <=65px) -> opt-math-img (sebaris teks); besar -> opt-diagram-img (blok)
+  useEffect(() => {
+    const container = opsiRef.current;
+    if (!container) return;
+    const cleanups: Array<() => void> = [];
+    Array.from(container.querySelectorAll('.opsi-html img')).forEach((img) => {
+      const el = img as HTMLImageElement;
+      const classify = () => {
+        const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
+        el.classList.add(isFormula ? 'opt-math-img' : 'opt-diagram-img');
+      };
+      if (el.complete && el.naturalHeight > 0) {
+        classify();
+      } else {
+        const onLoad = () => classify();
+        el.addEventListener('load', onLoad);
+        cleanups.push(() => el.removeEventListener('load', onLoad));
+      }
+    });
+    return () => {
+      cleanups.forEach((fn) => fn());
+    };
+  }, [q]);
 
   const isKunciOpt = (key: string) =>
     typeof q.kunci === 'string'
@@ -117,7 +143,14 @@ function BedahSoalSheet({
                 })}
               </div>
             ) : (
-              <div className="space-y-2">
+              <>
+              <style>{`
+                .opsi-html { display: inline; }
+                .opsi-html p { margin: 0; display: inline; }
+                .opsi-html img.opt-math-img { display: inline-block; margin: 0 3px; padding: 0 2px; max-height: 3.2em; width: auto; vertical-align: middle; border: none; background: transparent; object-fit: contain; }
+                .opsi-html img.opt-diagram-img { display: block; margin: 6px 0; max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px; }
+              `}</style>
+              <div className="space-y-2" ref={opsiRef}>
                 {q.options?.map((opt) => {
                   const kunci = isKunciOpt(opt.key);
                   return (
@@ -130,12 +163,17 @@ function BedahSoalSheet({
                       <span className="w-6 h-6 rounded-full border-2 border-[#111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0">
                         {opt.key}
                       </span>
-                      <span className="flex-1">{opt.text}</span>
+                      {opt.html ? (
+                        <span className="flex-1 opsi-html" dangerouslySetInnerHTML={{ __html: opt.html }} />
+                      ) : (
+                        <span className="flex-1"><Latex text={opt.text} /></span>
+                      )}
                       {kunci && <span className="text-xs font-extrabold">✓ Kunci</span>}
                     </div>
                   );
                 })}
               </div>
+              </>
             )}
           </div>
 
