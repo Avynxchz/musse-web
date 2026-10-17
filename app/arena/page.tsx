@@ -1441,7 +1441,7 @@ function ArenaClient() {
                   onClick={() => {
                     setShowExitConfirm(false);
                     logEvent('exit_arena', {});
-                    router.push('/');
+                    router.push('/beranda');
                   }}
                   className="flex-1 bg-[#B6FF00] py-2.5 rounded-xl text-xs"
                 >
