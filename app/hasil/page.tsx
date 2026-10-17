@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
 import { Latex, LogCounter, LogPanel, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
+import { analyzeLearningPattern, getLastAttempt } from '../../lib/analisis';
 
 /* ================= Sheet Bedah Soal ================= */
 
@@ -397,6 +398,16 @@ function HasilContent() {
     logEvent('strategy_modal_open', { pola: 'terburu-buru' });
   }, [logEvent]);
 
+  /* ---------- AI #2: Analisis cara belajar (Guru Autopsi) - DATA BENERAN ---------- */
+  const analisis = useMemo(() => {
+    const attempt = getLastAttempt();
+    // Hanya pakai attempt yang cocok dengan mapel+paket halaman ini
+    if (attempt && (attempt.mapel !== mapelKey || attempt.paket !== paket)) {
+      return analyzeLearningPattern(null);
+    }
+    return analyzeLearningPattern(attempt);
+  }, [mapelKey, paket]);
+
   /* ================= render ================= */
 
   return (
@@ -488,51 +499,63 @@ function HasilContent() {
             </div>
 
             <div className="space-y-3">
-            {/* Observasi */}
+            {/* Observasi — DATA BENERAN dari attempt terakhir */}
             <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 text-xs space-y-1">
               <p className="font-extrabold text-[#111]">👀 Yang Saya Lihat:</p>
-              <ul className="list-disc list-inside text-neutral-700 space-y-1 mt-1">
-                <li>
-                  Di <b>Soal #1 (SPLDV)</b>, kamu menjawab mantap dalam 18 detik tanpa ganti opsi.
-                </li>
-                <li>
-                  Di <b>Soal #2 (PG Kompleks)</b>, kamu sempat mengganti pilihan dan kurang teliti memilih
-                  semua kunci benar.
-                </li>
-                <li>
-                  Di <b>Soal #3 (Benar/Salah)</b>, kamu klik terlalu cepat (&lt;12 detik) pada pernyataan C.
-                </li>
-              </ul>
+              {analisis.adaData && analisis.observasi.length > 0 ? (
+                <ul className="list-disc list-inside text-neutral-700 space-y-1 mt-1">
+                  {analisis.observasi.map((o, i) => (
+                    <li key={i} dangerouslySetInnerHTML={{ __html: o.html }} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-neutral-500 mt-1">
+                  Belum ada data pengerjaan. Kerjakan soal dulu, nanti aku analisis polamu di sini!
+                </p>
+              )}
             </div>
 
-            {/* Kebocoran pola */}
-            <div className="bg-[#FFFBEB] border-2 border-[#111] rounded-xl p-3.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase bg-amber-300 border border-[#111] px-2 py-0.5 rounded">
-                  Kebocoran Utama #1
-                </span>
-                <span className="text-[11px] font-bold text-red-700">Pola: Terburu-buru</span>
+            {/* Pola terdeteksi — DATA BENERAN dari aturan analisis */}
+            {analisis.adaData && analisis.pola.length > 0 ? (
+              analisis.pola.map((p, i) => (
+                <div key={i} className="bg-[#FFFBEB] border-2 border-[#111] rounded-xl p-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase bg-amber-300 border border-[#111] px-2 py-0.5 rounded">
+                      {i === 0 ? 'Kebocoran Utama' : `Pola #${i + 1}`}
+                    </span>
+                    <span className="text-[11px] font-bold text-red-700">Pola: {p.nama}</span>
+                  </div>
+                  <h4 className="text-sm font-extrabold mt-1.5">{p.judul}</h4>
+                  <p className="text-xs text-neutral-700 mt-1">
+                    <b>Bukti:</b> {p.bukti}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <NeoBtn onClick={openStrategi} className="flex-1 bg-white py-2 px-3 rounded-xl text-xs">
+                      📚 Pelajari 5 Strategi
+                    </NeoBtn>
+                    {p.soalContoh !== undefined && (
+                      <NeoBtn
+                        onClick={() => {
+                          // Cari index soal berdasarkan nomor
+                          const idx = questions.findIndex((qq) => qq.nomor === p.soalContoh);
+                          setBedahIdx(idx >= 0 ? idx : 0);
+                          logEvent('autopsi_bedah_soal', { soal_no: p.soalContoh });
+                        }}
+                        className="flex-1 bg-[#B6FF00] py-2 px-3 rounded-xl text-xs"
+                      >
+                        🎯 Bedah Soal #{p.soalContoh}
+                      </NeoBtn>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : analisis.adaData ? (
+              <div className="bg-[#F0FDF4] border-2 border-[#111] rounded-xl p-3.5">
+                <p className="text-xs font-bold text-green-800">
+                  ✅ Tidak ada pola bermasalah yang terdeteksi. Ritme belajarmu stabil — pertahankan!
+                </p>
               </div>
-              <h4 className="text-sm font-extrabold mt-1.5">Terburu-buru di Soal Multi-Pernyataan</h4>
-              <p className="text-xs text-neutral-700 mt-1">
-                <b>Bukti:</b> Waktu baca rata-rata di bawah 15 detik pada soal yang butuh pengecekan lebih
-                dari satu kondisi.
-              </p>
-              <div className="mt-3 flex gap-2">
-                <NeoBtn onClick={openStrategi} className="flex-1 bg-white py-2 px-3 rounded-xl text-xs">
-                  📚 Pelajari 5 Strategi
-                </NeoBtn>
-                <NeoBtn
-                  onClick={() => {
-                    setBedahIdx(1);
-                    logEvent('autopsi_bedah_soal', { soal_no: 2 });
-                  }}
-                  className="flex-1 bg-[#B6FF00] py-2 px-3 rounded-xl text-xs"
-                >
-                  🎯 Bedah Soal #2
-                </NeoBtn>
-              </div>
-            </div>
+            ) : null}
 
             </div>
 
