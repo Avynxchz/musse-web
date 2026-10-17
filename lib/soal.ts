@@ -18,7 +18,7 @@ export interface SoalRow {
   stimulus: { text: string; html: string; images: Array<{ filename: string }> } | null;
   pertanyaan: { text: string; html: string; images: Array<{ filename: string }> };
   pilihan: Array<{ key: string; text: string; latex: string | null; image: { filename: string } | null; html: string | null; full_display: string | null }> | null;
-  pernyataan: Array<{ key: string; text: string }> | null;
+  pernyataan: Array<{ key: string; text: string; image: { filename: string } | null; html: string | null; latex: string | null }> | null;
   kunci: string | string[];
   pembahasan: {
     diketahui?: string;
@@ -169,10 +169,13 @@ export function dbRowToQuestion(row: SoalRow): Question {
     .map((img) => toImgUrl(img?.filename))
     .filter((u): u is string => !!u);
 
-  // Pernyataan untuk Benar-Salah / Matriks / Pernyataan-Label
+  // Pernyataan untuk Benar-Salah / Matriks / Pernyataan-Label (seperti app lama):
+  // gambar resmi CBT + urutan gambar-teks mengikuti pola kalimat
   const statements = (row.pernyataan ?? []).map((s) => ({
     key: s.key,
-    text: s.text,
+    text: s.text?.trim() ? s.text.trim() : s.latex ? `$${s.latex}$` : '',
+    image_url: toImgUrl(s.image?.filename),
+    html: s.html?.trim() ? renderHtmlWithImages(s.html, row.mapel, row.paket) : undefined,
   }));
 
   // Kunci + labelOptions
