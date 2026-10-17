@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { analyzeRuangAI, getQuizHistory } from '../../lib/analisis';
 import {
   BottomNav,
   ChatInput,
@@ -91,6 +92,15 @@ export default function RuangPage() {
   const { toast, showToastMsg } = useToast();
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('ruang');
 
+  /* ---------- AI #3: Analisis soal salah — DATA BENERAN dari history ---------- */
+  const statRuang = useMemo(() => analyzeRuangAI(getQuizHistory()), []);
+  const statMapel = statRuang.perMapel[mapelCoach];
+  // Fallback ke COACH_DATA dummy hanya jika belum ada data real
+  const coachDummy = COACH_DATA[mapelCoach] ?? COACH_DATA.matematika;
+  const coachKuat = statMapel?.topikKuat[0] ?? coachDummy.kuat;
+  const coachLemah = statMapel?.topikLemah[0] ?? coachDummy.lemah;
+  const coachPesan = statMapel?.pesanCoach ?? coachDummy.pesan;
+
   // Page view logging
   useEffect(() => {
     logEvent('page_view', { page: 'ruang' });
@@ -105,7 +115,6 @@ export default function RuangPage() {
   // Guard anti double-submit chat (<500ms, pesan sama)
   const lastCoachMsgRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
 
-  const coach = COACH_DATA[mapelCoach] ?? COACH_DATA.matematika;
   const mapelLabel = MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? 'Matematika';
 
   const gantiMapel = (v: string) => {
@@ -119,8 +128,8 @@ export default function RuangPage() {
     if (greetedMapelRef.current !== mapelCoach) {
       greetedMapelRef.current = mapelCoach;
       const label = MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? mapelCoach;
-      const pesan = (COACH_DATA[mapelCoach] ?? COACH_DATA.matematika).pesan;
-      setChatMsgs((prev) => [...prev, { from: 'ai', html: `<b>Coach ${label}</b><br/>${pesan}` }]);
+      // Pakai pesan personal dari data real (fallback ke dummy jika belum ada data)
+      setChatMsgs((prev) => [...prev, { from: 'ai', html: `<b>Coach ${label}</b><br/>${coachPesan}` }]);
     }
   };
 
@@ -162,28 +171,41 @@ export default function RuangPage() {
           <div className="flex items-center gap-2 shrink-0">
             <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
             <span className="border-2 border-[#111] shadow-[0_4px_0_#111] bg-[#B6FF00] px-2.5 py-1 rounded-full text-[11px] font-extrabold">
-              Akurasi 74%
+              Akurasi {statRuang.adaData ? `${statRuang.akurasiPct}%` : '—'}
             </span>
           </div>
         </header>
 
         {/* ===== Konten scroll ===== */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
-          {/* 3 kartu statistik */}
+          {/* 3 kartu statistik — DATA BENERAN dari history */}
           <div className="grid grid-cols-3 gap-2.5">
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
-              <p className="font-mono text-lg text-[#111] font-extrabold">142</p>
+              <p className="font-mono text-lg text-[#111] font-extrabold">
+                {statRuang.adaData ? statRuang.totalSoal : '—'}
+              </p>
               <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Soal Selesai</p>
             </div>
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-[#B6FF00]">
-              <p className="font-mono text-lg text-[#111] font-extrabold">74%</p>
+              <p className="font-mono text-lg text-[#111] font-extrabold">
+                {statRuang.adaData ? `${statRuang.akurasiPct}%` : '—'}
+              </p>
               <p className="text-[10px] font-extrabold text-[#111] uppercase mt-1">Akurasi</p>
             </div>
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
-              <p className="font-mono text-lg text-[#4F46E5] font-extrabold">6.4j</p>
+              <p className="font-mono text-lg text-[#4F46E5] font-extrabold">
+                {statRuang.adaData ? statRuang.jamFokus : '—'}
+              </p>
               <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Jam Fokus</p>
             </div>
           </div>
+          {!statRuang.adaData && (
+            <div className="border-2 border-dashed border-neutral-300 rounded-xl p-3 text-center">
+              <p className="text-xs text-neutral-500 font-medium">
+                📊 Belum ada data. Kerjakan soal dulu, statistikmu muncul di sini!
+              </p>
+            </div>
+          )}
 
           {/* Kartu Ruang AI Coach */}
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white space-y-3">
@@ -208,25 +230,25 @@ export default function RuangPage() {
               <div className="bg-green-50 border border-[#111] rounded-xl p-2.5">
                 <span className="text-[10px] font-extrabold text-green-800 uppercase">💪 Topik Terkuat</span>
                 <p className="font-extrabold mt-0.5">
-                  {coach.kuat} ({coach.kuatPct})
+                  {coachKuat}
                 </p>
               </div>
               <div className="bg-red-50 border border-[#111] rounded-xl p-2.5">
                 <span className="text-[10px] font-extrabold text-red-800 uppercase">⚠️ Perlu Dikejar</span>
                 <p className="font-extrabold mt-0.5">
-                  {coach.lemah} ({coach.lemahPct})
+                  {coachLemah}
                 </p>
               </div>
             </div>
 
             <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 space-y-2">
               <div className="text-xs bg-white border border-[#111] rounded-xl p-2.5">
-                <span className="font-extrabold text-[#4F46E5]">Coach:</span> {coach.pesan}
+                <span className="font-extrabold text-[#4F46E5]">Coach:</span> {coachPesan}
               </div>
               <div className="flex gap-2">
                 <NeoBtn
                   onClick={() => {
-                    logEvent('coach_latih_topik_lemah', { mapel: mapelCoach, topik: coach.lemah });
+                    logEvent('coach_latih_topik_lemah', { mapel: mapelCoach, topik: coachLemah });
                     router.push('/beranda');
                   }}
                   className="flex-1 bg-[#B6FF00] py-2 rounded-xl text-xs"
@@ -240,9 +262,11 @@ export default function RuangPage() {
             </div>
           </div>
 
-          <p className="text-center text-[11px] text-neutral-400">
-            Data dummy — statistik nyata menyusul setelah konek backend.
-          </p>
+          {!statRuang.adaData && (
+            <p className="text-center text-[11px] text-neutral-400">
+              Data contoh — kerjakan soal untuk analisis beneran.
+            </p>
+          )}
         </div>
 
         {/* ===== Bottom nav ===== */}
@@ -268,7 +292,7 @@ export default function RuangPage() {
                   <div className="min-w-0">
                     <h3 className="text-xs font-extrabold truncate">Coach {mapelLabel}</h3>
                     <p className="text-[10px] text-green-700 font-bold truncate">
-                      ✓ Siap diskusi materi {coach.lemah}
+                      ✓ Siap diskusi materi {coachLemah}
                     </p>
                   </div>
                 </div>
