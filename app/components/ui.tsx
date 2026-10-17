@@ -283,11 +283,66 @@ export function autoWrapBareLatex(text: string): string {
   return parts.map((seg, idx) => (idx % 2 === 1 ? seg : wrapBareCommands(seg))).join('');
 }
 
+/** Sembunyikan segmen math $...$ / $$...$$ agar regex pemisah tidak memotong rumus. */
+function maskMath(s: string): { text: string; segs: string[] } {
+  const segs: string[] = [];
+  const text = s.replace(/\$\$[\s\S]+?\$\$|\$[^$]+?\$/g, (m) => {
+    segs.push(m);
+    return '\u0000' + (segs.length - 1) + '\u0000';
+  });
+  return { text, segs };
+}
+function unmaskMath(s: string, segs: string[]): string {
+  return s.replace(/\u0000(\d+)\u0000/g, (_: string, n: string) => segs[Number(n)] ?? '');
+}
+
+/** Pecah daftar sub-bullet bertanda "-" (di luar rumus) menjadi array; [] bila tak ada. */
+function splitDashList(rest: string, segs: string[]): string[] {
+  const parts = rest
+    .split(/-\s+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length < 2) return [];
+  return parts.map((p) => unmaskMath(p, segs));
+}
+
+/** Deteksi sub-bullet di dalam satu item bullet.
+ *  - "Header:- Sub1- Sub2" → { header: "Header:", subs: [...] }
+ *  - "Teks (A) ... (B) ..." (label berurutan, bukan notasi P(A)) → { header, subs }
+ *  Return null bila tidak ada pola sub-bullet. */
+function splitNestedSubs(item: string): { header: string; subs: string[] } | null {
+  const { text: masked, segs } = maskMath(item);
+
+  // 1) Header diakhiri ":-" (titik dua menempel dash)
+  const m = masked.match(/^([\s\S]*?):\s*-\s*([\s\S]+)$/);
+  if (m) {
+    const header = m[1].trim();
+    const subs = splitDashList(m[2], segs);
+    if (header && subs.length >= 2) return { header: unmaskMath(header, segs) + ':', subs };
+  }
+
+  // 2) Label (A)/(B)/... berurutan dalam satu item
+  const labels = masked.match(/(?:^|\s)\(([A-E])\)/g);
+  if (labels && labels.length >= 2) {
+    const parts = masked
+      .split(/(?=(?:^|\s)\((?:[A-E])\))/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (parts.length >= 3) {
+      const header = unmaskMath(parts[0], segs);
+      const subs = parts.slice(1).map((p) => unmaskMath(p, segs));
+      return { header, subs };
+    }
+  }
+  return null;
+}
+
 /** Teks pilar pembahasan yang rapi:
  *  - "•" → bullet list (per item / per baris)
  *  - "1." / "2." di awal baris → numbered list
  *  - "- " di awal baris → bullet list
  *  - baris baru → paragraf terpisah
+ *  - sub-bullet "Header:- Sub1- Sub2" / label (A)/(B) → nested list
  *  Setiap item di-render via <Latex> agar rumus ke-render KaTeX.
  */
 export const PilarText = memo(function PilarText({ text, className = "text-sm font-medium leading-relaxed" }: { text: string; className?: string }) {
@@ -297,44 +352,48 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
   const numberedRe = /^\d+[.)]\s+/;
   const dashRe = /^[-*–—]\s+/;
 
-  type Chunk = { list: 'ul' | 'ol' | null; text: string };
+  type SubItem = { text: string; subs?: string[] };
+  type Chunk = { list: 'ul' | 'ol' | null } & SubItem;
   const chunks: Chunk[] = [];
   for (const line of t.split('\n').map((l) => l.trim()).filter(Boolean)) {
     if (line.includes('•')) {
       for (const s of line.split('•').map((s) => s.trim()).filter(Boolean)) {
-        chunks.push({ list: 'ul', text: s });
+        const nested = splitNestedSubs(s);
+        chunks.push(nested ? { list: 'ul', text: nested.header, subs: nested.subs } : { list: 'ul', text: s });
       }
     } else if (numberedRe.test(line)) {
       chunks.push({ list: 'ol', text: line.replace(numberedRe, '') });
     } else if (dashRe.test(line)) {
-      chunks.push({ list: 'ul', text: line.replace(dashRe, '') });
+      const body = line.replace(dashRe, '');
+      const nested = splitNestedSubs(body);
+      chunks.push(nested ? { list: 'ul', text: nested.header, subs: nested.subs } : { list: 'ul', text: body });
     } else {
       chunks.push({ list: null, text: line });
     }
   }
 
   // Gabungkan chunk list sejenis yang berurutan
-  const groups: { list: 'ul' | 'ol' | null; items: string[] }[] = [];
+  const groups: { list: 'ul' | 'ol' | null; items: SubItem[] }[] = [];
   for (const c of chunks) {
     const last = groups[groups.length - 1];
-    if (c.list && last && last.list === c.list) last.items.push(c.text);
-    else groups.push({ list: c.list, items: [c.text] });
+    if (c.list && last && last.list === c.list) last.items.push({ text: c.text, subs: c.subs });
+    else groups.push({ list: c.list, items: [{ text: c.text, subs: c.subs }] });
   }
 
   // Satu paragraf polos → render sederhana
   if (groups.length === 1 && groups[0].list === null) {
-    return <p className={className}><Latex text={groups[0].items[0]} /></p>;
+    return <p className={className}><Latex text={groups[0].items[0].text} /></p>;
   }
 
   return (
     <div className="space-y-1.5">
       {groups.map((g, i) =>
         g.list === null ? (
-          <p key={i} className={className}><Latex text={g.items[0]} /></p>
+          <p key={i} className={className}><Latex text={g.items[0].text} /></p>
         ) : g.list === 'ol' ? (
           <ol key={i} className={`${className} list-decimal pl-5 space-y-1`}>
             {g.items.map((item, j) => (
-              <li key={j}><Latex text={item} /></li>
+              <li key={j}><Latex text={item.text} /></li>
             ))}
           </ol>
         ) : (
@@ -342,7 +401,17 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
             {g.items.map((item, j) => (
               <li key={j} className="relative pl-4">
                 <span className="absolute left-0.5 top-0 font-extrabold text-[#4F46E5]">•</span>
-                <Latex text={item} />
+                <Latex text={item.text} />
+                {item.subs && item.subs.length > 0 && (
+                  <ul className="mt-1 space-y-1">
+                    {item.subs.map((s, k) => (
+                      <li key={k} className="relative pl-4">
+                        <span className="absolute left-0.5 top-0 font-extrabold text-neutral-500">–</span>
+                        <Latex text={s} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
