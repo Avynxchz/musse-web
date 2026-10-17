@@ -20,7 +20,7 @@ import {
   type LogEntry,
 } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
-import type { Question } from './data';
+import type { Question, Statement } from './data';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
 
@@ -126,6 +126,9 @@ function ArenaClient() {
   // Ref untuk kontainer opsi PG — dipakai untuk klasifikasi gambar opsi
   // (rumus kecil → inline, diagram besar → blok) seperti app lama
   const opsiHtmlRef = useRef<HTMLDivElement>(null);
+  // Ref untuk kontainer tabel pernyataan (Benar-Salah / Matriks / Pernyataan-Label)
+  // — dipakai untuk klasifikasi gambar dalam HTML pernyataan seperti app lama
+  const stmtRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
@@ -302,10 +305,54 @@ function ArenaClient() {
         el.classList.add('opt-diagram-img');
       }
     });
+    // Pernyataan (Benar-Salah / Matriks / Pernyataan-Label): klasifikasi gambar
+    // dalam HTML pernyataan dengan aturan yang sama seperti opsi (rumus kecil
+    // → inline, diagram besar → blok). Klik gambar → lightbox, tanpa toggle nilai.
+    wireContainer(stmtRef.current, '.opsi-html img', (el) => {
+      const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
+      if (isFormula) {
+        el.classList.add('opt-math-img');
+      } else {
+        el.classList.add('opt-diagram-img');
+      }
+    });
     return () => {
       cleanups.forEach((fn) => fn());
     };
-  }, [q?.stimulusHtml, q?.pertanyaanHtml, q?.options, qIndex]);
+  }, [q?.stimulusHtml, q?.pertanyaanHtml, q?.options, q?.statements, qIndex]);
+
+  // Render isi pernyataan (Benar-Salah / Matriks / Pernyataan-Label) persis app lama:
+  // 1) HTML resmi CBT bila ada (gambar inline), 2) gambar + teks — gambar di depan
+  //    bila teks diawali kata kerja ("merupakan…", "adalah…", dst) seperti
+  //    "[gambar a] merupakan kelipatan dari 3.", 3) teks saja.
+  // Klik gambar -> lightbox zoom, tanpa mengubah nilai Benar/Salah.
+  const IMG_FIRST_RE = /^(merupakan|adalah|sama dengan|lebih|kurang|termasuk)\b/i;
+  const StatementBody = ({ st }: { st: Statement }) => {
+    if (st.html) {
+      return <span className="opsi-html" dangerouslySetInnerHTML={{ __html: st.html }} />;
+    }
+    const txt = (st.text || '').trim();
+    const imgEl = st.image_url ? (
+      /* eslint-disable-next-line @next/next/no-img-element */
+      <img
+        src={st.image_url}
+        alt={`Pernyataan ${st.key}`}
+        title="Klik untuk memperbesar gambar"
+        onClick={(e) => { e.stopPropagation(); setZoomImg(st.image_url!); setZoomLevel(1); }}
+        className="bs-stmt-img"
+        loading="lazy"
+      />
+    ) : null;
+    if (!txt) return <>{imgEl}</>;
+    const imgFirst = IMG_FIRST_RE.test(txt);
+    if (!imgEl) return <span>{txt}</span>;
+    return imgFirst ? (
+      <>{imgEl}<span> {txt}</span></>
+    ) : (
+      <><span>{txt} </span>{imgEl}</>
+    );
+  };
+
   const isLast = qIndex === questions.length - 1;
   const fontScale = FONT_SCALES[fontScaleIdx];
 
@@ -740,6 +787,9 @@ function ArenaClient() {
                 .opsi-html img { cursor: zoom-in; }
                 .opsi-html img.opt-math-img { display: inline-block; margin: 0 3px; padding: 0 2px; max-height: 3.2em; width: auto; vertical-align: middle; border: none; background: transparent; object-fit: contain; }
                 .opsi-html img.opt-diagram-img { display: block; margin: 6px 0; max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px; }
+                /* Gambar dalam pernyataan Benar-Salah / Matriks (persis app lama:
+                   kecil inline sebaris teks, klik -> lightbox) */
+                .bs-stmt-img { max-width: 100%; max-height: 48px; width: auto; height: auto; vertical-align: middle; cursor: zoom-in; object-fit: contain; }
               `}</style>
               <div ref={soalHtmlRef}>
                 {/* Stimulus: HTML asli (gambar inline) seperti app lama; fallback ke teks */}
@@ -818,6 +868,9 @@ function ArenaClient() {
                 </div>
               )}
 
+              {/* Tabel Benar-Salah / Matriks / Pernyataan-Label
+                  (dibungkus stmtRef untuk klasifikasi gambar pernyataan) */}
+              <div ref={stmtRef}>
               {/* Tabel Benar-Salah */}
               {q.statements && q.tipe === 'Benar-Salah' && (
                 <div className="border-2 border-[#111] rounded-xl overflow-hidden text-xs">
@@ -834,7 +887,7 @@ function ArenaClient() {
                       >
                         <div className="flex-1">
                           <b className="mr-1">{st.key}.</b>
-                          {st.text}
+                          <StatementBody st={st} />
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <NeoBtn
@@ -882,7 +935,7 @@ function ArenaClient() {
                       >
                         <div className="mb-2">
                           <b className="mr-1">{st.key}.</b>
-                          {st.text}
+                          <StatementBody st={st} />
                         </div>
                         <div className="flex gap-1">
                           <span className="flex-1" />
@@ -901,6 +954,7 @@ function ArenaClient() {
                   })}
                 </div>
               )}
+              </div>
             </div>
 
             {/* ===== EVALUASI + PEMBAHASAN INLINE (latihan, setelah cek) ===== */}
