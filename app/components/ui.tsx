@@ -279,7 +279,9 @@ function wrapBareCommands(seg: string): string {
  *  Segmen $...$ / $$...$$ yang sudah ada tidak disentuh. */
 export function autoWrapBareLatex(text: string): string {
   if (!text) return text;
-  const parts = text.split(/(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g);
+  // Konversi \(...\) menjadi $...$ dulu (format AI yang umum)
+  let t = text.replace(/\\\(([\s\S]+?)\\\)/g, '$$$1$$');
+  const parts = t.split(/(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g);
   return parts.map((seg, idx) => (idx % 2 === 1 ? seg : wrapBareCommands(seg))).join('');
 }
 
