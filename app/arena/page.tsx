@@ -239,6 +239,9 @@ function ArenaClient() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Timer untuk durasi per soal (behavior logging) - harus di atas fetch effect
   const soalStartTimeRef = useRef<number>(Date.now());
+  // Tracking untuk analisis AI: durasi per soal & jumlah ganti jawaban
+  const durasiPerSoalRef = useRef<Record<number, number>>({});
+  const gantiJawabanRef = useRef<Record<number, number>>({});
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const evalRef = useRef<HTMLDivElement>(null);
   // Flag untuk tracking scroll depth pembahasan (sekali per soal)
@@ -395,6 +398,7 @@ function ArenaClient() {
         durasi_detik: durasiDetik,
         mode,
       });
+      durasiPerSoalRef.current[qIndex] = (durasiPerSoalRef.current[qIndex] || 0) + durasiDetik;
     }
     logEvent('attempt_finish', {
       mode,
@@ -402,6 +406,36 @@ function ArenaClient() {
       benar,
       total: questions.length,
     });
+    // === Simpan detail attempt ke localStorage untuk analisis AI ===
+    try {
+      const perSoal = questions.map((qq, i) => ({
+        nomor: qq.nomor,
+        tipe: qq.tipe,
+        topik: qq.topik || '',
+        status: hasil[i] as 'benar' | 'salah' | 'kosong',
+        durasiDetik: durasiPerSoalRef.current[i] || 0,
+        gantiJawaban: gantiJawabanRef.current[i] || 0,
+      }));
+      const attempt = {
+        mapel: mapelKey,
+        mapelName: mapel?.name || mapelKey,
+        paket,
+        mode,
+        tanggal: new Date().toISOString(),
+        benar,
+        total: questions.length,
+        perSoal,
+      };
+      // Untuk halaman hasil (analisis AI #2)
+      localStorage.setItem('musse_last_attempt', JSON.stringify(attempt));
+      // Untuk halaman ruang (analisis AI #3) — akumulasi history
+      const histRaw = localStorage.getItem('musse_quiz_history');
+      const hist = histRaw ? JSON.parse(histRaw) : [];
+      hist.push(attempt);
+      // Batasi 50 attempt terakhir agar tidak membengkak
+      const trimmed = hist.slice(-50);
+      localStorage.setItem('musse_quiz_history', JSON.stringify(trimmed));
+    } catch (e) { /* abaikan error storage */ }
     router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${questions.length}`);
   };
 
@@ -436,6 +470,9 @@ function ArenaClient() {
         durasi_detik: durasiDetik,
         mode,
       });
+      // Simpan ke ref untuk analisis AI (akumulasi jika soal dikunjungi ulang)
+      const qIdx = qIndex;
+      durasiPerSoalRef.current[qIdx] = (durasiPerSoalRef.current[qIdx] || 0) + durasiDetik;
     }
     } catch (e) { /* abaikan error logging */ }
     // Reset timer untuk soal baru
@@ -455,6 +492,15 @@ function ArenaClient() {
   // --- pilih opsi ---
   const pickOption = (key: string) => {
     const isComplex = q.tipe === 'Pilihan Ganda Kompleks';
+    // Track ganti jawaban untuk analisis AI
+    const prevAns = answers[qIndex];
+    const sudahAdaJawaban = prevAns !== undefined && (
+      typeof prevAns === 'string' ? prevAns !== '' :
+      Array.isArray(prevAns) ? prevAns.length > 0 : Object.keys(prevAns).length > 0
+    );
+    if (sudahAdaJawaban) {
+      gantiJawabanRef.current[qIndex] = (gantiJawabanRef.current[qIndex] || 0) + 1;
+    }
     setAnswers((prev) => {
       const cur = prev[qIndex];
       if (isComplex) {
@@ -469,6 +515,11 @@ function ArenaClient() {
   };
 
   const pickBs = (stmtKey: string, val: string) => {
+    // Track ganti jawaban untuk analisis AI
+    const prevAns = answers[qIndex] as Record<string, string> | undefined;
+    if (prevAns && prevAns[stmtKey] && prevAns[stmtKey] !== val) {
+      gantiJawabanRef.current[qIndex] = (gantiJawabanRef.current[qIndex] || 0) + 1;
+    }
     setAnswers((prev) => {
       const cur = (prev[qIndex] as Record<string, string>) || {};
       return { ...prev, [qIndex]: { ...cur, [stmtKey]: val } };
