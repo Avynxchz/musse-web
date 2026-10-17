@@ -63,6 +63,8 @@ export interface Opsi {
 export interface Statement {
   key: string;
   text: string;
+  html?: string;
+  image_url?: string;
 }
 
 export interface SimilarSoal {
