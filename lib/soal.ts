@@ -17,7 +17,7 @@ export interface SoalRow {
   tipe: string;
   stimulus: { text: string; html: string; images: Array<{ filename: string }> } | null;
   pertanyaan: { text: string; html: string; images: Array<{ filename: string }> };
-  pilihan: Array<{ key: string; text: string; latex: string | null; image: { filename: string } | null }> | null;
+  pilihan: Array<{ key: string; text: string; latex: string | null; image: { filename: string } | null; html: string | null; full_display: string | null }> | null;
   pernyataan: Array<{ key: string; text: string }> | null;
   kunci: string | string[];
   pembahasan: {
@@ -148,7 +148,9 @@ export function dbRowToQuestion(row: SoalRow): Question {
   // Topik: dari mapel_nama (contoh: "Matematika (Wajib)")
   const topik = row.mapel_nama ?? row.mapel;
 
-  // Opsi PG: gabung text + latex jika text kosong; sertakan image_url per opsi
+  // Opsi PG: prioritas render seperti app lama —
+  // 1) html resmi CBT (gambar rumus inline, URL sudah diganti ke Supabase)
+  // 2) image + text, 3) text/latex via KaTeX
   const imgPrefix = `${SUPABASE_URL}/storage/v1/object/public/soal-images/${row.mapel}_paket_${row.paket}/`;
   const toImgUrl = (fn: string | undefined | null) =>
     fn && !/logo|loader/i.test(fn) ? imgPrefix + fn : undefined;
@@ -156,6 +158,7 @@ export function dbRowToQuestion(row: SoalRow): Question {
     key: p.key,
     text: p.text?.trim() ? p.text.trim() : p.latex ? `$${p.latex}$` : p.key,
     image_url: toImgUrl(p.image?.filename),
+    html: p.html?.trim() ? renderHtmlWithImages(p.html, row.mapel, row.paket) : undefined,
   }));
 
   // Gambar stimulus & pertanyaan (dipisah, seperti app lama)
