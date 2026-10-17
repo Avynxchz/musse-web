@@ -128,10 +128,43 @@ GAMBAR_BASE_URL = "https://auhqgzrrgvjbfvzvayzg.supabase.co/storage/v1/object/pu
 SKIP_GAMBAR = ("logo", "loader")
 
 
+def _collect_filenames(section):
+    """Kumpulkan filename gambar dari 1 section (stimulus/pertanyaan/pernyataan)."""
+    out, seen = [], set()
+    if isinstance(section, dict):
+        for img in section.get("images", []) or []:
+            if isinstance(img, dict):
+                fn = img.get("filename")
+                if not fn or fn in seen:
+                    continue
+                if any(g in fn.lower() for g in SKIP_GAMBAR):
+                    continue
+                seen.add(fn)
+                out.append(fn)
+    return out
+
+
+def _to_urls(filenames, mapel, paket):
+    prefix = f"{mapel}_paket_{paket}"
+    return [f"{GAMBAR_BASE_URL}/{prefix}/{fn}" for fn in filenames]
+
+
+def build_stimulus_url(q, mapel, paket):
+    """URL gambar stimulus (box konteks di atas soal)."""
+    return _to_urls(_collect_filenames(q.get("stimulus")), mapel, paket)
+
+
+def build_pertanyaan_url(q, mapel, paket):
+    """URL gambar pertanyaan (tepat di bawah stimulus)."""
+    return _to_urls(_collect_filenames(q.get("pertanyaan")), mapel, paket)
+
+
 def build_gambar_url(q, mapel, paket):
-    """Kumpulkan semua gambar soal -> list URL Supabase Storage.
+    """Kumpulkan semua gambar soal -> list URL Supabase Storage (legacy gabungan).
 
     Format: {GAMBAR_BASE_URL}/{mapel}_paket_{paket}/{filename}
+    Dipertahankan untuk kompatibilitas; kode baru memakai build_stimulus_url /
+    build_pertanyaan_url yang terpisah per posisi (seperti app lama).
     """
     filenames = []
     seen = set()
@@ -146,11 +179,8 @@ def build_gambar_url(q, mapel, paket):
         filenames.append(fn)
 
     for section in ["stimulus", "pertanyaan", "pernyataan"]:
-        sec = q.get(section)
-        if isinstance(sec, dict):
-            for img in sec.get("images", []) or []:
-                if isinstance(img, dict):
-                    add(img.get("filename"))
+        for fn in _collect_filenames(q.get(section)):
+            add(fn)
 
     for p in q.get("pilihan_jawaban", []) or []:
         if isinstance(p, dict):
@@ -250,7 +280,10 @@ def main():
             tipe = q.get("tipe_soal") or q.get("tipe") or "Pilihan Ganda"
 
             # Kumpulkan URL gambar soal (Supabase Storage: soal-images)
+            # Dipisah per posisi seperti app lama; gambar_url gabungan dipertahankan untuk kompatibilitas
             gambar_url = build_gambar_url(q, mapel, paket)
+            stimulus_url = build_stimulus_url(q, mapel, paket)
+            pertanyaan_url = build_pertanyaan_url(q, mapel, paket)
 
             paket_out.append({
                 "id": qid,
@@ -267,6 +300,8 @@ def main():
                 "pembahasan": pembahasan,
                 "soal_serupa": normalize_soal_serupa(q.get("soal_serupa")),
                 "gambar_url": gambar_url,
+                "stimulus_url": stimulus_url,
+                "pertanyaan_url": pertanyaan_url,
             })
             stats["total_soal"] += 1
             stats["per_mapel"][mapel] += 1
