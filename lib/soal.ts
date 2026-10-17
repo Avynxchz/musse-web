@@ -15,9 +15,9 @@ export interface SoalRow {
   paket: number;
   nomor: number;
   tipe: string;
-  stimulus: { text: string; html: string; images: string[] } | null;
-  pertanyaan: { text: string; html: string; images: string[] };
-  pilihan: Array<{ key: string; text: string; latex: string | null; image: unknown }> | null;
+  stimulus: { text: string; html: string; images: Array<{ filename: string }> } | null;
+  pertanyaan: { text: string; html: string; images: Array<{ filename: string }> };
+  pilihan: Array<{ key: string; text: string; latex: string | null; image: { filename: string } | null }> | null;
   pernyataan: Array<{ key: string; text: string }> | null;
   kunci: string | string[];
   pembahasan: {
@@ -42,7 +42,9 @@ export interface SoalRow {
     pembahasan_singkat?: string;
     pembahasan_serupa?: string;
   } | null;
-  gambar_url?: string[];
+  gambar_url?: string[]; // legacy (gabungan) — dipertahankan untuk kompatibilitas
+  stimulus_url?: string[];
+  pertanyaan_url?: string[];
 }
 
 // Mapping key katalog Next.js -> nilai `mapel` di nama file Storage
@@ -131,11 +133,23 @@ export function dbRowToQuestion(row: SoalRow): Question {
   // Topik: dari mapel_nama (contoh: "Matematika (Wajib)")
   const topik = row.mapel_nama ?? row.mapel;
 
-  // Opsi PG: gabung text + latex jika text kosong
+  // Opsi PG: gabung text + latex jika text kosong; sertakan image_url per opsi
+  const imgPrefix = `${SUPABASE_URL}/storage/v1/object/public/soal-images/${row.mapel}_paket_${row.paket}/`;
+  const toImgUrl = (fn: string | undefined | null) =>
+    fn && !/logo|loader/i.test(fn) ? imgPrefix + fn : undefined;
   const options = (row.pilihan ?? []).map((p) => ({
     key: p.key,
     text: p.text?.trim() ? p.text.trim() : p.latex ? `$${p.latex}$` : p.key,
+    image_url: toImgUrl(p.image?.filename),
   }));
+
+  // Gambar stimulus & pertanyaan (dipisah, seperti app lama)
+  const stimulus_url = (row.stimulus?.images ?? [])
+    .map((img) => toImgUrl(img?.filename))
+    .filter((u): u is string => !!u);
+  const pertanyaan_url = (row.pertanyaan?.images ?? [])
+    .map((img) => toImgUrl(img?.filename))
+    .filter((u): u is string => !!u);
 
   // Pernyataan untuk Benar-Salah / Matriks / Pernyataan-Label
   const statements = (row.pernyataan ?? []).map((s) => ({
@@ -238,6 +252,8 @@ export function dbRowToQuestion(row: SoalRow): Question {
     commonMistakes: commonMistakes.length ? commonMistakes : undefined,
     stepsDetailed: stepsDetailed.length ? stepsDetailed : undefined,
     gambar_url: Array.isArray(row.gambar_url) && row.gambar_url.length ? row.gambar_url : undefined,
+    stimulus_url: stimulus_url.length ? stimulus_url : undefined,
+    pertanyaan_url: pertanyaan_url.length ? pertanyaan_url : undefined,
     similar,
   };
 }
