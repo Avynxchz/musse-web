@@ -15,6 +15,7 @@ import {
   Latex,
   LogPanel,
   NeoBtn,
+  PilarText,
   Toast,
   renderLatexToHtml,
   type LogEntry,
@@ -1014,7 +1015,8 @@ function ArenaClient() {
                   </div>
 
                   <div className="mt-3 text-xs leading-relaxed text-neutral-800">
-                    <b>Inti Logika:</b> <Latex text={q.ringkas} />
+                    <b>Inti Logika:</b>
+                    <PilarText text={q.ringkas} className="text-xs leading-relaxed text-neutral-800" />
                   </div>
 
                   {pilarExpanded && (
@@ -1029,28 +1031,17 @@ function ArenaClient() {
                           {q.diketahui ? (
                             <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
                               <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#E0E7FF]">📋 Diketahui</span>
-                              {q.diketahui.includes('•') ? (
-                                <ul className="text-sm font-medium leading-relaxed space-y-1.5">
-                                  {q.diketahui.split('•').map((s) => s.trim()).filter(Boolean).map((item, i) => (
-                                    <li key={i} className="relative pl-4">
-                                      <span className="absolute left-0.5 top-0 font-extrabold text-[#4F46E5]">•</span>
-                                      <Latex text={item} />
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-sm font-medium leading-relaxed"><Latex text={q.diketahui} /></p>
-                              )}
+                              <PilarText text={q.diketahui} />
                             </div>
                           ) : null}
                           {q.ditanyakan ? (
                             <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
                               <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FDE68A]">🎯 Ditanyakan</span>
-                              <p className="text-sm font-medium leading-relaxed"><Latex text={q.ditanyakan} /></p>
+                              <PilarText text={q.ditanyakan} />
                             </div>
                           ) : null}
                           {!(q.diketahui || q.ditanyakan) ? (
-                            <p className="text-sm font-medium leading-relaxed"><Latex text={q.pilar1} /></p>
+                            <PilarText text={q.pilar1} />
                           ) : null}
                           {(q.conceptKunci?.length ?? 0) > 0 && (
                             <div>
@@ -1089,7 +1080,7 @@ function ArenaClient() {
                         </header>
                         <div className="p-3.5">
                           <div className="border-[1.5px] border-[#111] border-l-[5px] border-l-[#4F46E5] rounded-[14px] p-3 bg-[#F5F7FF]">
-                            <p className="text-sm font-medium leading-relaxed"><Latex text={q.pilar3} /></p>
+                            <PilarText text={q.pilar3} />
                           </div>
                         </div>
                       </article>
@@ -1132,7 +1123,7 @@ function ArenaClient() {
                           {q.pilar5 ? (
                             <div className="bg-[#DCFCE7] border-[1.5px] border-[#111] rounded-[14px] p-3">
                               <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">⚡ Trik Cepat</span>
-                              <p className="text-sm font-medium leading-relaxed"><Latex text={q.pilar5} /></p>
+                              <PilarText text={q.pilar5} />
                             </div>
                           ) : null}
                           {(q.commonMistakes?.length ?? 0) > 0 && (
@@ -1140,7 +1131,7 @@ function ArenaClient() {
                               <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FCA5A5]">⚠️ Jebakan Umum</span>
                               <div className="text-sm font-medium leading-relaxed space-y-1.5">
                                 {q.commonMistakes!.map((m, i) => (
-                                  <p key={i}><Latex text={m} /></p>
+                                  <PilarText key={i} text={m} />
                                 ))}
                               </div>
                             </div>
