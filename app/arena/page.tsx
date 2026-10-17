@@ -1098,7 +1098,7 @@ function ArenaClient() {
                                   <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
                                   {s.title ? <h3 className="text-[13.5px] font-extrabold leading-snug"><Latex text={s.title} /></h3> : null}
                                 </div>
-                                <div className="text-sm font-medium leading-relaxed"><Latex text={s.explanation} /></div>
+                                <PilarText text={s.explanation} />
                               </div>
                             ))
                           ) : (
@@ -1106,7 +1106,7 @@ function ArenaClient() {
                               <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
                                 <div className="flex items-start gap-2">
                                   <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
-                                  <div className="text-sm font-medium leading-relaxed"><Latex text={s} /></div>
+                                  <PilarText text={s} />
                                 </div>
                               </div>
                             ))
