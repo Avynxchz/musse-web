@@ -123,6 +123,9 @@ function ArenaClient() {
   // Ref untuk kontainer HTML soal (stimulus + pertanyaan) — dipakai untuk klasifikasi
   // ukuran gambar otomatis (inline vs diagram) seperti app lama
   const soalHtmlRef = useRef<HTMLDivElement>(null);
+  // Ref untuk kontainer opsi PG — dipakai untuk klasifikasi gambar opsi
+  // (rumus kecil → inline, diagram besar → blok) seperti app lama
+  const opsiHtmlRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
@@ -249,43 +252,60 @@ function ArenaClient() {
 
   const q = questions[qIndex];
 
-  // Klasifikasi gambar inline di HTML soal seperti app lama:
-  // kecil (height ≤55px atau width ≤95px) → inline-symbol-img (sebaris teks, tanpa border)
-  // besar → diagram-img (blok tengah, max-height 320px di mobile)
-  // Klik gambar → buka lightbox zoom.
+  // Klasifikasi gambar inline di HTML soal & opsi seperti app lama.
+  // Soal: kecil (height <=55px atau width <=95px) -> inline-symbol-img (sebaris teks,
+  //   tanpa border); besar -> diagram-img (blok tengah, max-height 320px di mobile).
+  // Opsi: rumus (atribut data-latex) atau kecil (height <=65px) -> opt-math-img
+  //   (sebaris teks); besar -> opt-diagram-img (blok, max-height 280px).
+  // Klik gambar -> buka lightbox zoom (tanpa memilih opsi).
   useEffect(() => {
-    const container = soalHtmlRef.current;
-    if (!container) return;
-    const imgs = Array.from(container.querySelectorAll('img'));
     const cleanups: Array<() => void> = [];
-    imgs.forEach((img) => {
-      const el = img as HTMLImageElement;
-      const classify = () => {
-        if (el.naturalHeight <= 55 || el.naturalWidth <= 95) {
-          el.classList.add('inline-symbol-img');
+    const wireContainer = (
+      container: HTMLElement | null,
+      selector: string,
+      classify: (el: HTMLImageElement) => void,
+    ) => {
+      if (!container) return;
+      const imgs = Array.from(container.querySelectorAll(selector));
+      imgs.forEach((img) => {
+        const el = img as HTMLImageElement;
+        const openZoom = (e: Event) => {
+          e.stopPropagation();
+          e.preventDefault();
+          setZoomImg(el.currentSrc || el.src);
+          setZoomLevel(1);
+        };
+        el.style.cursor = 'zoom-in';
+        el.addEventListener('click', openZoom);
+        cleanups.push(() => el.removeEventListener('click', openZoom));
+        if (el.complete && el.naturalHeight > 0) {
+          classify(el);
         } else {
-          el.classList.add('diagram-img');
+          const onLoad = () => classify(el);
+          el.addEventListener('load', onLoad);
+          cleanups.push(() => el.removeEventListener('load', onLoad));
         }
-      };
-      const openZoom = () => {
-        setZoomImg(el.currentSrc || el.src);
-        setZoomLevel(1);
-      };
-      el.style.cursor = 'zoom-in';
-      el.addEventListener('click', openZoom);
-      cleanups.push(() => el.removeEventListener('click', openZoom));
-      if (el.complete && el.naturalHeight > 0) {
-        classify();
+      });
+    };
+    wireContainer(soalHtmlRef.current, 'img', (el) => {
+      if (el.naturalHeight <= 55 || el.naturalWidth <= 95) {
+        el.classList.add('inline-symbol-img');
       } else {
-        const onLoad = () => classify();
-        el.addEventListener('load', onLoad);
-        cleanups.push(() => el.removeEventListener('load', onLoad));
+        el.classList.add('diagram-img');
+      }
+    });
+    wireContainer(opsiHtmlRef.current, '.opsi-html img', (el) => {
+      const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
+      if (isFormula) {
+        el.classList.add('opt-math-img');
+      } else {
+        el.classList.add('opt-diagram-img');
       }
     });
     return () => {
       cleanups.forEach((fn) => fn());
     };
-  }, [q?.stimulusHtml, q?.pertanyaanHtml, qIndex]);
+  }, [q?.stimulusHtml, q?.pertanyaanHtml, q?.options, qIndex]);
   const isLast = qIndex === questions.length - 1;
   const fontScale = FONT_SCALES[fontScaleIdx];
 
@@ -715,6 +735,11 @@ function ArenaClient() {
                 .soal-html img { cursor: zoom-in; }
                 .soal-html img.inline-symbol-img { display: inline-block; margin: 0 3px; max-height: 3.2em; width: auto; vertical-align: middle; border: none; background: transparent; }
                 .soal-html img.diagram-img { display: block; margin: 14px auto; max-width: 100%; max-height: 320px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e5e5e5; background: #ffffff; }
+                .opsi-html { display: inline; }
+                .opsi-html p { margin: 0; display: inline; }
+                .opsi-html img { cursor: zoom-in; }
+                .opsi-html img.opt-math-img { display: inline-block; margin: 0 3px; padding: 0 2px; max-height: 3.2em; width: auto; vertical-align: middle; border: none; background: transparent; object-fit: contain; }
+                .opsi-html img.opt-diagram-img { display: block; margin: 6px 0; max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px; }
               `}</style>
               <div ref={soalHtmlRef}>
                 {/* Stimulus: HTML asli (gambar inline) seperti app lama; fallback ke teks */}
@@ -741,7 +766,7 @@ function ArenaClient() {
 
               {/* Opsi PG / PG Kompleks */}
               {q.options && (
-                <div className="space-y-2 pt-1">
+                <div className="space-y-2 pt-1" ref={opsiHtmlRef}>
                   {q.options.map((opt) => {
                     const ans = answers[qIndex];
                     const selected =
@@ -762,21 +787,30 @@ function ArenaClient() {
                         >
                           {isComplex && selected ? '✓' : opt.key}
                         </span>
-                        <span className="flex-1"><Latex text={opt.text} /></span>
-                        {/* Gambar opsi: kecil inline di samping teks (seperti app lama, ~40px) */}
-                        {opt.image_url && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setZoomImg(opt.image_url!); setZoomLevel(1); }}
-                            className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={opt.image_url}
-                              alt={`Gambar opsi ${opt.key}`}
-                              className="h-10 w-auto object-contain"
-                              loading="lazy"
-                            />
-                          </button>
+                        {/* Prioritas render opsi seperti app lama:
+                            1) HTML resmi CBT (gambar rumus inline),
+                            2) gambar + teks, 3) teks/latex via KaTeX */}
+                        {opt.html ? (
+                          <span className="flex-1 opsi-html" dangerouslySetInnerHTML={{ __html: opt.html }} />
+                        ) : (
+                          <>
+                            <span className="flex-1"><Latex text={opt.text} /></span>
+                            {/* Gambar opsi: kecil inline di samping teks (seperti app lama, ~40px) */}
+                            {opt.image_url && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setZoomImg(opt.image_url!); setZoomLevel(1); }}
+                                className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={opt.image_url}
+                                  alt={`Gambar opsi ${opt.key}`}
+                                  className="h-10 w-auto object-contain"
+                                  loading="lazy"
+                                />
+                              </button>
+                            )}
+                          </>
                         )}
                       </button>
                     );
