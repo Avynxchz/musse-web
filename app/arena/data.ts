@@ -104,6 +104,10 @@ export interface Question {
   glossary?: GlossaryTerm[];
   commonMistakes?: string[];
   stepsDetailed?: StepDetail[];
+  // HTML mentah soal (dengan <img> inline seperti app lama) — URL gambar sudah diganti ke Supabase
+  // Dirender via dangerouslySetInnerHTML; gambar diklasifikasi otomatis (inline/diagram) via JS
+  stimulusHtml?: string;
+  pertanyaanHtml?: string;
   // URL gambar soal dari Supabase Storage (bucket soal-images)
   // Dipisah per posisi seperti app lama: stimulus (box konteks), pertanyaan (bawah stimulus)
   gambar_url?: string[]; // legacy gabungan — dipertahankan untuk kompatibilitas
