@@ -357,10 +357,17 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
   const chunks: Chunk[] = [];
   for (const line of t.split('\n').map((l) => l.trim()).filter(Boolean)) {
     if (line.includes('•')) {
-      for (const s of line.split('•').map((s) => s.trim()).filter(Boolean)) {
-        const nested = splitNestedSubs(s);
-        chunks.push(nested ? { list: 'ul', text: nested.header, subs: nested.subs } : { list: 'ul', text: s });
-      }
+      const parts = line.split('•').map((s) => s.trim()).filter(Boolean);
+      const startsWithBullet = line.trimStart().startsWith('•');
+      parts.forEach((s, idx) => {
+        // Teks sebelum • pertama = paragraf pembuka, bukan bullet
+        if (idx === 0 && !startsWithBullet) {
+          chunks.push({ list: null, text: s });
+        } else {
+          const nested = splitNestedSubs(s);
+          chunks.push(nested ? { list: 'ul', text: nested.header, subs: nested.subs } : { list: 'ul', text: s });
+        }
+      });
     } else if (numberedRe.test(line)) {
       chunks.push({ list: 'ol', text: line.replace(numberedRe, '') });
     } else if (dashRe.test(line)) {
