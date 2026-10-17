@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
-import { Latex, LogCounter, LogPanel, NeoBtn, useBehaviorLog } from '../components/ui';
+import { Latex, LogCounter, LogPanel, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 
 /* ================= Sheet Bedah Soal ================= */
@@ -233,21 +233,22 @@ function BedahSoalSheet({
               </button>
             </div>
             <p className="mt-3 leading-relaxed text-neutral-800">
-              <b>Inti Logika:</b> <Latex text={q.ringkas} />
+              <b>Inti Logika:</b>
             </p>
+            <PilarText text={q.ringkas} className="mt-1 leading-relaxed text-neutral-800" />
             {pilarOpen && (
               <div className="mt-3 space-y-3 border-t-2 border-dashed border-neutral-300 pt-3">
                 <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
                   <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
                     Pilar 1 · Diketahui & Konsep Kunci
                   </div>
-                  <p className="mt-1 font-medium"><Latex text={q.pilar1} /></p>
+                  <PilarText text={q.pilar1} className="mt-1 font-medium" />
                 </div>
                 <div className="bg-[#FAFAF7] border border-[#111] rounded-xl p-3">
                   <div className="font-extrabold text-[#4F46E5] uppercase text-[10px]">
                     Pilar 2 & 3 · Glosarium & Alasan Logis
                   </div>
-                  <p className="mt-1 font-medium"><Latex text={q.pilar3} /></p>
+                  <PilarText text={q.pilar3} className="mt-1 font-medium" />
                 </div>
                 <div className="bg-[#F0FFB8] border border-[#111] rounded-xl p-3">
                   <div className="font-extrabold text-[#111] uppercase text-[10px]">
@@ -263,7 +264,7 @@ function BedahSoalSheet({
                   <div className="font-extrabold text-amber-900 uppercase text-[10px]">
                     Pilar 5 · Trik Cepat & Jebakan Umum
                   </div>
-                  <p className="mt-1 font-medium"><Latex text={q.pilar5} /></p>
+                  <PilarText text={q.pilar5} className="mt-1 font-medium" />
                 </div>
               </div>
             )}
