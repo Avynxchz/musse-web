@@ -210,16 +210,160 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
   return <>{parts}</>;
 });
 
+/** Daftar perintah LaTeX matematika umum untuk deteksi otomatis.
+ *  \left \right \begin \end sengaja TIDAK masuk (berpasangan, rentang tak tentu). */
+const BARE_LATEX_CMDS =
+  'frac|dfrac|tfrac|cfrac|sqrt|sum|prod|int|oint|lim|log|ln|exp|sin|cos|tan|arcsin|arccos|arctan|min|max|det' +
+  '|times|cdot|div|pm|mp|leq|geq|neq|equiv|approx|cong|sim|propto|in|notin|ni|subset|supset|subseteq|supseteq|infty|partial' +
+  '|alpha|beta|gamma|delta|epsilon|varepsilon|zeta|eta|theta|vartheta|iota|kappa|lambda|mu|nu|xi|pi|varpi|rho|sigma|tau|upsilon|phi|varphi|chi|psi|omega' +
+  '|Gamma|Delta|Theta|Lambda|Xi|Pi|Sigma|Upsilon|Phi|Psi|Omega|ell' +
+  '|vec|bar|hat|tilde|dot|ddot|overline|underline|overbrace|underbrace' +
+  '|binom|text|mathbf|mathit|mathrm|mathcal|mathbb|boldsymbol' +
+  '|to|rightarrow|leftarrow|Rightarrow|Leftarrow|leftrightarrow|Leftrightarrow|mapsto' +
+  '|forall|exists|therefore|because|angle|ldots|cdots|vdots|ddots';
+
+/** Baca blok {....} / [....] balanced dari posisi i. Return index setelah blok, atau -1 bila tak balanced. */
+function readBalanced(s: string, i: number): number {
+  const open = s[i];
+  const close = open === '{' ? '}' : ']';
+  let depth = 0;
+  for (let j = i; j < s.length; j++) {
+    if (s[j] === open) depth++;
+    else if (s[j] === close) {
+      depth--;
+      if (depth === 0) return j + 1;
+    }
+  }
+  return -1;
+}
+
+/** Bungkus perintah LaTeX telanjang dalam satu segmen teks (tanpa $) menjadi $...$. */
+function wrapBareCommands(seg: string): string {
+  // \b tidak bisa dipakai (mis. \sum_ : "_" adalah word char) → lookahead eksplisit
+  const cmdRe = new RegExp('\\\\(?:' + BARE_LATEX_CMDS + ')(?=[\\s{\\[^_]|$)', 'g');
+  let out = '';
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = cmdRe.exec(seg)) !== null) {
+    let i = m.index + m[0].length;
+    // Konsumsi argumen yang menempel: {..} / [..] / ^x / _x / ^{..} / _{..}
+    // (spasi hanya ikut bila diikuti argumen valid — jangan telan spasi pemisah kata)
+    for (;;) {
+      let j = i;
+      while (j < seg.length && seg[j] === ' ') j++;
+      if (j >= seg.length) break;
+      const ch = seg[j];
+      if (ch === '{' || ch === '[') {
+        const ni = readBalanced(seg, j);
+        if (ni < 0) break;
+        i = ni;
+      } else if (ch === '^' || ch === '_') {
+        const k = j + 1;
+        if (seg[k] === '{' || seg[k] === '[') {
+          const ni = readBalanced(seg, k);
+          if (ni < 0) break;
+          i = ni;
+        } else if (k < seg.length && /[0-9a-zA-Z]/.test(seg[k])) {
+          i = k + 1;
+        } else break;
+      } else break;
+    }
+    out += seg.slice(last, m.index) + '$' + seg.slice(m.index, i) + '$';
+    last = i;
+    cmdRe.lastIndex = i;
+  }
+  return out + seg.slice(last);
+}
+
+/** AI sering menulis \frac{..} tanpa $...$ — deteksi & bungkus otomatis.
+ *  Segmen $...$ / $$...$$ yang sudah ada tidak disentuh. */
+export function autoWrapBareLatex(text: string): string {
+  if (!text) return text;
+  const parts = text.split(/(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g);
+  return parts.map((seg, idx) => (idx % 2 === 1 ? seg : wrapBareCommands(seg))).join('');
+}
+
+/** Teks pilar pembahasan yang rapi:
+ *  - "•" → bullet list (per item / per baris)
+ *  - "1." / "2." di awal baris → numbered list
+ *  - "- " di awal baris → bullet list
+ *  - baris baru → paragraf terpisah
+ *  Setiap item di-render via <Latex> agar rumus ke-render KaTeX.
+ */
+export const PilarText = memo(function PilarText({ text, className = "text-sm font-medium leading-relaxed" }: { text: string; className?: string }) {
+  const t = (text ?? '').trim();
+  if (!t) return <></>;
+
+  const numberedRe = /^\d+[.)]\s+/;
+  const dashRe = /^[-*–—]\s+/;
+
+  type Chunk = { list: 'ul' | 'ol' | null; text: string };
+  const chunks: Chunk[] = [];
+  for (const line of t.split('\n').map((l) => l.trim()).filter(Boolean)) {
+    if (line.includes('•')) {
+      for (const s of line.split('•').map((s) => s.trim()).filter(Boolean)) {
+        chunks.push({ list: 'ul', text: s });
+      }
+    } else if (numberedRe.test(line)) {
+      chunks.push({ list: 'ol', text: line.replace(numberedRe, '') });
+    } else if (dashRe.test(line)) {
+      chunks.push({ list: 'ul', text: line.replace(dashRe, '') });
+    } else {
+      chunks.push({ list: null, text: line });
+    }
+  }
+
+  // Gabungkan chunk list sejenis yang berurutan
+  const groups: { list: 'ul' | 'ol' | null; items: string[] }[] = [];
+  for (const c of chunks) {
+    const last = groups[groups.length - 1];
+    if (c.list && last && last.list === c.list) last.items.push(c.text);
+    else groups.push({ list: c.list, items: [c.text] });
+  }
+
+  // Satu paragraf polos → render sederhana
+  if (groups.length === 1 && groups[0].list === null) {
+    return <p className={className}><Latex text={groups[0].items[0]} /></p>;
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {groups.map((g, i) =>
+        g.list === null ? (
+          <p key={i} className={className}><Latex text={g.items[0]} /></p>
+        ) : g.list === 'ol' ? (
+          <ol key={i} className={`${className} list-decimal pl-5 space-y-1`}>
+            {g.items.map((item, j) => (
+              <li key={j}><Latex text={item} /></li>
+            ))}
+          </ol>
+        ) : (
+          <ul key={i} className={`${className} space-y-1`}>
+            {g.items.map((item, j) => (
+              <li key={j} className="relative pl-4">
+                <span className="absolute left-0.5 top-0 font-extrabold text-[#4F46E5]">•</span>
+                <Latex text={item} />
+              </li>
+            ))}
+          </ul>
+        )
+      )}
+    </div>
+  );
+});
+
 /** Render teks dengan LaTeX menjadi HTML string (untuk dangerouslySetInnerHTML) */
 export function renderLatexToHtml(text: string): string {
-  if (!text || !text.includes("$")) return text;
+  if (!text) return text;
+  const src = autoWrapBareLatex(text);
+  if (!src.includes("$")) return src;
   const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let out = "";
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) out += esc(text.slice(lastIndex, match.index));
+  while ((match = regex.exec(src)) !== null) {
+    if (match.index > lastIndex) out += esc(src.slice(lastIndex, match.index));
     const displayMode = match[1] !== undefined;
     const code = displayMode ? match[1] : match[2];
     try {
@@ -234,7 +378,7 @@ export function renderLatexToHtml(text: string): string {
     }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < text.length) out += esc(text.slice(lastIndex));
+  if (lastIndex < src.length) out += esc(src.slice(lastIndex));
   return out;
 }
 
