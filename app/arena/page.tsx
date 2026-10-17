@@ -119,6 +119,7 @@ function ArenaClient() {
   const [showTutor, setShowTutor] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [zoomImg, setZoomImg] = useState<string | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1); // 1 = 100%, bisa zoom in/out
   const [toast, setToast] = useState<string | null>(null);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
@@ -673,20 +674,46 @@ function ArenaClient() {
                   {q.stimulus}
                 </div>
               )}
-              {/* Gambar soal (jika ada) — tap untuk zoom */}
-              {q.gambar_url && q.gambar_url.length > 0 && (
+              {/* Stimulus: box "STIMULUS / KONTEKS SOAL" dengan gambar ukuran sedang (seperti app lama) */}
+              {q.stimulus_url && q.stimulus_url.length > 0 && (
+                <div className="bg-[#F5F7FF] border-2 border-[#111] rounded-xl p-3">
+                  <div className="inline-block text-[10px] font-extrabold uppercase tracking-wider bg-[#E0E7FF] border-[1.5px] border-[#111] rounded-md px-2 py-0.5 mb-2">
+                    📋 Stimulus / Konteks Soal
+                  </div>
+                  <div className="space-y-2">
+                    {q.stimulus_url.map((url, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setZoomImg(url); setZoomLevel(1); }}
+                        className="block border-2 border-[#111] rounded-xl overflow-hidden bg-white max-w-[250px]"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={`Stimulus ${i + 1}`}
+                          className="w-full h-auto object-contain"
+                          loading="lazy"
+                        />
+                        <div className="text-[10px] font-bold text-neutral-500 py-1">🔍 Tap untuk perbesar</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Gambar pertanyaan: tepat di bawah stimulus, ukuran sedang */}
+              {q.pertanyaan_url && q.pertanyaan_url.length > 0 && (
                 <div className="space-y-2">
-                  {q.gambar_url.map((url, i) => (
+                  {q.pertanyaan_url.map((url, i) => (
                     <button
                       key={i}
-                      onClick={() => setZoomImg(url)}
-                      className="w-full block border-2 border-[#111] rounded-xl overflow-hidden bg-[#FAFAF7]"
+                      onClick={() => { setZoomImg(url); setZoomLevel(1); }}
+                      className="block border-2 border-[#111] rounded-xl overflow-hidden bg-white max-w-[250px]"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={url}
                         alt={`Gambar soal ${i + 1}`}
-                        className="w-full h-auto max-h-64 object-contain"
+                        className="w-full h-auto object-contain"
                         loading="lazy"
                       />
                       <div className="text-[10px] font-bold text-neutral-500 py-1">🔍 Tap untuk perbesar</div>
@@ -726,6 +753,21 @@ function ArenaClient() {
                           {isComplex && selected ? '✓' : opt.key}
                         </span>
                         <span className="flex-1"><Latex text={opt.text} /></span>
+                        {/* Gambar opsi: kecil inline di samping teks (seperti app lama, ~40px) */}
+                        {opt.image_url && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setZoomImg(opt.image_url!); setZoomLevel(1); }}
+                            className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={opt.image_url}
+                              alt={`Gambar opsi ${opt.key}`}
+                              className="h-10 w-auto object-contain"
+                              loading="lazy"
+                            />
+                          </button>
+                        )}
                       </button>
                     );
                   })}
@@ -1104,12 +1146,49 @@ function ArenaClient() {
           </NeoBtn>
         </footer>
 
-        {/* ===== MODAL ZOOM GAMBAR ===== */}
+        {/* ===== MODAL ZOOM GAMBAR (lightbox dengan +, -, 100%, X seperti app lama) ===== */}
         {zoomImg && (
           <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setZoomImg(null)}>
-            <div className="bg-white border-2 border-[#111] rounded-2xl p-2 max-w-full max-h-full overflow-auto">
+            <div
+              className="bg-white border-2 border-[#111] rounded-2xl p-2 max-w-full max-h-full overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-center gap-2 pb-2 border-b-2 border-[#111] mb-2">
+                <button
+                  onClick={() => setZoomLevel((z) => Math.max(0.5, +(z - 0.25).toFixed(2)))}
+                  className="w-9 h-9 rounded-lg bg-white border-2 border-[#111] shadow-[0_2px_0_#111] font-extrabold text-lg active:translate-y-[2px] active:shadow-none"
+                  aria-label="Perkecil"
+                >
+                  −
+                </button>
+                <button
+                  onClick={() => setZoomLevel(1)}
+                  className="h-9 px-3 rounded-lg bg-[#B6FF00] border-2 border-[#111] shadow-[0_2px_0_#111] font-extrabold text-xs active:translate-y-[2px] active:shadow-none"
+                >
+                  {Math.round(zoomLevel * 100)}%
+                </button>
+                <button
+                  onClick={() => setZoomLevel((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
+                  className="w-9 h-9 rounded-lg bg-white border-2 border-[#111] shadow-[0_2px_0_#111] font-extrabold text-lg active:translate-y-[2px] active:shadow-none"
+                  aria-label="Perbesar"
+                >
+                  +
+                </button>
+                <button
+                  onClick={() => setZoomImg(null)}
+                  className="w-9 h-9 rounded-lg bg-red-100 border-2 border-[#111] shadow-[0_2px_0_#111] font-extrabold text-sm active:translate-y-[2px] active:shadow-none"
+                  aria-label="Tutup"
+                >
+                  ✕
+                </button>
+              </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={zoomImg} alt="Gambar soal diperbesar" className="max-w-full h-auto" />
+              <img
+                src={zoomImg}
+                alt="Gambar soal diperbesar"
+                className="h-auto mx-auto transition-transform"
+                style={{ maxWidth: `${zoomLevel * 100}%`, width: zoomLevel > 1 ? `${zoomLevel * 100}%` : undefined }}
+              />
               <div className="text-center text-xs font-bold py-2">Tap di luar untuk tutup</div>
             </div>
           </div>
