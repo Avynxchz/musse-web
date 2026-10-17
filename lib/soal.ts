@@ -112,6 +112,21 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Ganti src gambar lama di HTML soal → URL Supabase Storage (bucket soal-images).
+ * Menangani varian: /tka/cbt_images/x.png, images/x.png, ./images/x.png,
+ * dan URL absolut lama yang mengandung /tka/cbt_images/ atau /images/.
+ * Seperti app lama: gambar dibiarkan inline di dalam HTML (tidak dipisah).
+ */
+export function renderHtmlWithImages(html: string, mapelDb: string, paket: number): string {
+  if (!html) return html;
+  const prefix = `${SUPABASE_URL}/storage/v1/object/public/soal-images/${mapelDb}_paket_${paket}/`;
+  return html.replace(
+    /src=(["'])(?:https?:\/\/[^"']*)?(?:\/tka\/cbt_images\/|(?:\.\/)?images\/)([^"'/]+\.(?:png|jpe?g|gif|webp|svg))\1/gi,
+    (_m, quote: string, filename: string) => `src=${quote}${prefix}${filename}${quote}`
+  );
+}
+
 /** Konversi 1 baris soal → format Question yang dipakai arena */
 export function dbRowToQuestion(row: SoalRow): Question {
   const tipe = row.tipe as TipeSoal;
@@ -235,6 +250,9 @@ export function dbRowToQuestion(row: SoalRow): Question {
     tipe,
     topik,
     stimulus,
+    // HTML mentah (dengan <img> inline seperti app lama) — URL gambar sudah diganti ke Supabase
+    stimulusHtml: row.stimulus?.html ? renderHtmlWithImages(row.stimulus.html, row.mapel, row.paket) : undefined,
+    pertanyaanHtml: row.pertanyaan?.html ? renderHtmlWithImages(row.pertanyaan.html, row.mapel, row.paket) : undefined,
     prompt,
     options: options.length > 0 ? options : undefined,
     statements: statements.length > 0 ? statements : undefined,
