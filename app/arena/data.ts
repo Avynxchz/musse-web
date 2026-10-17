@@ -56,6 +56,7 @@ export type TipeSoal =
 export interface Opsi {
   key: string;
   text: string;
+  image_url?: string; // gambar kecil inline di samping teks opsi
 }
 
 export interface Statement {
@@ -104,7 +105,10 @@ export interface Question {
   commonMistakes?: string[];
   stepsDetailed?: StepDetail[];
   // URL gambar soal dari Supabase Storage (bucket soal-images)
-  gambar_url?: string[];
+  // Dipisah per posisi seperti app lama: stimulus (box konteks), pertanyaan (bawah stimulus)
+  gambar_url?: string[]; // legacy gabungan — dipertahankan untuk kompatibilitas
+  stimulus_url?: string[];
+  pertanyaan_url?: string[];
   similar: SimilarSoal;
 }
 
