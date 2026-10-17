@@ -120,6 +120,9 @@ function ArenaClient() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [zoomImg, setZoomImg] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1); // 1 = 100%, bisa zoom in/out
+  // Ref untuk kontainer HTML soal (stimulus + pertanyaan) — dipakai untuk klasifikasi
+  // ukuran gambar otomatis (inline vs diagram) seperti app lama
+  const soalHtmlRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
@@ -245,6 +248,44 @@ function ArenaClient() {
   }, []);
 
   const q = questions[qIndex];
+
+  // Klasifikasi gambar inline di HTML soal seperti app lama:
+  // kecil (height ≤55px atau width ≤95px) → inline-symbol-img (sebaris teks, tanpa border)
+  // besar → diagram-img (blok tengah, max-height 320px di mobile)
+  // Klik gambar → buka lightbox zoom.
+  useEffect(() => {
+    const container = soalHtmlRef.current;
+    if (!container) return;
+    const imgs = Array.from(container.querySelectorAll('img'));
+    const cleanups: Array<() => void> = [];
+    imgs.forEach((img) => {
+      const el = img as HTMLImageElement;
+      const classify = () => {
+        if (el.naturalHeight <= 55 || el.naturalWidth <= 95) {
+          el.classList.add('inline-symbol-img');
+        } else {
+          el.classList.add('diagram-img');
+        }
+      };
+      const openZoom = () => {
+        setZoomImg(el.currentSrc || el.src);
+        setZoomLevel(1);
+      };
+      el.style.cursor = 'zoom-in';
+      el.addEventListener('click', openZoom);
+      cleanups.push(() => el.removeEventListener('click', openZoom));
+      if (el.complete && el.naturalHeight > 0) {
+        classify();
+      } else {
+        const onLoad = () => classify();
+        el.addEventListener('load', onLoad);
+        cleanups.push(() => el.removeEventListener('load', onLoad));
+      }
+    });
+    return () => {
+      cleanups.forEach((fn) => fn());
+    };
+  }, [q?.stimulusHtml, q?.pertanyaanHtml, qIndex]);
   const isLast = qIndex === questions.length - 1;
   const fontScale = FONT_SCALES[fontScaleIdx];
 
@@ -669,54 +710,28 @@ function ArenaClient() {
 
             {/* Kartu soal */}
             <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 space-y-3">
-              {q.stimulus && (
-                <div className="bg-[#FAFAF7] border-2 border-dashed border-neutral-300 rounded-xl p-3 text-xs leading-relaxed">
-                  {q.stimulus}
-                </div>
-              )}
-              {/* Stimulus: polos seperti app lama (tanpa box/label) */}
-              {q.stimulus_url && q.stimulus_url.length > 0 && (
-                <div style={{ margin: '10px auto', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' }}>
-                  {q.stimulus_url.map((url, i) => (
-                    <button
-                      key={i}
-                      onClick={() => { setZoomImg(url); setZoomLevel(1); }}
-                      className="block mb-2"
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'zoom-in' }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt={`Stimulus ${i + 1}`}
-                        style={{ maxWidth: '100%', maxHeight: '360px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#ffffff' }}
-                        loading="lazy"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-              {/* Gambar pertanyaan: tepat di bawah stimulus, polos seperti app lama */}
-              {q.pertanyaan_url && q.pertanyaan_url.length > 0 && (
-                <div style={{ margin: '10px auto', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' }}>
-                  {q.pertanyaan_url.map((url, i) => (
-                    <button
-                      key={i}
-                      onClick={() => { setZoomImg(url); setZoomLevel(1); }}
-                      className="block mb-2"
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'zoom-in' }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={url}
-                        alt={`Gambar soal ${i + 1}`}
-                        style={{ maxWidth: '100%', maxHeight: '360px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#ffffff' }}
-                        loading="lazy"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="font-semibold leading-relaxed text-[0.95em]"><Latex text={q.prompt} /></div>
+              {/* Gaya gambar inline persis app lama: kecil → sebaris teks, besar → blok tengah */}
+              <style>{`
+                .soal-html img { cursor: zoom-in; }
+                .soal-html img.inline-symbol-img { display: inline-block; margin: 0 3px; max-height: 3.2em; width: auto; vertical-align: middle; border: none; background: transparent; }
+                .soal-html img.diagram-img { display: block; margin: 14px auto; max-width: 100%; max-height: 320px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e5e5e5; background: #ffffff; }
+              `}</style>
+              <div ref={soalHtmlRef}>
+                {/* Stimulus: HTML asli (gambar inline) seperti app lama; fallback ke teks */}
+                {q.stimulusHtml && /<img/i.test(q.stimulusHtml) ? (
+                  <div className="soal-html text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: q.stimulusHtml }} />
+                ) : q.stimulus ? (
+                  <div className="bg-[#FAFAF7] border-2 border-dashed border-neutral-300 rounded-xl p-3 text-xs leading-relaxed">
+                    {q.stimulus}
+                  </div>
+                ) : null}
+                {/* Pertanyaan: HTML asli bila ada gambar inline; selain itu pakai Latex */}
+                {q.pertanyaanHtml && /<img/i.test(q.pertanyaanHtml) ? (
+                  <div className="soal-html font-semibold leading-relaxed text-[0.95em]" dangerouslySetInnerHTML={{ __html: q.pertanyaanHtml }} />
+                ) : (
+                  <div className="font-semibold leading-relaxed text-[0.95em]"><Latex text={q.prompt} /></div>
+                )}
+              </div>
 
               {q.tipe === 'Pilihan Ganda Kompleks' && (
                 <div className="bg-[#E0E7FF] border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-extrabold">
