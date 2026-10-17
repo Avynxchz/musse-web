@@ -57,6 +57,7 @@ export interface Opsi {
   key: string;
   text: string;
   image_url?: string; // gambar kecil inline di samping teks opsi
+  html?: string; // HTML resmi CBT (gambar rumus inline, URL sudah diganti ke Supabase)
 }
 
 export interface Statement {
