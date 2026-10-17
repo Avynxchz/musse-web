@@ -674,49 +674,44 @@ function ArenaClient() {
                   {q.stimulus}
                 </div>
               )}
-              {/* Stimulus: box "STIMULUS / KONTEKS SOAL" dengan gambar ukuran sedang (seperti app lama) */}
+              {/* Stimulus: polos seperti app lama (tanpa box/label) */}
               {q.stimulus_url && q.stimulus_url.length > 0 && (
-                <div className="bg-[#F5F7FF] border-2 border-[#111] rounded-xl p-3">
-                  <div className="inline-block text-[10px] font-extrabold uppercase tracking-wider bg-[#E0E7FF] border-[1.5px] border-[#111] rounded-md px-2 py-0.5 mb-2">
-                    📋 Stimulus / Konteks Soal
-                  </div>
-                  <div className="space-y-2">
-                    {q.stimulus_url.map((url, i) => (
-                      <button
-                        key={i}
-                        onClick={() => { setZoomImg(url); setZoomLevel(1); }}
-                        className="block border-2 border-[#111] rounded-xl overflow-hidden bg-white max-w-[250px]"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={url}
-                          alt={`Stimulus ${i + 1}`}
-                          className="w-full h-auto object-contain"
-                          loading="lazy"
-                        />
-                        <div className="text-[10px] font-bold text-neutral-500 py-1">🔍 Tap untuk perbesar</div>
-                      </button>
-                    ))}
-                  </div>
+                <div style={{ margin: '10px auto', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' }}>
+                  {q.stimulus_url.map((url, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setZoomImg(url); setZoomLevel(1); }}
+                      className="block mb-2"
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'zoom-in' }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt={`Stimulus ${i + 1}`}
+                        style={{ maxWidth: '100%', maxHeight: '360px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#ffffff' }}
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
-              {/* Gambar pertanyaan: tepat di bawah stimulus, ukuran sedang */}
+              {/* Gambar pertanyaan: tepat di bawah stimulus, polos seperti app lama */}
               {q.pertanyaan_url && q.pertanyaan_url.length > 0 && (
-                <div className="space-y-2">
+                <div style={{ margin: '10px auto', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' }}>
                   {q.pertanyaan_url.map((url, i) => (
                     <button
                       key={i}
                       onClick={() => { setZoomImg(url); setZoomLevel(1); }}
-                      className="block border-2 border-[#111] rounded-xl overflow-hidden bg-white max-w-[250px]"
+                      className="block mb-2"
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'zoom-in' }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={url}
                         alt={`Gambar soal ${i + 1}`}
-                        className="w-full h-auto object-contain"
+                        style={{ maxWidth: '100%', maxHeight: '360px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto', borderRadius: '8px', border: '1px solid #e5e5e5', background: '#ffffff' }}
                         loading="lazy"
                       />
-                      <div className="text-[10px] font-bold text-neutral-500 py-1">🔍 Tap untuk perbesar</div>
                     </button>
                   ))}
                 </div>
