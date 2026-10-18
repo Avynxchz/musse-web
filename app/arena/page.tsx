@@ -21,6 +21,7 @@ import {
   type LogEntry,
 } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
+import { saveAttempt } from '../../lib/analisis';
 import type { Question, Statement } from './data';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
@@ -407,35 +408,24 @@ function ArenaClient() {
       total: questions.length,
     });
     // === Simpan detail attempt ke localStorage untuk analisis AI ===
-    try {
-      const perSoal = questions.map((qq, i) => ({
+    // (last_attempt → halaman hasil / AI #2, history → ruang / AI #3)
+    saveAttempt({
+      mapel: mapelKey,
+      mapelName: mapel?.name || mapelKey,
+      paket,
+      mode,
+      tanggal: new Date().toISOString(),
+      benar,
+      total: questions.length,
+      perSoal: questions.map((qq, i) => ({
         nomor: qq.nomor,
         tipe: qq.tipe,
         topik: qq.topik || '',
         status: hasil[i] as 'benar' | 'salah' | 'kosong',
         durasiDetik: durasiPerSoalRef.current[i] || 0,
         gantiJawaban: gantiJawabanRef.current[i] || 0,
-      }));
-      const attempt = {
-        mapel: mapelKey,
-        mapelName: mapel?.name || mapelKey,
-        paket,
-        mode,
-        tanggal: new Date().toISOString(),
-        benar,
-        total: questions.length,
-        perSoal,
-      };
-      // Untuk halaman hasil (analisis AI #2)
-      localStorage.setItem('musse_last_attempt', JSON.stringify(attempt));
-      // Untuk halaman ruang (analisis AI #3) — akumulasi history
-      const histRaw = localStorage.getItem('musse_quiz_history');
-      const hist = histRaw ? JSON.parse(histRaw) : [];
-      hist.push(attempt);
-      // Batasi 50 attempt terakhir agar tidak membengkak
-      const trimmed = hist.slice(-50);
-      localStorage.setItem('musse_quiz_history', JSON.stringify(trimmed));
-    } catch (e) { /* abaikan error storage */ }
+      })),
+    });
     router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${questions.length}`);
   };
 
