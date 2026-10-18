@@ -13,12 +13,14 @@ import {
 import {
   ChatInput,
   Latex,
-  LogPanel,
+  LogCounterLive,
+  LogPanelLive,
   NeoBtn,
   PilarText,
   Toast,
+  createLogStore,
   renderLatexToHtml,
-  type LogEntry,
+  type LogStore,
 } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { saveAttempt } from '../../lib/analisis';
@@ -26,7 +28,6 @@ import type { Question, Statement } from './data';
 
 /* ================= Behavior log (dummy: console + counter) ================= */
 
-let logId = 1;
 
 /* ================= Komponen kecil ================= */
 
@@ -96,6 +97,12 @@ const ArenaTimer = memo(function ArenaTimer({
   );
 });
 
+/** Badge count terisolasi untuk arena: hanya komponen kecil ini re-render saat log bertambah. */
+const ArenaLogCount = memo(function ArenaLogCount({ useLogCount }: { useLogCount: () => number }) {
+  const count = useLogCount();
+  return <>{count}</>;
+});
+
 /* ================= Komponen utama ================= */
 
 function ArenaClient() {
@@ -133,14 +140,12 @@ function ArenaClient() {
   const stmtRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [timeUpLatihan, setTimeUpLatihan] = useState(false);
-  const [logs, setLogs] = useState<LogEntry[]>(() => [
-    {
-      id: 1,
-      event: 'quiz_start',
-      ts: new Date().toLocaleTimeString('id-ID'),
-      payload: { mapel: mapelKey, paket, mode },
-    },
-  ]);
+  const logStoreRef = useRef<LogStore | null>(null);
+  if (!logStoreRef.current) {
+    logStoreRef.current = createLogStore('arena');
+    logStoreRef.current.logEvent('quiz_start', { mapel: mapelKey, paket, mode });
+  }
+  const { useLogCount, useLogs } = logStoreRef.current;
   const [showLogPanel, setShowLogPanel] = useState(false);
   const [simSoalOpen, setSimSoalOpen] = useState(false);
   const [simFeedback, setSimFeedback] = useState<string | null>(null);
@@ -215,27 +220,38 @@ function ArenaClient() {
     logEvent('page_view', { page: 'arena' });
   }, []);
 
-  // Scroll depth tracking untuk pembahasan (80% dari area scroll utama)
+  // Scroll depth tracking untuk pembahasan (80% dari area scroll utama).
+  // scrollTrackRef disinkron tiap render (lihat di bawah, setelah `q` terdefinisi).
+  const scrollTrackRef = useRef<{ checked: Record<number, boolean>; qIndex: number; q: Question | undefined; mode: QuizMode } | null>(null);
   useEffect(() => {
     const scrollEl = scrollBodyRef.current;
     if (!scrollEl) return;
+    let ticking = false;
     const onScroll = () => {
-      // Hanya track jika pembahasan sedang tampil (sudah cek jawaban)
-      const isChecked = !!checked[qIndex];
-      if (!isChecked || !q) return;
-      const soalNo = q.nomor;
-      if (pembahasanScrolledRef.current[soalNo]) return;
-      const { scrollTop, scrollHeight, clientHeight } = scrollEl;
-      if (scrollHeight <= clientHeight) return;
-      const scrolledRatio = (scrollTop + clientHeight) / scrollHeight;
-      if (scrolledRatio >= 0.8) {
-        pembahasanScrolledRef.current[soalNo] = true;
-        logEvent('pembahasan_scroll_full', { soal_no: soalNo, mode });
-      }
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const snap = scrollTrackRef.current;
+        if (!snap) return;
+        const { checked: ck, qIndex: qi, q: qq, mode: md } = snap;
+        // Hanya track jika pembahasan sedang tampil (sudah cek jawaban)
+        const isChecked = !!ck[qi];
+        if (!isChecked || !qq) return;
+        const soalNo = qq.nomor;
+        if (pembahasanScrolledRef.current[soalNo]) return;
+        const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+        if (scrollHeight <= clientHeight) return;
+        const scrolledRatio = (scrollTop + clientHeight) / scrollHeight;
+        if (scrolledRatio >= 0.8) {
+          pembahasanScrolledRef.current[soalNo] = true;
+          logEvent('pembahasan_scroll_full', { soal_no: soalNo, mode: md });
+        }
+      });
     };
     scrollEl.addEventListener('scroll', onScroll, { passive: true });
     return () => scrollEl.removeEventListener('scroll', onScroll);
-  });
+  }, []);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Timer untuk durasi per soal (behavior logging) - harus di atas fetch effect
@@ -260,6 +276,9 @@ function ArenaClient() {
   }, []);
 
   const q = questions[qIndex];
+
+  // Sinkron ref untuk scroll listener (agar tidak re-subscribe tiap render)
+  scrollTrackRef.current = { checked, qIndex, q, mode };
 
   // Klasifikasi gambar inline di HTML soal & opsi seperti app lama.
   // Soal: kecil (height <=55px atau width <=95px) -> inline-symbol-img (sebaris teks,
@@ -362,17 +381,8 @@ function ArenaClient() {
   const isLast = qIndex === questions.length - 1;
   const fontScale = FONT_SCALES[fontScaleIdx];
 
-  // --- behavior log ---
-  const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
-    const entry: LogEntry = {
-      id: ++logId,
-      event,
-      ts: new Date().toLocaleTimeString('id-ID'),
-      payload,
-    };
-    console.log(`[arena] ${event}`, payload);
-    setLogs((prev) => [entry, ...prev].slice(0, 200));
-  }, []);
+  // --- behavior log (external store: tidak re-render halaman) ---
+  const logEvent = logStoreRef.current!.logEvent;
 
   const showToastMsg = useCallback((msg: string) => {
     setToast(msg);
@@ -781,7 +791,7 @@ function ArenaClient() {
             className="shrink-0 bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-1 rounded-full"
             title="Behavior log"
           >
-            📡{logs.length}
+            📡<ArenaLogCount useLogCount={useLogCount} />
           </button>
         </header>
 
@@ -1072,7 +1082,7 @@ function ArenaClient() {
                   {pilarExpanded && (
                     <div className="mt-4 space-y-4 border-t-2 border-dashed border-neutral-300 pt-3">
                       {/* ===== PILAR 1: Identifikasi Masalah (kartu mandiri) ===== */}
-                      <article className="bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
                         <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 1</span>
                           <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Identifikasi Masalah</h2>
@@ -1107,7 +1117,7 @@ function ArenaClient() {
                       </article>
                       {/* ===== PILAR 2: Glosarium (kartu mandiri, tidak digabung dengan Pilar 3) ===== */}
                       {(q.glossary?.length ?? 0) > 0 && (
-                        <article className="bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+                        <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
                           <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
                             <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#E0E7FF]">Pilar 2</span>
                             <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Glosarium</h2>
@@ -1123,7 +1133,7 @@ function ArenaClient() {
                         </article>
                       )}
                       {/* ===== PILAR 3: Mengapa Rumus Ini Dipakai? (kartu mandiri) ===== */}
-                      <article className="bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
                         <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 3</span>
                           <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Mengapa Rumus Ini Dipakai?</h2>
@@ -1135,7 +1145,7 @@ function ArenaClient() {
                         </div>
                       </article>
                       {/* ===== PILAR 4: Langkah-Langkah Pengerjaan (kartu mandiri) ===== */}
-                      <article className="bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
                         <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 4</span>
                           <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Langkah-Langkah Pengerjaan</h2>
@@ -1164,7 +1174,7 @@ function ArenaClient() {
                         </div>
                       </article>
                       {/* ===== PILAR 5: Trik Cepat & Jebakan Umum (kartu mandiri) ===== */}
-                      <article className="bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
                         <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 5</span>
                           <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Trik Cepat & Jebakan Umum</h2>
@@ -1505,11 +1515,11 @@ function ArenaClient() {
 
         {/* ===== PANEL BEHAVIOR LOG ===== */}
         {showLogPanel && (
-          <LogPanel
-            logs={logs}
+          <LogPanelLive
+            useLogs={useLogs}
             onClose={() => setShowLogPanel(false)}
             badge="Dummy Telemetry"
-            title={`Behavior Log (${logs.length})`}
+            title="Behavior Log"
             description="Versi dummy: event dicatat via console.log + counter. Belum dikirim ke Supabase."
           />
         )}
