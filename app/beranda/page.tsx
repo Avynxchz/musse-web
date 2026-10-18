@@ -141,7 +141,7 @@ const MapelCard = memo(function MapelCard({
   const mapelBelumSelesai = adaProgresMapel && !semuaPaketSelesai;
 
   return (
-    <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-white [content-visibility:auto] [contain-intrinsic-size:auto_180px]">
+    <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-white [content-visibility:auto] [contain-intrinsic-size:auto_180px] md:flex md:flex-col md:justify-between">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
@@ -449,260 +449,363 @@ export default function BerandaPage() {
   /* ================= render ================= */
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
-        {/* ===== Header sticky ===== */}
-        <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0 sticky top-0 z-20">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs">
-              AG
-            </div>
-            <div>
-              <p className="text-[11px] text-neutral-500 font-semibold leading-none">
-                Siap tempur hari ini,
-              </p>
-              <p className="text-sm font-extrabold text-[#111] leading-tight">Agus Putra 👋</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowLogPanel(true)}
-              className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2 py-1 rounded-full flex items-center gap-1 text-[11px] font-extrabold bg-[#111] text-[#B6FF00]"
-              title="Behavior log"
-            >
-              📡 <LogBadgeCount useLogCount={useLogCount} />
-            </button>
-            <div className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-xs font-extrabold bg-[#FFEDD5]">
-              <span>🔥</span>
-              <span>{activeDaysCount}</span>
-            </div>
-            <NeoBtn
-              onClick={() => setDateOpen(true)}
-              className="px-2.5 py-1 rounded-full flex items-center gap-1 text-xs bg-[#E0E7FF] text-[#111]"
-              title="Ubah tanggal TKA"
-            >
-              <span>🎯</span>
-              <span>{countdownText}</span>
-            </NeoBtn>
-          </div>
-        </header>
-
-        {/* ===== Konten scroll ===== */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5 pb-28">
-          <div className="space-y-5">
-          {/* Kartu Lanjutkan Terakhir */}
-          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-[#111] text-white relative overflow-hidden">
-            {lastAttemptSummary ? (
-              <>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded shrink-0">
-                    Lanjutkan Terakhir
-                  </span>
-                  <span className="text-xs text-white/70 font-semibold truncate">
-                    Soal {lastAttemptSummary.stat.dikerjakan} / {lastAttemptSummary.stat.total} • Akurasi {lastAttemptSummary.stat.akurasiPct}%
-                  </span>
-                </div>
-                <h2 className="text-lg font-extrabold mt-2">
-                  {lastAttemptSummary.mapelName} · Paket {lastAttemptSummary.paket}
-                </h2>
-                <p className="text-xs text-white/75 mt-0.5">
-                  {lastAttemptSummary.stat.topikTerakhir
-                    ? `Terakhir dikerjakan: ${lastAttemptSummary.stat.topikTerakhir} (${lastAttemptSummary.stat.benar}/${lastAttemptSummary.stat.total} benar)`
-                    : `Skor terakhir: ${lastAttemptSummary.stat.benar}/${lastAttemptSummary.stat.total} benar • Akurasi ${lastAttemptSummary.stat.akurasiPct}%`}
+      <div className="relative w-full max-w-[430px] md:max-w-none min-h-dvh bg-[#FAFAF7] flex flex-col md:flex-row sm:border-x-2 md:border-x-0 sm:border-[#111] overflow-hidden">
+        {/* ===== Sidebar Kiri (KHUSUS DESKTOP md:+) ===== */}
+        <aside className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r-2 border-[#111] flex-col justify-between md:sticky md:top-0 md:h-dvh z-30">
+          <div className="p-5 space-y-6">
+            {/* Logo */}
+            <div className="flex items-center gap-3 pb-4 border-b-2 border-[#111]">
+              <div className="w-10 h-10 rounded-xl bg-[#B6FF00] border-2 border-[#111] shadow-[0_3px_0_#111] flex items-center justify-center font-extrabold text-base text-[#111] shrink-0">
+                ⚡
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base font-extrabold text-[#111] tracking-tight leading-none">
+                  MUSSE
+                </h1>
+                <p className="text-[11px] font-bold text-neutral-500 mt-1 truncate">
+                  Arena Latihan TKA Resmi
                 </p>
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
-                    <div
-                      className="h-full bg-[#B6FF00] transition-all"
-                      style={{ width: `${lastAttemptSummary.progPct}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-extrabold text-[#B6FF00]">
-                    {lastAttemptSummary.progPct}%
-                  </span>
-                </div>
-                <NeoBtn
-                  onClick={() =>
-                    openModeSheet(
-                      lastAttemptSummary.mapelKey,
-                      lastAttemptSummary.mapelName,
-                      lastAttemptSummary.paket,
-                      true
-                    )
-                  }
-                  className="mt-3.5 w-full bg-[#B6FF00] text-[#111] py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
-                >
-                  Lanjutkan Paket Ini (Pilih Mode) →
-                </NeoBtn>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">
-                    Lanjutkan Terakhir
-                  </span>
-                  <span className="text-xs text-white/70 font-semibold">0 / 0 Soal</span>
-                </div>
-                <h2 className="text-lg font-extrabold mt-2">Belum ada progres!</h2>
-                <p className="text-xs text-white/75 mt-0.5">
-                  Kamu belum mengerjakan soal. Pilih mapel &amp; paket di bawah buat mulai latihan!
-                </p>
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
-                    <div className="h-full bg-[#B6FF00] w-0" />
-                  </div>
-                  <span className="text-xs font-extrabold text-[#B6FF00]">0%</span>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Kartu Catatan Autopsi */}
-          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-[#FFFBEB] flex items-center justify-between gap-3">
-            <div className="flex items-start gap-2.5">
-              <span className="text-lg">🔍</span>
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">
-                  Catatan Guru Autopsi
-                </span>
-                {autopsiTerakhir.adaData && autopsiTerakhir.pola.length > 0 ? (
-                  <>
-                    <p className="text-xs font-bold text-[#111] mt-1">
-                      {autopsiTerakhir.pola[0].judul}
-                    </p>
-                    <p className="text-[11px] text-neutral-600">
-                      {autopsiTerakhir.pola[0].bukti}
-                    </p>
-                  </>
-                ) : autopsiTerakhir.adaData ? (
-                  <>
-                    <p className="text-xs font-bold text-[#111] mt-1">
-                      Ritme pengerjaan stabil ({autopsiTerakhir.rataRataDetik} dtk/soal)
-                    </p>
-                    <p className="text-[11px] text-neutral-600">
-                      Belum ada pola rawan terdeteksi di paket terakhir. Pertahankan fokusmu!
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-xs font-bold text-[#111] mt-1">
-                      Belum ada progres!
-                    </p>
-                    <p className="text-[11px] text-neutral-600">
-                      Kerjakan minimal 1 paket soal supaya Guru Autopsi bisa membaca pola belajarmu.
-                    </p>
-                  </>
-                )}
               </div>
             </div>
-            <NeoBtn
-              onClick={() => {
-                setStrategiOpen(true);
-                logEvent('strategy_modal_open', { from: 'beranda' });
-              }}
-              className="shrink-0 bg-white px-2.5 py-1.5 rounded-xl text-[11px]"
-            >
-              Strategi
-            </NeoBtn>
-          </div>
-          </div>
 
-          {/* Section katalog mapel */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <h3 className="text-base font-extrabold text-[#111]">Pilih Mapel &amp; Paket Soal</h3>
+            {/* Menu Navigasi */}
+            <nav className="space-y-2" aria-label="Menu Utama">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 px-1">
+                Menu Navigasi
+              </p>
               <button
                 type="button"
-                onClick={openAtur}
-                className="text-xs font-extrabold text-[#4F46E5] underline decoration-2 underline-offset-2"
+                onClick={() => router.push('/beranda')}
+                className="w-full border-2 border-[#111] shadow-[0_3px_0_#111] bg-[#B6FF00] text-[#111] px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2.5 text-left transition-all"
               >
-                ⚙️ Atur Pilihanmu
+                <span className="text-sm">📚</span>
+                <span>Beranda</span>
               </button>
-            </div>
-
-            <div className="relative mb-3">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari Matematika, TKJ, Fisika, Bahasa Jepang..."
-                className="w-full bg-white border-2 border-[#111] rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:shadow-[0_0_0_2px_#B6FF00]"
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 mb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {CATEGORIES.map((c) => {
-                const isOn = activeCategory === c.key;
-                const label =
-                  c.key === 'pilihanmu' ? `⭐ Pilihanmu (${favCount})` : c.label;
-                return (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() => {
-                      setActiveCategory(c.key);
-                      logEvent('filter_category', { category: c.key });
-                    }}
-                    className={`border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1 rounded-full text-xs shrink-0 transition-all ${
-                      isOn ? 'font-extrabold bg-[#B6FF00]' : 'font-bold bg-white'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-              <NeoBtn
-                onClick={openAtur}
-                className="px-3 py-1 rounded-full text-xs bg-[#E0E7FF] text-[#111] shrink-0 flex items-center gap-1"
+              <button
+                type="button"
+                onClick={() => router.push('/ruang')}
+                className="w-full border-2 border-transparent hover:border-[#111] hover:bg-[#FAFAF7] text-neutral-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition-all"
               >
-                <span>⚙️</span>
-                <span>Atur Mapel</span>
+                <span className="text-sm">🧠</span>
+                <span>Ruang AI</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/akun')}
+                className="w-full border-2 border-transparent hover:border-[#111] hover:bg-[#FAFAF7] text-neutral-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition-all"
+              >
+                <span className="text-sm">👤</span>
+                <span>Akun</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Profil User di Bawah Sidebar */}
+          <div className="p-4 border-t-2 border-[#111] bg-[#FAFAF7] space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs shrink-0">
+                AG
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-extrabold text-[#111] truncate">Agus Putra 👋</p>
+                <p className="text-[11px] text-neutral-500 font-semibold truncate">
+                  Siap tempur hari ini
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="border-2 border-[#111] shadow-[0_2px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-[11px] font-extrabold bg-[#FFEDD5]">
+                <span>🔥</span>
+                <span>{activeDaysCount} Hari</span>
+              </div>
+              <NeoBtn
+                onClick={() => setDateOpen(true)}
+                className="flex-1 px-2.5 py-1 rounded-full flex items-center justify-center gap-1 text-[11px] bg-[#E0E7FF] text-[#111] truncate"
+                title="Ubah tanggal TKA"
+              >
+                <span>🎯</span>
+                <span className="truncate">{countdownText}</span>
               </NeoBtn>
             </div>
+          </div>
+        </aside>
 
-            {/* Daftar kartu mapel */}
-            <div className="space-y-3 lg:grid-cols-3">
-              {filtered.length === 0 && (
-                <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-6 text-center bg-white">
-                  <p className="text-xs font-bold text-neutral-500">
-                    {searchQuery
-                      ? 'Mapel tidak ditemukan.'
-                      : 'Belum ada mapel di Pilihanmu. Atur dulu yuk!'}
+        {/* ===== Kolom Utama ===== */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* ===== Header sticky ===== */}
+          <header className="bg-white border-b-2 border-[#111] px-4 md:px-8 py-3 shrink-0 sticky top-0 z-20">
+            <div className="w-full max-w-[1200px] mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs md:hidden">
+                  AG
+                </div>
+                <div>
+                  <p className="text-[11px] text-neutral-500 font-semibold leading-none">
+                    Siap tempur hari ini,
                   </p>
+                  <p className="text-sm md:text-base font-extrabold text-[#111] leading-tight">
+                    Agus Putra 👋
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLogPanel(true)}
+                  className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2 py-1 rounded-full flex items-center gap-1 text-[11px] font-extrabold bg-[#111] text-[#B6FF00]"
+                  title="Behavior log"
+                >
+                  📡 <LogBadgeCount useLogCount={useLogCount} />
+                </button>
+                <div className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-xs font-extrabold bg-[#FFEDD5]">
+                  <span>🔥</span>
+                  <span>{activeDaysCount}</span>
+                </div>
+                <NeoBtn
+                  onClick={() => setDateOpen(true)}
+                  className="px-2.5 py-1 rounded-full flex items-center gap-1 text-xs bg-[#E0E7FF] text-[#111]"
+                  title="Ubah tanggal TKA"
+                >
+                  <span>🎯</span>
+                  <span>{countdownText}</span>
+                </NeoBtn>
+              </div>
+            </div>
+          </header>
+
+          {/* ===== Konten scroll ===== */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 pb-28 md:pb-10">
+            <div className="w-full max-w-[1200px] mx-auto space-y-5 md:space-y-6">
+              <div className="space-y-5 md:space-y-4">
+                {/* Kartu Lanjutkan Terakhir (Mobile: kartu vertikal | Desktop: hero banner horizontal) */}
+                <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 md:p-6 bg-[#111] text-white relative overflow-hidden md:flex md:items-center md:justify-between md:gap-8">
+                  {lastAttemptSummary ? (
+                    <>
+                      <div className="md:flex-1 min-w-0">
+                        <div className="flex items-center justify-between md:justify-start gap-2 md:gap-3">
+                          <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded shrink-0">
+                            Lanjutkan Terakhir
+                          </span>
+                          <span className="text-xs text-white/70 font-semibold truncate">
+                            Soal {lastAttemptSummary.stat.dikerjakan} / {lastAttemptSummary.stat.total} • Akurasi {lastAttemptSummary.stat.akurasiPct}%
+                          </span>
+                        </div>
+                        <h2 className="text-lg md:text-2xl font-extrabold mt-2">
+                          {lastAttemptSummary.mapelName} · Paket {lastAttemptSummary.paket}
+                        </h2>
+                        <p className="text-xs md:text-sm text-white/75 mt-0.5">
+                          {lastAttemptSummary.stat.topikTerakhir
+                            ? `Terakhir dikerjakan: ${lastAttemptSummary.stat.topikTerakhir} (${lastAttemptSummary.stat.benar}/${lastAttemptSummary.stat.total} benar)`
+                            : `Skor terakhir: ${lastAttemptSummary.stat.benar}/${lastAttemptSummary.stat.total} benar • Akurasi ${lastAttemptSummary.stat.akurasiPct}%`}
+                        </p>
+                      </div>
+                      <div className="md:w-[340px] lg:w-[400px] md:shrink-0">
+                        <div className="mt-3 md:mt-0 flex items-center gap-3">
+                          <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
+                            <div
+                              className="h-full bg-[#B6FF00] transition-all"
+                              style={{ width: `${lastAttemptSummary.progPct}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-extrabold text-[#B6FF00]">
+                            {lastAttemptSummary.progPct}%
+                          </span>
+                        </div>
+                        <NeoBtn
+                          onClick={() =>
+                            openModeSheet(
+                              lastAttemptSummary.mapelKey,
+                              lastAttemptSummary.mapelName,
+                              lastAttemptSummary.paket,
+                              true
+                            )
+                          }
+                          className="mt-3.5 md:mt-3 w-full bg-[#B6FF00] text-[#111] py-2.5 md:py-3 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                        >
+                          Lanjutkan Paket Ini (Pilih Mode) →
+                        </NeoBtn>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="md:flex-1 min-w-0">
+                        <div className="flex items-center justify-between md:justify-start md:gap-3">
+                          <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">
+                            Lanjutkan Terakhir
+                          </span>
+                          <span className="text-xs text-white/70 font-semibold">0 / 0 Soal</span>
+                        </div>
+                        <h2 className="text-lg md:text-2xl font-extrabold mt-2">Belum ada progres!</h2>
+                        <p className="text-xs md:text-sm text-white/75 mt-0.5">
+                          Kamu belum mengerjakan soal. Pilih mapel &amp; paket di bawah buat mulai latihan!
+                        </p>
+                      </div>
+                      <div className="md:w-[320px] lg:w-[380px] md:shrink-0">
+                        <div className="mt-3 md:mt-0 flex items-center gap-3">
+                          <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
+                            <div className="h-full bg-[#B6FF00] w-0" />
+                          </div>
+                          <span className="text-xs font-extrabold text-[#B6FF00]">0%</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Kartu Catatan Autopsi */}
+                <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 md:px-5 md:py-4 bg-[#FFFBEB] flex items-center justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-lg">🔍</span>
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">
+                        Catatan Guru Autopsi
+                      </span>
+                      {autopsiTerakhir.adaData && autopsiTerakhir.pola.length > 0 ? (
+                        <>
+                          <p className="text-xs font-bold text-[#111] mt-1">
+                            {autopsiTerakhir.pola[0].judul}
+                          </p>
+                          <p className="text-[11px] text-neutral-600">
+                            {autopsiTerakhir.pola[0].bukti}
+                          </p>
+                        </>
+                      ) : autopsiTerakhir.adaData ? (
+                        <>
+                          <p className="text-xs font-bold text-[#111] mt-1">
+                            Ritme pengerjaan stabil ({autopsiTerakhir.rataRataDetik} dtk/soal)
+                          </p>
+                          <p className="text-[11px] text-neutral-600">
+                            Belum ada pola rawan terdeteksi di paket terakhir. Pertahankan fokusmu!
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs font-bold text-[#111] mt-1">
+                            Belum ada progres!
+                          </p>
+                          <p className="text-[11px] text-neutral-600">
+                            Kerjakan minimal 1 paket soal supaya Guru Autopsi bisa membaca pola belajarmu.
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <NeoBtn
-                    onClick={openAtur}
-                    className="mt-3 bg-[#B6FF00] px-4 py-2 rounded-xl text-xs"
+                    onClick={() => {
+                      setStrategiOpen(true);
+                      logEvent('strategy_modal_open', { from: 'beranda' });
+                    }}
+                    className="shrink-0 bg-white px-2.5 py-1.5 rounded-xl text-[11px]"
                   >
-                    ⚙️ Atur Mapel Pilihan
+                    Strategi
                   </NeoBtn>
                 </div>
-              )}
-              {filtered.map((m) => {
-                const stats = mapelStatsMap[m.key];
-                return (
-                  <MapelCard
-                    key={m.key}
-                    m={m}
-                    p1Stat={stats.p1}
-                    p2Stat={stats.p2}
-                    akurasiTerakhir={stats.akurasiTerakhir}
-                    onOpen={openModeSheet}
-                  />
-                );
-              })}
+              </div>
+
+              {/* Section katalog mapel */}
+              <div>
+                <div className="flex items-center justify-between mb-2.5 md:mb-3">
+                  <h3 className="text-base md:text-lg font-extrabold text-[#111]">
+                    Pilih Mapel &amp; Paket Soal
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={openAtur}
+                    className="text-xs font-extrabold text-[#4F46E5] underline decoration-2 underline-offset-2"
+                  >
+                    ⚙️ Atur Pilihanmu
+                  </button>
+                </div>
+
+                {/* Toolbar Search + Filter (Mobile: stacked | Desktop: satu baris toolbar atas) */}
+                <div className="md:flex md:items-center md:justify-between md:gap-3 md:mb-4">
+                  <div className="relative mb-3 md:mb-0 md:w-72 lg:w-80 shrink-0">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Cari Matematika, TKJ, Fisika, Bahasa Jepang..."
+                      className="w-full bg-white border-2 border-[#111] rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:shadow-[0_0_0_2px_#B6FF00]"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 mb-3 md:pb-0 md:mb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {CATEGORIES.map((c) => {
+                      const isOn = activeCategory === c.key;
+                      const label =
+                        c.key === 'pilihanmu' ? `⭐ Pilihanmu (${favCount})` : c.label;
+                      return (
+                        <button
+                          key={c.key}
+                          type="button"
+                          onClick={() => {
+                            setActiveCategory(c.key);
+                            logEvent('filter_category', { category: c.key });
+                          }}
+                          className={`border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1 rounded-full text-xs shrink-0 transition-all ${
+                            isOn ? 'font-extrabold bg-[#B6FF00]' : 'font-bold bg-white'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                    <NeoBtn
+                      onClick={openAtur}
+                      className="px-3 py-1 rounded-full text-xs bg-[#E0E7FF] text-[#111] shrink-0 flex items-center gap-1"
+                    >
+                      <span>⚙️</span>
+                      <span>Atur Mapel</span>
+                    </NeoBtn>
+                  </div>
+                </div>
+
+                {/* Daftar kartu mapel (Mobile: 1 kolom space-y-3 | Desktop: grid 3-4 kolom) */}
+                <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 xl:grid-cols-4 md:gap-4">
+                  {filtered.length === 0 && (
+                    <div className="md:col-span-full border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-6 text-center bg-white">
+                      <p className="text-xs font-bold text-neutral-500">
+                        {searchQuery
+                          ? 'Mapel tidak ditemukan.'
+                          : 'Belum ada mapel di Pilihanmu. Atur dulu yuk!'}
+                      </p>
+                      <NeoBtn
+                        onClick={openAtur}
+                        className="mt-3 bg-[#B6FF00] px-4 py-2 rounded-xl text-xs"
+                      >
+                        ⚙️ Atur Mapel Pilihan
+                      </NeoBtn>
+                    </div>
+                  )}
+                  {filtered.map((m) => {
+                    const stats = mapelStatsMap[m.key];
+                    return (
+                      <MapelCard
+                        key={m.key}
+                        m={m}
+                        p1Stat={stats.p1}
+                        p2Stat={stats.p2}
+                        akurasiTerakhir={stats.akurasiTerakhir}
+                        onOpen={openModeSheet}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* ===== Bottom nav (Hanya tampil di Mobile) ===== */}
+          <div className="h-20 shrink-0 md:hidden" />
+          <div className="md:hidden">
+            <BottomNav active="latihan" />
           </div>
         </div>
 
-        {/* ===== Bottom nav ===== */}
-        {/* Spacer agar konten tidak tertutup navbar fixed */}
-        <div className="h-20 shrink-0" />
-        <BottomNav active="latihan" />
-
         {/* ===== Bottom-sheet Pilih Mode ===== */}
         {modeSheet && (
-          <div className="fixed inset-0 z-40 bg-black/60 flex justify-center items-end">
-            <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-3 max-h-[85dvh] overflow-y-auto w-full max-w-[430px]">
+          <div className="fixed inset-0 z-40 bg-black/60 flex justify-center items-end md:items-center md:p-4">
+            <div className="bg-[#FAFAF7] border-t-2 md:border-2 border-[#111] rounded-t-3xl md:rounded-3xl md:shadow-[0_6px_0_#111] p-4 space-y-3 max-h-[85dvh] overflow-y-auto w-full max-w-[430px] md:max-w-[460px]">
               <div className="flex items-start justify-between">
                 <div>
                   <span className="bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
@@ -814,8 +917,8 @@ export default function BerandaPage() {
 
         {/* ===== Modal Atur Mapel ===== */}
         {aturOpen && (
-          <div className="fixed inset-0 z-40 bg-black/60 flex justify-center items-end">
-            <div className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl h-[80%] flex flex-col overflow-hidden">
+          <div className="fixed inset-0 z-40 bg-black/60 flex justify-center items-end md:items-center md:p-4">
+            <div className="bg-[#FAFAF7] border-t-2 md:border-2 border-[#111] rounded-t-3xl md:rounded-3xl md:shadow-[0_6px_0_#111] h-[80%] md:h-[75dvh] md:w-full md:max-w-[520px] flex flex-col overflow-hidden">
               <div className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
                 <div>
                   <h3 className="text-sm font-extrabold">⚙️ Atur Mapel Pilihanmu</h3>
@@ -827,7 +930,7 @@ export default function BerandaPage() {
                   ✕
                 </NeoBtn>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <div className="flex-1 overflow-y-auto p-4 space-y-2 md:space-y-0 md:grid md:grid-cols-2 md:gap-2.5 md:content-start">
                 {mapelList.map((m) => (
                   <label
                     key={m.key}
@@ -868,7 +971,7 @@ export default function BerandaPage() {
         {/* ===== Modal Strategi ===== */}
         {strategiOpen && (
           <div className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
-            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full space-y-3">
+            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full md:max-w-[460px] space-y-3">
               <div className="flex items-center justify-between">
                 <span className="bg-amber-300 border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
                   Panduan Anti-Bocor
