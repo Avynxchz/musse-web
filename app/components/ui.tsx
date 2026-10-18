@@ -204,7 +204,9 @@ function renderInlineBold(plain: string, keyBase: string): React.ReactNode[] {
 /** Render teks campuran: $$...$$ (display), $...$ (inline), sisanya teks biasa */
 export const Latex = memo(function Latex({ text }: { text: string }) {
   if (!text) return <></>;
-  if (!text.includes("$")) return <>{renderInlineBold(text, "nb")}</>;
+  // Auto-wrap bare LaTeX DULU (termasuk fix form feed), baru cek $
+  const wrapped = autoWrapBareLatex(text);
+  if (!wrapped.includes("$")) return <>{renderInlineBold(wrapped, "nb")}</>;
 
   const parts: React.ReactNode[] = [];
   const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
@@ -212,9 +214,9 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
   let match: RegExpExecArray | null;
   let key = 0;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = regex.exec(wrapped)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(...renderInlineBold(text.slice(lastIndex, match.index), `p${key++}`));
+      parts.push(...renderInlineBold(wrapped.slice(lastIndex, match.index), `p${key++}`));
     }
     const displayMode = match[1] !== undefined;
     parts.push(
@@ -222,8 +224,8 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
     );
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < text.length) {
-    parts.push(...renderInlineBold(text.slice(lastIndex), `p${key++}`));
+  if (lastIndex < wrapped.length) {
+    parts.push(...renderInlineBold(wrapped.slice(lastIndex), `p${key++}`));
   }
 
   return <>{parts}</>;
