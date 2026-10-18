@@ -4,8 +4,13 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MAPEL_CATALOG, Mapel, MapelCat, QuizMode, getMapel } from '../arena/data';
 import {
+  analyzeLearningPattern,
+  getLastAttempt,
+  getQuizHistory,
+  type QuizAttempt,
+} from '../../lib/analisis';
+import {
   BottomNav,
-  LogCounterLive,
   LogPanelLive,
   NeoBtn,
   Toast,
@@ -31,6 +36,79 @@ interface ModeSheetConfig {
   resume?: boolean;
 }
 
+/** Ringkasan progres real per (mapel, paket) dari localStorage. */
+interface PaketProgress {
+  adaAttempt: boolean;
+  dikerjakan: number;
+  total: number;
+  benar: number;
+  akurasiPct: number;
+  belumSelesai: boolean;
+  selesai: boolean;
+  topikTerakhir: string;
+}
+
+function buildPaketProgress(
+  m: Mapel,
+  paket: 1 | 2,
+  att: QuizAttempt | undefined
+): PaketProgress {
+  const catalogTotal = paket === 1 ? m.p1 : m.p2;
+  if (!att) {
+    return {
+      adaAttempt: false,
+      dikerjakan: 0,
+      total: catalogTotal,
+      benar: 0,
+      akurasiPct: 0,
+      belumSelesai: false,
+      selesai: false,
+      topikTerakhir: '',
+    };
+  }
+  const total = typeof att.total === 'number' && att.total > 0 ? att.total : catalogTotal;
+  const rawAnswered =
+    Array.isArray(att.perSoal) && att.perSoal.length > 0
+      ? att.perSoal.filter((s) => s.status !== 'kosong').length
+      : typeof att.total === 'number' && att.total > 0
+        ? att.total
+        : att.benar || 0;
+  const dikerjakan = total > 0 ? Math.min(rawAnswered, total) : rawAnswered;
+  const benar = Math.max(0, Math.min(att.benar || 0, dikerjakan || total));
+  const penyebutAkurasi = dikerjakan > 0 ? dikerjakan : total;
+  const akurasiPct =
+    penyebutAkurasi > 0 ? Math.min(100, Math.round((benar / penyebutAkurasi) * 100)) : 0;
+  const belumSelesai = total > 0 && dikerjakan < total;
+  const selesai = total > 0 && dikerjakan >= total;
+
+  const uniqueTopiks = Array.from(
+    new Set(
+      (att.perSoal || [])
+        .filter(
+          (s) =>
+            s.status !== 'kosong' &&
+            s.topik &&
+            s.topik !== att.mapelName &&
+            s.topik !== m.name &&
+            s.topik !== att.mapel
+        )
+        .map((s) => s.topik.trim())
+        .filter(Boolean)
+    )
+  );
+
+  return {
+    adaAttempt: true,
+    dikerjakan,
+    total,
+    benar,
+    akurasiPct,
+    belumSelesai,
+    selesai,
+    topikTerakhir: uniqueTopiks.slice(0, 2).join(' & '),
+  };
+}
+
 /**
  * Kartu mapel ter-memo: tidak re-render saat user mengetik di search
  * (referensi objek mapel tidak berubah), + content-visibility agar
@@ -44,57 +122,100 @@ const LogBadgeCount = memo(function LogBadgeCount({ useLogCount }: { useLogCount
 
 const MapelCard = memo(function MapelCard({
   m,
+  p1Stat,
+  p2Stat,
+  akurasiTerakhir,
   onOpen,
 }: {
   m: Mapel;
-  onOpen: (mapelKey: string, mapelName: string, paket: 1 | 2) => void;
+  p1Stat: PaketProgress;
+  p2Stat: PaketProgress;
+  akurasiTerakhir: number | null;
+  onOpen: (mapelKey: string, mapelName: string, paket: 1 | 2, resume?: boolean) => void;
 }) {
   const menit1 = Math.round(m.p1 * m.jatahMenitPerSoal);
   const menit2 = Math.round(m.p2 * m.jatahMenitPerSoal);
+  const hasP2 = m.p2 > 0;
+  const adaProgresMapel = p1Stat.adaAttempt || (hasP2 && p2Stat.adaAttempt);
+  const semuaPaketSelesai = p1Stat.selesai && (!hasP2 || p2Stat.selesai);
+  const mapelBelumSelesai = adaProgresMapel && !semuaPaketSelesai;
+
   return (
     <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-white [content-visibility:auto] [contain-intrinsic-size:auto_180px]">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">
             {m.cat} · Resmi Pusmendik
           </span>
-          <h4 className="text-sm font-extrabold text-[#111]">{m.name}</h4>
+          <h4 className="text-sm font-extrabold text-[#111] truncate">{m.name}</h4>
         </div>
-        {m.prog > 0 ? (
-          <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-extrabold">
-            {m.prog}% Selesai
+        {mapelBelumSelesai ? (
+          <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0">
+            Lanjut{akurasiTerakhir !== null ? ` · ${akurasiTerakhir}%` : ''}
+          </span>
+        ) : semuaPaketSelesai ? (
+          <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0">
+            Selesai{akurasiTerakhir !== null ? ` · ${akurasiTerakhir}%` : ''}
           </span>
         ) : (
-          <span className="bg-neutral-100 border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-bold">
-            Baru
+          <span className="bg-neutral-100 border border-[#111] px-2 py-0.5 rounded-md text-[10px] font-bold text-neutral-600 shrink-0">
+            Belum ada progres
           </span>
         )}
       </div>
-      <div className={`mt-3 grid ${m.p2 ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
+      <div className={`mt-3 grid ${hasP2 ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
         <NeoBtn
-          onClick={() => onOpen(m.key, m.name, 1)}
-          className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between"
+          onClick={() => onOpen(m.key, m.name, 1, p1Stat.belumSelesai)}
+          className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between gap-1"
         >
-          <span>
-            <span className="block text-xs font-extrabold">Paket 1</span>
-            <span className="block text-[10px] text-neutral-500 font-semibold">
-              {m.p1} Soal • {menit1} Menit
+          <span className="min-w-0">
+            <span className="flex items-center gap-1.5">
+              <span className="text-xs font-extrabold">Paket 1</span>
+              {p1Stat.belumSelesai && (
+                <span className="bg-[#B6FF00] border border-[#111] px-1.5 py-0.5 rounded text-[9px] font-extrabold leading-none text-[#111]">
+                  Lanjut
+                </span>
+              )}
+              {p1Stat.selesai && (
+                <span className="bg-[#B6FF00] border border-[#111] px-1.5 py-0.5 rounded text-[9px] font-extrabold leading-none text-[#111]">
+                  ✓
+                </span>
+              )}
+            </span>
+            <span className="block text-[10px] text-neutral-500 font-semibold truncate">
+              {p1Stat.adaAttempt
+                ? `${p1Stat.dikerjakan}/${p1Stat.total} Soal • Akurasi ${p1Stat.akurasiPct}%`
+                : `0/${m.p1} Soal • ${menit1} Menit`}
             </span>
           </span>
-          <span className="text-xs font-extrabold">→</span>
+          <span className="text-xs font-extrabold shrink-0">→</span>
         </NeoBtn>
-        {m.p2 > 0 && (
+        {hasP2 && (
           <NeoBtn
-            onClick={() => onOpen(m.key, m.name, 2)}
-            className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between"
+            onClick={() => onOpen(m.key, m.name, 2, p2Stat.belumSelesai)}
+            className="bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between gap-1"
           >
-            <span>
-              <span className="block text-xs font-extrabold">Paket 2</span>
-              <span className="block text-[10px] text-neutral-500 font-semibold">
-                {m.p2} Soal • {menit2} Menit
+            <span className="min-w-0">
+              <span className="flex items-center gap-1.5">
+                <span className="text-xs font-extrabold">Paket 2</span>
+                {p2Stat.belumSelesai && (
+                  <span className="bg-[#B6FF00] border border-[#111] px-1.5 py-0.5 rounded text-[9px] font-extrabold leading-none text-[#111]">
+                    Lanjut
+                  </span>
+                )}
+                {p2Stat.selesai && (
+                  <span className="bg-[#B6FF00] border border-[#111] px-1.5 py-0.5 rounded text-[9px] font-extrabold leading-none text-[#111]">
+                    ✓
+                  </span>
+                )}
+              </span>
+              <span className="block text-[10px] text-neutral-500 font-semibold truncate">
+                {p2Stat.adaAttempt
+                  ? `${p2Stat.dikerjakan}/${p2Stat.total} Soal • Akurasi ${p2Stat.akurasiPct}%`
+                  : `0/${m.p2} Soal • ${menit2} Menit`}
               </span>
             </span>
-            <span className="text-xs font-extrabold">→</span>
+            <span className="text-xs font-extrabold shrink-0">→</span>
           </NeoBtn>
         )}
       </div>
@@ -117,21 +238,124 @@ export default function BerandaPage() {
   const [dateOpen, setDateOpen] = useState(false);
   const [dateInput, setDateInput] = useState('');
   const [countdownText, setCountdownText] = useState('H-12 TKA');
+  const [quizHistory, setQuizHistory] = useState<QuizAttempt[]>([]);
+  const [lastAttempt, setLastAttempt] = useState<QuizAttempt | null>(null);
   // Guard anti double-start quiz (double-click tombol Mulai)
   const startingRef = useRef(false);
   const { toast, showToastMsg } = useToast();
   const { logEvent, useLogCount, useLogs, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
 
-  // Page view logging
+  // Baca data real dari localStorage + page view logging
   useEffect(() => {
     logEvent('page_view', { page: 'beranda' });
-  }, []);
+    const syncStorage = () => {
+      setQuizHistory(getQuizHistory());
+      setLastAttempt(getLastAttempt());
+    };
+    syncStorage();
+    window.addEventListener('focus', syncStorage);
+    window.addEventListener('storage', syncStorage);
+    return () => {
+      window.removeEventListener('focus', syncStorage);
+      window.removeEventListener('storage', syncStorage);
+    };
+  }, [logEvent]);
 
-  /* ---------- mapel list (dengan fav override) ---------- */
+  /* ---------- progres real per (mapel, paket) — MTK Paket 1 != MTK Paket 2 ---------- */
+  const latestPerPaket = useMemo(() => {
+    const map: Record<string, QuizAttempt> = {};
+    for (const att of quizHistory) {
+      if (!att || !att.mapel) continue;
+      const p = Number(att.paket) === 2 ? 2 : 1;
+      map[`${att.mapel}_p${p}`] = att;
+    }
+    if (lastAttempt && lastAttempt.mapel) {
+      const p = Number(lastAttempt.paket) === 2 ? 2 : 1;
+      const key = `${lastAttempt.mapel}_p${p}`;
+      if (!map[key]) {
+        map[key] = lastAttempt;
+      }
+    }
+    return map;
+  }, [quizHistory, lastAttempt]);
+
+  const effectiveLastAttempt = useMemo(() => {
+    if (lastAttempt && lastAttempt.mapel) return lastAttempt;
+    if (quizHistory.length > 0) return quizHistory[quizHistory.length - 1];
+    return null;
+  }, [lastAttempt, quizHistory]);
+
+  const lastAttemptSummary = useMemo(() => {
+    if (!effectiveLastAttempt) return null;
+    const m = getMapel(effectiveLastAttempt.mapel);
+    const paket: 1 | 2 = Number(effectiveLastAttempt.paket) === 2 ? 2 : 1;
+    const mapelName = effectiveLastAttempt.mapelName || m.name;
+    const stat = buildPaketProgress(m, paket, effectiveLastAttempt);
+    const progPct = stat.total > 0 ? Math.round((stat.dikerjakan / stat.total) * 100) : 0;
+    return {
+      mapelKey: effectiveLastAttempt.mapel,
+      mapelName,
+      paket,
+      mode: effectiveLastAttempt.mode,
+      stat,
+      progPct,
+    };
+  }, [effectiveLastAttempt]);
+
+  const autopsiTerakhir = useMemo(
+    () => analyzeLearningPattern(effectiveLastAttempt),
+    [effectiveLastAttempt]
+  );
+
+  const activeDaysCount = useMemo(() => {
+    const dates = new Set<string>();
+    for (const att of quizHistory) {
+      if (att?.tanggal) dates.add(att.tanggal.slice(0, 10));
+    }
+    if (effectiveLastAttempt?.tanggal) {
+      dates.add(effectiveLastAttempt.tanggal.slice(0, 10));
+    }
+    return dates.size;
+  }, [quizHistory, effectiveLastAttempt]);
+
+  const mapelStatsMap = useMemo(() => {
+    const result: Record<
+      string,
+      { p1: PaketProgress; p2: PaketProgress; akurasiTerakhir: number | null }
+    > = {};
+    for (const m of MAPEL_CATALOG) {
+      const att1 = latestPerPaket[`${m.key}_p1`];
+      const att2 = latestPerPaket[`${m.key}_p2`];
+      const p1 = buildPaketProgress(m, 1, att1);
+      const p2 = buildPaketProgress(m, 2, att2);
+
+      let latestAtt: QuizAttempt | undefined;
+      for (let i = quizHistory.length - 1; i >= 0; i--) {
+        if (quizHistory[i]?.mapel === m.key) {
+          latestAtt = quizHistory[i];
+          break;
+        }
+      }
+      if (!latestAtt && lastAttempt?.mapel === m.key) {
+        latestAtt = lastAttempt;
+      }
+      let akurasiTerakhir: number | null = null;
+      if (latestAtt) {
+        const pkt: 1 | 2 = Number(latestAtt.paket) === 2 ? 2 : 1;
+        akurasiTerakhir = (pkt === 2 ? p2 : p1).akurasiPct;
+      }
+
+      result[m.key] = { p1, p2, akurasiTerakhir };
+    }
+    return result;
+  }, [latestPerPaket, quizHistory, lastAttempt]);
+
+  /* ---------- mapel list (dengan fav override, tanpa prog dummy) ---------- */
   const mapelList: Mapel[] = useMemo(
     () =>
       MAPEL_CATALOG.map((m) => ({
         ...m,
+        prog: 0,
         fav: favOverrides[m.key] ?? m.fav,
       })),
     [favOverrides]
@@ -247,7 +471,7 @@ export default function BerandaPage() {
             </button>
             <div className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-xs font-extrabold bg-[#FFEDD5]">
               <span>🔥</span>
-              <span>14</span>
+              <span>{activeDaysCount}</span>
             </div>
             <NeoBtn
               onClick={() => setDateOpen(true)}
@@ -265,28 +489,69 @@ export default function BerandaPage() {
           <div className="space-y-5">
           {/* Kartu Lanjutkan Terakhir */}
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-[#111] text-white relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">
-                Lanjutkan Terakhir
-              </span>
-              <span className="text-xs text-white/70 font-semibold">Soal 2 / 3 (Demo) • 46 Soal Asli</span>
-            </div>
-            <h2 className="text-lg font-extrabold mt-2">Matematika (Wajib) · Paket 1</h2>
-            <p className="text-xs text-white/75 mt-0.5">
-              Terakhir dikerjakan: Sistem Persamaan &amp; Fungsi Kuadrat
-            </p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
-                <div className="h-full bg-[#B6FF00] w-[33%]" />
-              </div>
-              <span className="text-xs font-extrabold text-[#B6FF00]">33%</span>
-            </div>
-            <NeoBtn
-              onClick={() => openModeSheet('matematika', 'Matematika (Wajib)', 1, true)}
-              className="mt-3.5 w-full bg-[#B6FF00] text-[#111] py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
-            >
-              Lanjutkan Paket Ini (Pilih Mode) →
-            </NeoBtn>
+            {lastAttemptSummary ? (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded shrink-0">
+                    Lanjutkan Terakhir
+                  </span>
+                  <span className="text-xs text-white/70 font-semibold truncate">
+                    Soal {lastAttemptSummary.stat.dikerjakan} / {lastAttemptSummary.stat.total} • Akurasi {lastAttemptSummary.stat.akurasiPct}%
+                  </span>
+                </div>
+                <h2 className="text-lg font-extrabold mt-2">
+                  {lastAttemptSummary.mapelName} · Paket {lastAttemptSummary.paket}
+                </h2>
+                <p className="text-xs text-white/75 mt-0.5">
+                  {lastAttemptSummary.stat.topikTerakhir
+                    ? `Terakhir dikerjakan: ${lastAttemptSummary.stat.topikTerakhir} (${lastAttemptSummary.stat.benar}/${lastAttemptSummary.stat.total} benar)`
+                    : `Skor terakhir: ${lastAttemptSummary.stat.benar}/${lastAttemptSummary.stat.total} benar • Akurasi ${lastAttemptSummary.stat.akurasiPct}%`}
+                </p>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
+                    <div
+                      className="h-full bg-[#B6FF00] transition-all"
+                      style={{ width: `${lastAttemptSummary.progPct}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-extrabold text-[#B6FF00]">
+                    {lastAttemptSummary.progPct}%
+                  </span>
+                </div>
+                <NeoBtn
+                  onClick={() =>
+                    openModeSheet(
+                      lastAttemptSummary.mapelKey,
+                      lastAttemptSummary.mapelName,
+                      lastAttemptSummary.paket,
+                      true
+                    )
+                  }
+                  className="mt-3.5 w-full bg-[#B6FF00] text-[#111] py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                >
+                  Lanjutkan Paket Ini (Pilih Mode) →
+                </NeoBtn>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="bg-[#B6FF00] text-[#111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">
+                    Lanjutkan Terakhir
+                  </span>
+                  <span className="text-xs text-white/70 font-semibold">0 / 0 Soal</span>
+                </div>
+                <h2 className="text-lg font-extrabold mt-2">Belum ada progres!</h2>
+                <p className="text-xs text-white/75 mt-0.5">
+                  Kamu belum mengerjakan soal. Pilih mapel &amp; paket di bawah buat mulai latihan!
+                </p>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
+                    <div className="h-full bg-[#B6FF00] w-0" />
+                  </div>
+                  <span className="text-xs font-extrabold text-[#B6FF00]">0%</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Kartu Catatan Autopsi */}
@@ -297,12 +562,34 @@ export default function BerandaPage() {
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">
                   Catatan Guru Autopsi
                 </span>
-                <p className="text-xs font-bold text-[#111] mt-1">
-                  Waspada pola &quot;Terburu-buru&quot; (&lt;15 dtk/soal)
-                </p>
-                <p className="text-[11px] text-neutral-600">
-                  Terdeteksi di tryout terakhir. Baca kembali kalimat tanya sebelum klik.
-                </p>
+                {autopsiTerakhir.adaData && autopsiTerakhir.pola.length > 0 ? (
+                  <>
+                    <p className="text-xs font-bold text-[#111] mt-1">
+                      {autopsiTerakhir.pola[0].judul}
+                    </p>
+                    <p className="text-[11px] text-neutral-600">
+                      {autopsiTerakhir.pola[0].bukti}
+                    </p>
+                  </>
+                ) : autopsiTerakhir.adaData ? (
+                  <>
+                    <p className="text-xs font-bold text-[#111] mt-1">
+                      Ritme pengerjaan stabil ({autopsiTerakhir.rataRataDetik} dtk/soal)
+                    </p>
+                    <p className="text-[11px] text-neutral-600">
+                      Belum ada pola rawan terdeteksi di paket terakhir. Pertahankan fokusmu!
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-bold text-[#111] mt-1">
+                      Belum ada progres!
+                    </p>
+                    <p className="text-[11px] text-neutral-600">
+                      Kerjakan minimal 1 paket soal supaya Guru Autopsi bisa membaca pola belajarmu.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <NeoBtn
@@ -387,9 +674,19 @@ export default function BerandaPage() {
                   </NeoBtn>
                 </div>
               )}
-              {filtered.map((m) => (
-                <MapelCard key={m.key} m={m} onOpen={openModeSheet} />
-              ))}
+              {filtered.map((m) => {
+                const stats = mapelStatsMap[m.key];
+                return (
+                  <MapelCard
+                    key={m.key}
+                    m={m}
+                    p1Stat={stats.p1}
+                    p2Stat={stats.p2}
+                    akurasiTerakhir={stats.akurasiTerakhir}
+                    onOpen={openModeSheet}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
