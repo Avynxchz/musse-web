@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { MAPEL_CATALOG, Mapel, MapelCat, QuizMode, getMapel } from '../arena/data';
 import {
   BottomNav,
-  LogPanel,
+  LogCounterLive,
+  LogPanelLive,
   NeoBtn,
   Toast,
   useBehaviorLog,
@@ -35,6 +36,12 @@ interface ModeSheetConfig {
  * (referensi objek mapel tidak berubah), + content-visibility agar
  * browser skip render kartu di luar viewport.
  */
+/** Badge count terisolasi: hanya komponen kecil ini yang re-render saat log bertambah. */
+const LogBadgeCount = memo(function LogBadgeCount({ useLogCount }: { useLogCount: () => number }) {
+  const count = useLogCount();
+  return <>{count}</>;
+});
+
 const MapelCard = memo(function MapelCard({
   m,
   onOpen,
@@ -113,7 +120,7 @@ export default function BerandaPage() {
   // Guard anti double-start quiz (double-click tombol Mulai)
   const startingRef = useRef(false);
   const { toast, showToastMsg } = useToast();
-  const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
+  const { logEvent, useLogCount, useLogs, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
 
   // Page view logging
   useEffect(() => {
@@ -236,7 +243,7 @@ export default function BerandaPage() {
               className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2 py-1 rounded-full flex items-center gap-1 text-[11px] font-extrabold bg-[#111] text-[#B6FF00]"
               title="Behavior log"
             >
-              📡 {logs.length}
+              📡 <LogBadgeCount useLogCount={useLogCount} />
             </button>
             <div className="border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-xs font-extrabold bg-[#FFEDD5]">
               <span>🔥</span>
@@ -643,8 +650,8 @@ export default function BerandaPage() {
 
         {/* ===== Panel behavior log ===== */}
         {showLogPanel && (
-          <LogPanel
-            logs={logs}
+          <LogPanelLive
+            useLogs={useLogs}
             onClose={() => setShowLogPanel(false)}
             badge="Real-Time Telemetry"
             title="Behavior Log (Beranda)"
