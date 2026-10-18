@@ -182,10 +182,28 @@ function KatexChunk({ code, displayMode }: { code: string; displayMode: boolean 
   }
 }
 
+/** Render teks polos dengan markdown bold: **teks** (atau ***teks***) → <strong>.
+ *  Hanya dipakai di segmen non-math, jadi rumus KaTeX tidak tersentuh. */
+function renderInlineBold(plain: string, keyBase: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const re = /\*{2,3}([^*]+?)\*{2,3}/g;
+  let last = 0;
+  let k = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(plain)) !== null) {
+    if (m.index > last) parts.push(<span key={`${keyBase}-t${k++}`}>{plain.slice(last, m.index)}</span>);
+    parts.push(<strong key={`${keyBase}-b${k++}`} className="font-extrabold">{m[1]}</strong>);
+    last = m.index + m[0].length;
+  }
+  if (last < plain.length) parts.push(<span key={`${keyBase}-t${k++}`}>{plain.slice(last)}</span>);
+  if (parts.length === 0) return [plain];
+  return parts;
+}
+
 /** Render teks campuran: $$...$$ (display), $...$ (inline), sisanya teks biasa */
 export const Latex = memo(function Latex({ text }: { text: string }) {
   if (!text) return <></>;
-  if (!text.includes("$")) return <>{text}</>;
+  if (!text.includes("$")) return <>{renderInlineBold(text, "nb")}</>;
 
   const parts: React.ReactNode[] = [];
   const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
@@ -195,7 +213,7 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(<span key={key++}>{text.slice(lastIndex, match.index)}</span>);
+      parts.push(...renderInlineBold(text.slice(lastIndex, match.index), `p${key++}`));
     }
     const displayMode = match[1] !== undefined;
     parts.push(
@@ -204,7 +222,7 @@ export const Latex = memo(function Latex({ text }: { text: string }) {
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) {
-    parts.push(<span key={key++}>{text.slice(lastIndex)}</span>);
+    parts.push(...renderInlineBold(text.slice(lastIndex), `p${key++}`));
   }
 
   return <>{parts}</>;
@@ -285,6 +303,27 @@ export function autoWrapBareLatex(text: string): string {
   return parts.map((seg, idx) => (idx % 2 === 1 ? seg : wrapBareCommands(seg))).join('');
 }
 
+/** Format notasi list ala Python: ['A:Benar', 'B:Salah'] → "A: Benar, B: Salah".
+ *  Juga handle kutip ganda: ["A:Benar", "B:Salah"]. Kurung siku tanpa kutip
+ *  (mis. [lihat gambar]) tidak disentuh. */
+export function formatListNotation(text: string): string {
+  if (!text || !text.includes('[')) return text;
+  return text.replace(/\[((?:\s*['"][^'"]*['"]\s*,?)+)\]/g, (m, inner: string) => {
+    const items: string[] = [];
+    const re = /['"]([^'"]*)['"]/g;
+    let im: RegExpExecArray | null;
+    while ((im = re.exec(inner)) !== null) {
+      const item = im[1].trim();
+      if (!item) continue;
+      const colon = item.indexOf(':');
+      if (colon > 0) items.push(`${item.slice(0, colon).trim()}: ${item.slice(colon + 1).trim()}`);
+      else items.push(item);
+    }
+    if (items.length === 0) return m;
+    return items.join(', ');
+  });
+}
+
 /** Sembunyikan segmen math $...$ / $$...$$ agar regex pemisah tidak memotong rumus. */
 function maskMath(s: string): { text: string; segs: string[] } {
   const segs: string[] = [];
@@ -348,7 +387,7 @@ function splitNestedSubs(item: string): { header: string; subs: string[] } | nul
  *  Setiap item di-render via <Latex> agar rumus ke-render KaTeX.
  */
 export const PilarText = memo(function PilarText({ text, className = "text-sm font-medium leading-relaxed" }: { text: string; className?: string }) {
-  const t = (text ?? '').trim();
+  const t = formatListNotation((text ?? '').trim());
   if (!t) return <></>;
 
   const numberedRe = /^\d+[.)]\s+/;
@@ -433,15 +472,15 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
 /** Render teks dengan LaTeX menjadi HTML string (untuk dangerouslySetInnerHTML) */
 export function renderLatexToHtml(text: string): string {
   if (!text) return text;
-  const src = autoWrapBareLatex(text);
-  if (!src.includes("$")) return src;
+  const src = autoWrapBareLatex(formatListNotation(text));
+  if (!src.includes("$")) return richEsc(src);
   const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let out = "";
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   while ((match = regex.exec(src)) !== null) {
-    if (match.index > lastIndex) out += esc(src.slice(lastIndex, match.index));
+    if (match.index > lastIndex) out += richEsc(src.slice(lastIndex, match.index));
     const displayMode = match[1] !== undefined;
     const code = displayMode ? match[1] : match[2];
     try {
@@ -456,8 +495,14 @@ export function renderLatexToHtml(text: string): string {
     }
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < src.length) out += esc(src.slice(lastIndex));
+  if (lastIndex < src.length) out += richEsc(src.slice(lastIndex));
   return out;
+}
+
+/** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>. */
+function richEsc(s: string): string {
+  const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc(s).replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>');
 }
 
 export type NavKey = 'latihan' | 'ruang' | 'akun';
