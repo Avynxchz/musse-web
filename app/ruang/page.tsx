@@ -6,8 +6,8 @@ import { analyzeRuangAI, getQuizHistory } from '../../lib/analisis';
 import {
   BottomNav,
   ChatInput,
-  LogCounter,
-  LogPanel,
+  LogCounterLive,
+  LogPanelLive,
   NeoBtn,
   Toast,
   useBehaviorLog,
@@ -90,7 +90,7 @@ export default function RuangPage() {
 
   const [mapelCoach, setMapelCoach] = useState('matematika');
   const { toast, showToastMsg } = useToast();
-  const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('ruang');
+  const { logEvent, useLogCount, useLogs, showLogPanel, setShowLogPanel } = useBehaviorLog('ruang');
 
   /* ---------- AI #3: Analisis soal salah — DATA BENERAN dari history ---------- */
   const statRuang = useMemo(() => analyzeRuangAI(getQuizHistory()), []);
@@ -169,7 +169,7 @@ export default function RuangPage() {
             <p className="text-[11px] text-neutral-500">Analisis kumulatif & konsultasi AI Coach per mapel</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
+            <LogCounterLive useLogCount={useLogCount} onClick={() => setShowLogPanel((v) => !v)} />
             <span className="border-2 border-[#111] shadow-[0_4px_0_#111] bg-[#B6FF00] px-2.5 py-1 rounded-full text-[11px] font-extrabold">
               Akurasi {statRuang.adaData ? `${statRuang.akurasiPct}%` : '—'}
             </span>
@@ -351,8 +351,8 @@ export default function RuangPage() {
 
         {/* ===== Panel behavior log ===== */}
         {showLogPanel && (
-          <LogPanel
-            logs={logs}
+          <LogPanelLive
+            useLogs={useLogs}
             onClose={() => setShowLogPanel(false)}
             badge="Telemetry"
             title="Behavior Log"
