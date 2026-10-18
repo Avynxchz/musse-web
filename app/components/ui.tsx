@@ -157,6 +157,7 @@ import katex from "katex";
 /** Normalisasi LaTeX dari data: backslash ganda jadi tunggal, "frac {a} {b}" jadi "\frac{a}{b}" */
 function normalizeLatex(src: string): string {
   return src
+    .replace(//g, "\f") // form feed (korupsi \f dari \frac) → \f
     .replace(/\\/g, "\\") // \\cup → \cup (data double-escaped)
     .replace(/\\?(d|t)?frac\s*\{/g, "\\frac{") // frac/dfrac/tfrac (dgn/tanpa backslash & spasi) → \frac{
     .replace(/\}\s*\{/g, "}{"); // } { → }{
