@@ -4,9 +4,10 @@
  * AI #2 (Guru Autopsi): analisis cara belajar dari 1 attempt terakhir.
  * AI #3 (Ruang AI): analisis kumulatif soal salah per mapel dari history.
  *
- * Data disimpan di localStorage oleh app/arena/page.tsx saat finishQuiz:
- * - 'musse_last_attempt': detail attempt terakhir
- * - 'musse_quiz_history': array attempt (maks 50)
+ * Data disimpan di localStorage oleh app/arena/page.tsx saat finishQuiz
+ * (via saveAttempt):
+ * - KEY_LAST_ATTEMPT ('musse_last_attempt'): detail attempt terakhir
+ * - KEY_QUIZ_HISTORY ('musse_quiz_history'): array attempt (maks MAX_QUIZ_HISTORY)
  */
 
 // ================= Tipe data =================
@@ -33,6 +34,12 @@ export interface QuizAttempt {
 
 // ================= Helper localStorage =================
 
+/** Key penyimpanan — single source of truth (dipakai arena + analisis). */
+export const KEY_LAST_ATTEMPT = 'musse_last_attempt';
+export const KEY_QUIZ_HISTORY = 'musse_quiz_history';
+/** Batas history agar localStorage tidak membengkak. */
+export const MAX_QUIZ_HISTORY = 50;
+
 function safeGet<T>(key: string, fallback: T): T {
   try {
     if (typeof window === 'undefined') return fallback;
@@ -45,11 +52,25 @@ function safeGet<T>(key: string, fallback: T): T {
 }
 
 export function getLastAttempt(): QuizAttempt | null {
-  return safeGet<QuizAttempt | null>('musse_last_attempt', null);
+  return safeGet<QuizAttempt | null>(KEY_LAST_ATTEMPT, null);
 }
 
 export function getQuizHistory(): QuizAttempt[] {
-  return safeGet<QuizAttempt[]>('musse_quiz_history', []);
+  return safeGet<QuizAttempt[]>(KEY_QUIZ_HISTORY, []);
+}
+
+/** Simpan 1 attempt: tulis last_attempt + append ke history (maks MAX_QUIZ_HISTORY).
+ *  Dipakai app/arena/page.tsx saat finishQuiz. Aman dipanggil berkali-kali. */
+export function saveAttempt(attempt: QuizAttempt): void {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(KEY_LAST_ATTEMPT, JSON.stringify(attempt));
+    const hist = getQuizHistory();
+    hist.push(attempt);
+    localStorage.setItem(KEY_QUIZ_HISTORY, JSON.stringify(hist.slice(-MAX_QUIZ_HISTORY)));
+  } catch {
+    /* abaikan error storage */
+  }
 }
 
 // ================= AI #2: Analisis cara belajar =================
