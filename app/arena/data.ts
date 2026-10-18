@@ -244,21 +244,21 @@ export function evaluateQuestion(
   if (answer === undefined) return 'kosong';
   if (q.tipe === 'Pilihan Ganda') {
     if (typeof answer !== 'string' || answer === '') return 'kosong';
-    return answer === q.kunci ? 'benar' : 'salah';
+    return answer.trim() === String(q.kunci).trim() ? 'benar' : 'salah';
   }
   if (q.tipe === 'Pilihan Ganda Kompleks') {
     if (!Array.isArray(answer) || answer.length === 0) return 'kosong';
-    const u = [...answer].sort().join(',');
-    const k = [...(q.kunci as string[])].sort().join(',');
+    const u = [...answer].map((x) => String(x).trim()).sort().join(',');
+    const k = [...(Array.isArray(q.kunci) ? q.kunci : [String(q.kunci)])].map((x) => String(x).trim()).sort().join(',');
     return u === k ? 'benar' : 'salah';
   }
-  // Benar-Salah, Matriks, Pernyataan-Label: semua pernyataan harus dijawab & cocok kunci
+  // Benar-Salah, Matriks, Pernyataan-Label: jika ada pernyataan yang dipilih, dinilai benar/salah (bukan kosong)
   if (q.tipe === 'Benar-Salah' || q.tipe === 'Matriks' || q.tipe === 'Pernyataan-Label') {
-    if (typeof answer !== 'object' || Array.isArray(answer)) return 'kosong';
+    if (typeof answer !== 'object' || Array.isArray(answer) || Object.keys(answer).length === 0) return 'kosong';
     const kunci = q.kunci as Record<string, string>;
     const stmts = q.statements ?? [];
-    if (!stmts.every((s) => answer[s.key])) return 'kosong';
-    return stmts.every((s) => answer[s.key] === kunci[s.key]) ? 'benar' : 'salah';
+    if (stmts.length === 0) return 'kosong';
+    return stmts.every((s) => answer[s.key] && answer[s.key] === kunci[s.key]) ? 'benar' : 'salah';
   }
   return 'kosong';
 }

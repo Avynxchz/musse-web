@@ -342,6 +342,8 @@ function HasilContent() {
   const mapelKey = searchParams.get('mapel') || 'matematika';
   const paket = searchParams.get('paket') === '2' ? 2 : 1;
   const benarParam = parseInt(searchParams.get('benar') || '', 10);
+  const salahParam = parseInt(searchParams.get('salah') || '', 10);
+  const kosongParam = parseInt(searchParams.get('kosong') || '', 10);
   const totalParam = parseInt(searchParams.get('total') || '', 10);
   const autoSubmit = searchParams.get('autosubmit') === '1';
 
@@ -353,7 +355,15 @@ function HasilContent() {
       try {
         const rows = await getSoal(mapelKey, paket);
         if (!cancelled && rows.length > 0) {
-          setQuestions(rows.map(dbRowToQuestion));
+          const parsed: Question[] = [];
+          for (const row of rows) {
+            try {
+              parsed.push(dbRowToQuestion(row));
+            } catch {
+              /* skip soal rusak */
+            }
+          }
+          if (parsed.length > 0) setQuestions(parsed);
         }
       } catch {
         // fallback ke dummy, tidak blank
@@ -364,11 +374,43 @@ function HasilContent() {
     };
   }, [mapelKey, paket]);
 
-  const total = Number.isFinite(totalParam) && totalParam > 0 ? totalParam : questions.length;
-  const benar = Number.isFinite(benarParam) && benarParam >= 0 ? Math.min(benarParam, total) : 0;
-  // Dummy: 1 salah (kalau ada sisa), sisanya kosong
-  const salah = total - benar > 0 ? 1 : 0;
-  const kosong = Math.max(0, total - benar - salah);
+  // Baca attempt terakhir yang cocok dengan mapel + paket ini
+  const [lastAttempt, setLastAttempt] = useState(() => getLastAttempt());
+  useEffect(() => {
+    setLastAttempt(getLastAttempt());
+  }, [mapelKey, paket]);
+
+  const matchedAttempt = useMemo(() => {
+    if (!lastAttempt) return null;
+    const attemptPaket = Number(lastAttempt.paket) === 2 ? 2 : 1;
+    if (lastAttempt.mapel !== mapelKey || attemptPaket !== paket) return null;
+    return lastAttempt;
+  }, [lastAttempt, mapelKey, paket]);
+
+  const total =
+    matchedAttempt && matchedAttempt.perSoal.length > 0
+      ? matchedAttempt.total || matchedAttempt.perSoal.length
+      : Number.isFinite(totalParam) && totalParam > 0
+        ? totalParam
+        : questions.length;
+  const benar =
+    matchedAttempt && matchedAttempt.perSoal.length > 0
+      ? matchedAttempt.perSoal.filter((s) => s.status === 'benar').length
+      : Number.isFinite(benarParam) && benarParam >= 0
+        ? Math.min(benarParam, total)
+        : 0;
+  const salah =
+    matchedAttempt && matchedAttempt.perSoal.length > 0
+      ? matchedAttempt.perSoal.filter((s) => s.status === 'salah').length
+      : Number.isFinite(salahParam) && salahParam >= 0
+        ? Math.min(salahParam, total - benar)
+        : 0;
+  const kosong =
+    matchedAttempt && matchedAttempt.perSoal.length > 0
+      ? matchedAttempt.perSoal.filter((s) => s.status === 'kosong').length
+      : Number.isFinite(kosongParam) && kosongParam >= 0
+        ? Math.min(kosongParam, total - benar - salah)
+        : Math.max(0, total - benar - salah);
   const skor = total > 0 ? Math.round((benar / total) * 100) : 0;
 
   const mapel = getMapel(mapelKey);
@@ -384,29 +426,28 @@ function HasilContent() {
     logEvent('page_view', { page: 'hasil' });
   }, []);
 
-  /* ---------- status per soal (dummy) ---------- */
+  /* ---------- status per soal (real dari attempt, fallback URL params) ---------- */
   const statusPerSoal: ('benar' | 'salah' | 'kosong')[] = useMemo(() => {
+    if (matchedAttempt && matchedAttempt.perSoal.length > 0) {
+      const byNomor = new Map(matchedAttempt.perSoal.map((ps) => [ps.nomor, ps.status]));
+      return questions.map((q, i) => byNomor.get(q.nomor) ?? matchedAttempt.perSoal[i]?.status ?? 'kosong');
+    }
     return questions.map((_, i) => {
       if (i < benar) return 'benar';
-      if (i === benar && salah > 0) return 'salah';
+      if (i < benar + salah) return 'salah';
       return 'kosong';
     });
-  }, [questions, benar, salah]);
+  }, [questions, matchedAttempt, benar, salah]);
 
   const openStrategi = useCallback(() => {
     setStrategiOpen(true);
     logEvent('strategy_modal_open', { pola: 'terburu-buru' });
   }, [logEvent]);
 
-  /* ---------- AI #2: Analisis cara belajar (Guru Autopsi) - DATA BENERAN ---------- */
+  /* ---------- AI #1: Analisis cara belajar (Guru Autopsi) - DATA BENERAN ---------- */
   const analisis = useMemo(() => {
-    const attempt = getLastAttempt();
-    // Hanya pakai attempt yang cocok dengan mapel+paket halaman ini
-    if (attempt && (attempt.mapel !== mapelKey || attempt.paket !== paket)) {
-      return analyzeLearningPattern(null);
-    }
-    return analyzeLearningPattern(attempt);
-  }, [mapelKey, paket]);
+    return analyzeLearningPattern(matchedAttempt);
+  }, [matchedAttempt]);
 
   /* ================= render ================= */
 

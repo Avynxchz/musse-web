@@ -119,6 +119,7 @@ function ArenaClient() {
   // --- state ---
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
+  const answersRef = useRef<Record<number, Answer>>({});
   const [ragu, setRagu] = useState<Record<number, boolean>>({});
   const [checked, setChecked] = useState<Record<number, boolean>>({});
   const [pilarExpanded, setPilarExpanded] = useState(false);
@@ -160,6 +161,11 @@ function ArenaClient() {
 
   useEffect(() => {
     let cancelled = false;
+    answersRef.current = {};
+    setAnswers({});
+    setRagu({});
+    setChecked({});
+    setQIndex(0);
     (async () => {
       try {
         const rows = await getSoal(mapelKey, paket);
@@ -402,8 +408,11 @@ function ArenaClient() {
     setTimeout(() => {
       finishingRef.current = false;
     }, 3000);
-    const hasil = questions.map((qq, i) => evaluateQuestion(qq, answers[i]));
+    const currentAnswers = answersRef.current;
+    const hasil = questions.map((qq, i) => evaluateQuestion(qq, currentAnswers[i] ?? answers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
+    const salah = hasil.filter((h) => h === 'salah').length;
+    const kosong = hasil.filter((h) => h === 'kosong').length;
     // Log durasi soal terakhir
     const now = Date.now();
     const durasiMs = now - soalStartTimeRef.current;
@@ -425,6 +434,8 @@ function ArenaClient() {
       mode,
       ended_by: endedBy,
       benar,
+      salah,
+      kosong,
       total: questions.length,
     });
     const totalPindahTanpaJawab = Object.values(pindahTanpaJawabRef.current).reduce(
@@ -453,7 +464,9 @@ function ArenaClient() {
         durasiPilarDetik: durasiPilarRef.current[i],
       })),
     });
-    router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${questions.length}`);
+    router.push(
+      `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
+    );
   };
 
   // --- timer: state countdown hidup di <ArenaTimer> (terisolasi).
@@ -496,7 +509,8 @@ function ArenaClient() {
           durasiPilarRef.current[qIdx] = (durasiPilarRef.current[qIdx] || 0) + pilarSec;
           pilarStartTimeRef.current[qIdx] = 0;
         }
-        if (idx !== qIdx && evaluateQuestion(questions[qIdx], answers[qIdx]) === 'kosong') {
+        const curAns = answersRef.current[qIdx] ?? answers[qIdx];
+        if (idx !== qIdx && evaluateQuestion(questions[qIdx], curAns) === 'kosong') {
           pindahTanpaJawabRef.current[qIdx] = (pindahTanpaJawabRef.current[qIdx] || 0) + 1;
         }
       }
@@ -519,7 +533,7 @@ function ArenaClient() {
   const pickOption = (key: string) => {
     const isComplex = q.tipe === 'Pilihan Ganda Kompleks';
     // Track ganti jawaban untuk analisis AI
-    const prevAns = answers[qIndex];
+    const prevAns = answersRef.current[qIndex] ?? answers[qIndex];
     const sudahAdaJawaban = prevAns !== undefined && (
       typeof prevAns === 'string' ? prevAns !== '' :
       Array.isArray(prevAns) ? prevAns.length > 0 : Object.keys(prevAns).length > 0
@@ -527,29 +541,29 @@ function ArenaClient() {
     if (sudahAdaJawaban) {
       gantiJawabanRef.current[qIndex] = (gantiJawabanRef.current[qIndex] || 0) + 1;
     }
-    setAnswers((prev) => {
-      const cur = prev[qIndex];
-      if (isComplex) {
-        const arr = Array.isArray(cur) ? [...cur] : [];
-        const next = arr.includes(key) ? arr.filter((k) => k !== key) : [...arr, key];
-        return { ...prev, [qIndex]: next };
-      }
-      return { ...prev, [qIndex]: key };
-    });
+    const nextAns: Answer = isComplex
+      ? (() => {
+          const arr = Array.isArray(prevAns) ? [...prevAns] : [];
+          return arr.includes(key) ? arr.filter((k) => k !== key) : [...arr, key];
+        })()
+      : key;
+    const updated = { ...answersRef.current, [qIndex]: nextAns };
+    answersRef.current = updated;
+    setAnswers(updated);
     setChecked((prev) => ({ ...prev, [qIndex]: false }));
     logEvent('option_click', { soal_no: q.nomor, opsi: key, mode });
   };
 
   const pickBs = (stmtKey: string, val: string) => {
     // Track ganti jawaban untuk analisis AI
-    const prevAns = answers[qIndex] as Record<string, string> | undefined;
+    const prevAns = (answersRef.current[qIndex] ?? answers[qIndex]) as Record<string, string> | undefined;
     if (prevAns && prevAns[stmtKey] && prevAns[stmtKey] !== val) {
       gantiJawabanRef.current[qIndex] = (gantiJawabanRef.current[qIndex] || 0) + 1;
     }
-    setAnswers((prev) => {
-      const cur = (prev[qIndex] as Record<string, string>) || {};
-      return { ...prev, [qIndex]: { ...cur, [stmtKey]: val } };
-    });
+    const cur = (prevAns && typeof prevAns === 'object' && !Array.isArray(prevAns)) ? prevAns : {};
+    const updated = { ...answersRef.current, [qIndex]: { ...cur, [stmtKey]: val } };
+    answersRef.current = updated;
+    setAnswers(updated);
     setChecked((prev) => ({ ...prev, [qIndex]: false }));
     logEvent('option_click_bs', { soal_no: q.nomor, statement: stmtKey, val, mode });
   };
@@ -568,11 +582,8 @@ function ArenaClient() {
     }
     // mode latihan
     if (!checked[qIndex]) {
-      const ans = answers[qIndex];
-      const kosong =
-        ans === undefined ||
-        (typeof ans === 'string' && ans === '') ||
-        (Array.isArray(ans) && ans.length === 0);
+      const ans = answersRef.current[qIndex] ?? answers[qIndex];
+      const kosong = evaluateQuestion(q, ans) === 'kosong';
       if (kosong) {
         showToastMsg('⚠️ Pilih jawabanmu dulu sebelum Cek Jawaban!');
         return;
@@ -1400,10 +1411,7 @@ function ArenaClient() {
               <div className="grid grid-cols-5 gap-2">
                 {questions.map((qq, i) => {
                   const ans = answers[i];
-                  const dijawab =
-                    ans !== undefined &&
-                    !(typeof ans === 'string' && ans === '') &&
-                    !(Array.isArray(ans) && ans.length === 0);
+                  const dijawab = evaluateQuestion(qq, ans) !== 'kosong';
                   const bg = ragu[i] ? 'bg-amber-300' : dijawab ? 'bg-[#B6FF00]' : 'bg-white';
                   return (
                     <button
