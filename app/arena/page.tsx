@@ -250,6 +250,7 @@ function ArenaClient() {
   // Guard anti double-submit / double-finish (race condition)
   const finishingRef = useRef(false);
   const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
+  const chatAbortRef = useRef<AbortController | null>(null);
 
   // Cleanup: cegah setState setelah unmount (toast timer)
   useEffect(() => {
@@ -607,6 +608,11 @@ function ArenaClient() {
         ? `<b>Petunjuk konsep (${q.topik}):</b><br/>${q.pilar1}`
         : `${q.ringkas}<br/><br/>💡 <b>Trik:</b> ${q.pilar5}`;
 
+    // Abort request sebelumnya jika masih jalan (cegah race condition)
+    if (chatAbortRef.current) chatAbortRef.current.abort();
+    const aborter = new AbortController();
+    chatAbortRef.current = aborter;
+
     try {
       const res = await fetch('/api/tutor', {
         method: 'POST',
@@ -617,6 +623,7 @@ function ArenaClient() {
           nomor: q.nomor,
           message: msg,
         }),
+        signal: aborter.signal,
       });
       const data = await res.json();
 
@@ -647,7 +654,9 @@ function ArenaClient() {
         next[next.length - 1] = { from: 'ai', html: replyHtml };
         return next;
       });
-    } catch {
+    } catch (e) {
+      // Abort (request dibatalkan) -> jangan update UI, bukan error
+      if (e instanceof Error && e.name === 'AbortError') return;
       // Network error -> fallback ke template
       setChatMsgs((prev) => {
         const next = [...prev];
