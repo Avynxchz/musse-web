@@ -155,6 +155,11 @@ export const NeoBtn = memo(function NeoBtn({
 import katex from "katex";
 
 /** Normalisasi LaTeX dari data: backslash ganda jadi tunggal, "frac {a} {b}" jadi "\frac{a}{b}" */
+/** Escape karakter HTML (& < >) untuk output string aman. */
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function normalizeLatex(src: string): string {
   return src
     .replace(//g, "\f") // form feed (korupsi \f dari \frac) → \f
@@ -531,7 +536,6 @@ export function renderLatexToHtml(text: string): string {
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let out = "";
-  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   while ((match = regex.exec(src)) !== null) {
     if (match.index > lastIndex) out += richEsc(src.slice(lastIndex, match.index));
     const displayMode = match[1] !== undefined;
@@ -544,7 +548,7 @@ export function renderLatexToHtml(text: string): string {
         ? `<span class="katex-block my-1 block overflow-x-auto">${html}</span>`
         : `<span class="katex-inline">${html}</span>`;
     } catch {
-      out += `<span class="italic bg-[#F0FFB8] px-1 rounded font-serif">${esc(code)}</span>`;
+      out += `<span class="italic bg-[#F0FFB8] px-1 rounded font-serif">${escapeHtml(code)}</span>`;
     }
     lastIndex = match.index + match[0].length;
   }
@@ -555,8 +559,7 @@ export function renderLatexToHtml(text: string): string {
 /** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>.
  *  Newline \n → <br/> agar ganti baris tampil di HTML string. */
 function richEsc(s: string): string {
-  const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return esc(s)
+  return escapeHtml(s)
     .replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>')
     .replace(/\n/g, '<br/>');
 }
