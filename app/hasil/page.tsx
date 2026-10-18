@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
-import { Latex, LogCounter, LogPanel, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
+import { Latex, LogCounterLive, LogPanelLive, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { analyzeLearningPattern, getLastAttempt } from '../../lib/analisis';
 
@@ -377,7 +377,7 @@ function HasilContent() {
   /* ---------- state ---------- */
   const [strategiOpen, setStrategiOpen] = useState(false);
   const [bedahIdx, setBedahIdx] = useState<number | null>(null);
-  const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('hasil');
+  const { logEvent, useLogCount, useLogs, showLogPanel, setShowLogPanel } = useBehaviorLog('hasil');
 
   // Page view logging
   useEffect(() => {
@@ -428,7 +428,7 @@ function HasilContent() {
             </h2>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
+            <LogCounterLive useLogCount={useLogCount} onClick={() => setShowLogPanel((v) => !v)} />
             <NeoBtn onClick={() => router.push('/beranda')} className="bg-white px-3 py-1.5 rounded-xl text-xs">
               Ke Beranda →
             </NeoBtn>
@@ -667,8 +667,8 @@ function HasilContent() {
 
         {/* ===== Panel behavior log ===== */}
         {showLogPanel && (
-          <LogPanel
-            logs={logs}
+          <LogPanelLive
+            useLogs={useLogs}
             onClose={() => setShowLogPanel(false)}
             badge="Telemetry"
             title="Behavior Log"
