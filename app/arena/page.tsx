@@ -641,6 +641,20 @@ function ArenaClient() {
     lastChatRef.current = { msg, ts: now };
     setTutorQuota((qt) => Math.max(0, qt - 1));
 
+    // Ambil 2-3 chat terakhir di soal ini (sebelum pesan baru ditambahkan) agar tanya lanjutan nyambung
+    const recentTurns = chatMsgs
+      .slice(1) // lewati sapaan pembuka
+      .filter((m) => !m.html.includes('AI sedang berpikir'))
+      .slice(-3)
+      .map((m) => {
+        const plain = m.html
+          .replace(/<br\s*\/?>/gi, ' ')
+          .replace(/<[^>]*>/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        return `${m.from === 'user' ? 'Siswa' : 'Tutor'}: ${plain.slice(0, 220)}`;
+      });
+
     // Tampilkan pesan user + indikator loading
     setChatMsgs((prev) => [
       ...prev,
@@ -649,11 +663,84 @@ function ArenaClient() {
     ]);
     logEvent('ai_tutor_ask', { soal_no: q.nomor, prompt: msg.slice(0, 60) });
 
-    // Fallback template (dipakai kalau backend AI tidak tersedia)
+    // Rekomendasi 3: Fallback template berjenjang (anti kosong saat backend offline)
+    const konsepDasar =
+      [q.diketahui, q.ditanyakan].filter(Boolean).join(' ') ||
+      q.pilar1 ||
+      `Topik ${q.topik}`;
+    const intiRingkas = q.ringkas || q.pilar3 || konsepDasar;
+    const langkahInti =
+      q.pilar4 && q.pilar4.length > 0
+        ? `<br/><br/><b>Langkah Inti:</b><br/>${q.pilar4
+            .slice(0, 3)
+            .map((s, idx) => `${idx + 1}. ${s}`)
+            .join('<br/>')}`
+        : '';
+    const trikAtauJebakan =
+      q.pilar5 ||
+      (q.commonMistakes && q.commonMistakes.length > 0 ? q.commonMistakes[0] : '');
     const templateReply =
       mode === 'simulasi'
-        ? `<b>Petunjuk konsep (${q.topik}):</b><br/>${q.pilar1}`
-        : `${q.ringkas}<br/><br/>💡 <b>Trik:</b> ${q.pilar5}`;
+        ? `<b>Petunjuk konsep (${q.topik}):</b><br/>${konsepDasar}${
+            q.pilar3 ? `<br/><br/>🧭 <b>Arah berpikir:</b> ${q.pilar3}` : ''
+          }`
+        : `${intiRingkas}${langkahInti}${
+            trikAtauJebakan ? `<br/><br/>💡 <b>Trik & Catatan:</b> ${trikAtauJebakan}` : ''
+          }`;
+
+    // Rekomendasi 1 & 2: Susun konteks lengkap (soal, opsi/pernyataan, gambar, jawaban siswa, 5 pilar, & riwayat chat)
+    const curAns = answersRef.current[qIndex] ?? answers[qIndex];
+    const formattedAns =
+      curAns === undefined ||
+      curAns === '' ||
+      (Array.isArray(curAns) && curAns.length === 0) ||
+      (typeof curAns === 'object' && !Array.isArray(curAns) && Object.keys(curAns).length === 0)
+        ? 'Belum memilih jawaban'
+        : typeof curAns === 'string'
+          ? curAns
+          : Array.isArray(curAns)
+            ? curAns.join(', ')
+            : Object.entries(curAns)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(', ');
+
+    const opsiSummary = q.options?.length
+      ? q.options.map((o) => `${o.key}. ${o.text}`).join(' | ')
+      : q.statements?.length
+        ? q.statements.map((s) => `${s.key}. ${s.text}`).join(' | ')
+        : '-';
+
+    const hasVisual =
+      Boolean(q.stimulus_url?.length || q.pertanyaan_url?.length || q.gambar_url?.length) ||
+      Boolean(q.options?.some((o) => o.image_url || /<img/i.test(o.html || ''))) ||
+      Boolean(q.statements?.some((s) => s.image_url || /<img/i.test(s.html || '')));
+
+    const pilarStepsSummary =
+      q.pilar4 && q.pilar4.length > 0
+        ? q.pilar4.map((s, idx) => `(${idx + 1}) ${s}`).join(' ')
+        : '-';
+
+    const modeInstruction =
+      mode === 'simulasi'
+        ? 'MODE SIMULASI UJIAN: JANGAN bocorkan huruf kunci jawaban secara langsung; berikan petunjuk konsep & arahkan langkah berpikir.'
+        : `MODE LATIHAN${checked[qIndex] ? ' (Sudah Cek Jawaban)' : ''}: Jelaskan dengan ramah dan mengacu pada pembahasan 5 Pilar. Kunci resmi: ${formatKunci(q)}`;
+
+    const contextualMessage =
+      `[KONTEKS SOAL AI TUTOR - ${mapel.name} (${mapelKey}) Paket ${paket} · Soal #${q.nomor}]\n` +
+      `- Instruksi Mode: ${modeInstruction}\n` +
+      `- Tipe & Topik: ${q.tipe} · ${q.topik}\n` +
+      (q.stimulus ? `- Stimulus: ${q.stimulus.slice(0, 450)}\n` : '') +
+      `- Pertanyaan: ${q.prompt}\n` +
+      `- Opsi/Pernyataan: ${opsiSummary}\n` +
+      (hasVisual ? `- Info Visual: Soal/opsi ini memuat gambar atau rumus visual di layar siswa.\n` : '') +
+      `- Jawaban Siswa Saat Ini: ${formattedAns}\n` +
+      `- Pegangan 5 Pilar:\n` +
+      `  • Pilar 1 (Konsep/Diketahui): ${konsepDasar}\n` +
+      (q.pilar3 ? `  • Pilar 3 (Alasan Rumus): ${q.pilar3}\n` : '') +
+      `  • Pilar 4 (Langkah): ${pilarStepsSummary}\n` +
+      (trikAtauJebakan ? `  • Pilar 5 (Trik/Jebakan): ${trikAtauJebakan}\n` : '') +
+      (recentTurns.length > 0 ? `- Riwayat Chat Sebelumnya:\n  ${recentTurns.join('\n  ')}\n` : '') +
+      `\nPertanyaan Siswa: ${msg}`;
 
     // Abort request sebelumnya jika masih jalan (cegah race condition)
     if (chatAbortRef.current) chatAbortRef.current.abort();
@@ -668,7 +755,7 @@ function ArenaClient() {
           subject: mapelKey,
           paket,
           nomor: q.nomor,
-          message: msg,
+          message: contextualMessage,
         }),
         signal: aborter.signal,
       });
