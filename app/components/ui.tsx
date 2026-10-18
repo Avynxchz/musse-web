@@ -300,6 +300,7 @@ export function autoWrapBareLatex(text: string): string {
   if (!text) return text;
   // Konversi \(...\) menjadi $...$ dulu (format AI yang umum)
   let t = text.replace(/\\\(([\s\S]+?)\\\)/g, '$$$1$$');
+  t = t.replace(/\x0c/g, "\\f"); // form feed (korupsi \f dari \frac) → \f, SEBELUM deteksi LaTeX
   const parts = t.split(/(\$\$[\s\S]+?\$\$|\$[^$]+?\$)/g);
   return parts.map((seg, idx) => (idx % 2 === 1 ? seg : wrapBareCommands(seg))).join('');
 }
