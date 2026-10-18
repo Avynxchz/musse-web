@@ -145,8 +145,12 @@ export function dbRowToQuestion(row: SoalRow): Question {
       ? stripHtml(row.pertanyaan.html)
       : '';
 
-  // Topik: dari mapel_nama (contoh: "Matematika (Wajib)")
-  const topik = row.mapel_nama ?? row.mapel;
+  // Topik: utamakan concept_tags / concept_kunci dari pembahasan, fallback ke mapel_nama
+  const topik =
+    row.pembahasan?.concept_tags?.[0]?.trim() ||
+    row.pembahasan?.concept_kunci?.[0]?.trim() ||
+    row.mapel_nama ||
+    row.mapel;
 
   // Opsi PG: prioritas render seperti app lama —
   // 1) html resmi CBT (gambar rumus inline, URL sudah diganti ke Supabase)

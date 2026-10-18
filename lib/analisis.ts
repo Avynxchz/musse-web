@@ -506,111 +506,256 @@ export function analyzeLearningPattern(attempt: QuizAttempt | null): HasilAnalis
   };
 }
 
-// ================= AI #3: Analisis kumulatif per mapel =================
+// ================= AI #3: Analisis kumulatif per mapel & per paket =================
+
+const MAPEL_NAMES_FALLBACK: Record<string, string> = {
+  matematika: 'Matematika (Wajib)',
+  indonesia: 'Bahasa Indonesia (Wajib)',
+  inggris: 'Bahasa Inggris (Wajib)',
+  fisika: 'Fisika (Peminatan)',
+  kimia: 'Kimia (Peminatan)',
+  biologi: 'Biologi (Peminatan)',
+  ekonomi: 'Ekonomi (Peminatan)',
+  sosiologi: 'Sosiologi (Peminatan)',
+  tkj: 'SMK - Teknik Jaringan (TKJ)',
+  tkr: 'SMK - Teknik Otomotif (TKR)',
+  jepang: 'Bahasa Jepang',
+  akuntansi: 'SMK - Akuntansi',
+  antropologi: 'Antropologi (Peminatan)',
+  arab: 'Bahasa Arab',
+  indonesia_lanjut: 'B. Indonesia Lanjut',
+  inggris_lanjut: 'B. Inggris Lanjut',
+  jerman: 'Bahasa Jerman',
+  korea: 'Bahasa Korea',
+  mandarin: 'Bahasa Mandarin',
+  prancis: 'Bahasa Prancis',
+  geografi: 'Geografi (Peminatan)',
+  kewirausahaan: 'SMK - Kewirausahaan',
+  mp: 'SMK - Manajemen Perkantoran',
+  matlanjut: 'Matematika Lanjut',
+  ppkn: 'PPKn (Wajib)',
+  sejarah: 'Sejarah (Peminatan)',
+  mesin: 'SMK - Teknik Mesin',
+};
 
 export interface StatRuang {
   adaData: boolean;
+  mapel: string;
+  mapelName: string;
+  paket: 1 | 2;
   totalSoal: number;
+  totalBenar: number;
+  totalSalah: number;
   akurasiPct: number;
   jamFokus: string;
+  topikLemah: string[];
+  topikKuat: string[];
+  soalSalahNomor: number[];
+  polaAI1: PolaTerdeteksi[];
+  ringkasanAI1: string;
+  rekomendasiAI1: string[];
+  pesanCoach: string;
   perMapel: Record<string, StatMapel>;
 }
 
 export interface StatMapel {
   mapelName: string;
+  paket: 1 | 2;
   totalSoal: number;
   akurasiPct: number;
   topikLemah: string[]; // topik dengan salah terbanyak
   topikKuat: string[];  // topik dengan benar terbanyak
+  soalSalahNomor: number[];
+  polaAI1: PolaTerdeteksi[];
   pesanCoach: string;
 }
 
-export function analyzeRuangAI(history: QuizAttempt[]): StatRuang {
-  if (!history || history.length === 0) {
-    return { adaData: false, totalSoal: 0, akurasiPct: 0, jamFokus: '0j', perMapel: {} };
+function normalizeTopicLabel(s: PerSoalResult, attempt: QuizAttempt): string {
+  const raw = (s.topik || '').trim();
+  if (
+    raw &&
+    raw.toLowerCase() !== (attempt.mapelName || '').trim().toLowerCase() &&
+    raw.toLowerCase() !== (attempt.mapel || '').trim().toLowerCase() &&
+    !/\bpaket\s*\d+\b/i.test(raw)
+  ) {
+    return raw;
+  }
+  return `${s.tipe || 'Soal'} (#${s.nomor})`;
+}
+
+/**
+ * AI #3 (Ruang AI): Kombinasikan log pengerjaan spesifik (mapel, paket)
+ * dengan insight perilaku AI #1 (musse_ai1_insight).
+ * PENTING: Data antar paket (Paket 1 vs Paket 2) dipisah 100%!
+ */
+export function analyzeRuangAI(
+  mapelOrHistory: string | QuizAttempt[] = 'matematika',
+  paketOrMapel: number | string = 1,
+  maybeHistoryOrPaket?: QuizAttempt[] | number
+): StatRuang {
+  let targetMapel = 'matematika';
+  let targetPaket: 1 | 2 = 1;
+  let rawHistory: QuizAttempt[];
+
+  if (typeof mapelOrHistory === 'string') {
+    targetMapel = mapelOrHistory;
+    targetPaket = Number(paketOrMapel) === 2 ? 2 : 1;
+    rawHistory = Array.isArray(maybeHistoryOrPaket) ? maybeHistoryOrPaket : getQuizHistory();
+  } else {
+    rawHistory = Array.isArray(mapelOrHistory) ? mapelOrHistory : getQuizHistory();
+    targetMapel = typeof paketOrMapel === 'string' ? paketOrMapel : (rawHistory[rawHistory.length - 1]?.mapel || 'matematika');
+    targetPaket = Number(maybeHistoryOrPaket) === 2 ? 2 : 1;
+  }
+
+  // Gabungkan lastAttempt jika belum masuk ke rawHistory
+  const lastAtt = getLastAttempt();
+  const combinedHistory = [...rawHistory];
+  if (
+    lastAtt &&
+    !combinedHistory.some(
+      (h) => h.tanggal === lastAtt.tanggal && h.mapel === lastAtt.mapel && Number(h.paket) === Number(lastAtt.paket)
+    )
+  ) {
+    combinedHistory.push(lastAtt);
+  }
+
+  // Filter HANYA untuk mapel DAN paket yang dipilih (MTK P1 !== MTK P2)
+  const filtered = combinedHistory.filter(
+    (att) => att.mapel === targetMapel && (Number(att.paket) === 2 ? 2 : 1) === targetPaket
+  );
+
+  // Baca hasil AI #1 khusus untuk (targetMapel, targetPaket)
+  let ai1 = getAI1Insight(targetMapel, targetPaket);
+  if (!ai1 && filtered.length > 0) {
+    const latest = filtered[filtered.length - 1];
+    analyzeLearningPattern(latest);
+    ai1 = getAI1Insight(targetMapel, targetPaket);
+  }
+
+  const mapelName =
+    filtered[filtered.length - 1]?.mapelName ||
+    ai1?.mapelName ||
+    MAPEL_NAMES_FALLBACK[targetMapel] ||
+    targetMapel;
+
+  if (filtered.length === 0 && !ai1) {
+    const emptyMsg = `Belum ada data untuk ${mapelName} Paket ${targetPaket}!`;
+    return {
+      adaData: false,
+      mapel: targetMapel,
+      mapelName,
+      paket: targetPaket,
+      totalSoal: 0,
+      totalBenar: 0,
+      totalSalah: 0,
+      akurasiPct: 0,
+      jamFokus: '0mnt',
+      topikLemah: [],
+      topikKuat: [],
+      soalSalahNomor: [],
+      polaAI1: [],
+      ringkasanAI1: '',
+      rekomendasiAI1: [],
+      pesanCoach: emptyMsg,
+      perMapel: {},
+    };
   }
 
   let totalSoal = 0;
   let totalBenar = 0;
+  let totalSalah = 0;
   let totalDetik = 0;
-  const perMapel: Record<string, StatMapel> = {};
+  const benarPerTopik: Record<string, number> = {};
+  const salahPerTopik: Record<string, number> = {};
+  const salahNomorSet = new Set<number>();
 
-  for (const att of history) {
-    const key = att.mapel;
-    if (!perMapel[key]) {
-      perMapel[key] = {
-        mapelName: att.mapelName || key,
-        totalSoal: 0,
-        akurasiPct: 0,
-        topikLemah: [],
-        topikKuat: [],
-        pesanCoach: '',
-      };
-    }
-    const m = perMapel[key];
-    // Agregat topik (disimpan sementara di objek)
-    const agg = ((m as unknown as { _agg?: { benarPerTopik: Record<string, number>; salahPerTopik: Record<string, number> } })._agg) || {
-      benarPerTopik: {},
-      salahPerTopik: {},
-    };
-
+  for (const att of filtered) {
     for (const s of att.perSoal || []) {
       if (s.status === 'kosong') continue;
       totalSoal++;
-      m.totalSoal++;
       totalDetik += s.durasiDetik || 0;
+      const tpk = normalizeTopicLabel(s, att);
       if (s.status === 'benar') {
         totalBenar++;
-        if (s.topik) agg.benarPerTopik[s.topik] = (agg.benarPerTopik[s.topik] || 0) + 1;
+        benarPerTopik[tpk] = (benarPerTopik[tpk] || 0) + 1;
       } else if (s.status === 'salah') {
-        if (s.topik) agg.salahPerTopik[s.topik] = (agg.salahPerTopik[s.topik] || 0) + 1;
+        totalSalah++;
+        salahPerTopik[tpk] = (salahPerTopik[tpk] || 0) + 1;
+        salahNomorSet.add(s.nomor);
       }
     }
-    (m as unknown as { _agg?: unknown })._agg = agg;
   }
 
   const akurasiPct = totalSoal > 0 ? Math.round((totalBenar / totalSoal) * 100) : 0;
   const jam = totalDetik / 3600;
-  const jamFokus = jam >= 1 ? `${jam.toFixed(1)}j` : `${Math.round(totalDetik / 60)}mnt`;
+  const jamFokus = jam >= 1 ? `${jam.toFixed(1)}j` : `${Math.max(1, Math.round(totalDetik / 60))}mnt`;
 
-  // Hitung per mapel: akurasi, topik kuat/lemah, pesan coach personal
-  for (const key of Object.keys(perMapel)) {
-    const m = perMapel[key];
-    const agg = (m as unknown as { _agg?: { benarPerTopik: Record<string, number>; salahPerTopik: Record<string, number> } })._agg || {
-      benarPerTopik: {},
-      salahPerTopik: {},
-    };
-    // Hapus field internal agar tidak bocor ke render
-    delete (m as unknown as { _agg?: unknown })._agg;
+  const topikLemah = Object.entries(salahPerTopik)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([t]) => t);
 
-    // Akurasi per mapel = benar / (benar + salah)
-    const benarTopik = Object.values(agg.benarPerTopik).reduce((a, b) => a + b, 0);
-    const salahTopik = Object.values(agg.salahPerTopik).reduce((a, b) => a + b, 0);
-    const totTopik = benarTopik + salahTopik;
-    m.akurasiPct = totTopik > 0 ? Math.round((benarTopik / totTopik) * 100) : 0;
+  const topikKuat = Object.entries(benarPerTopik)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([t]) => t);
 
-    m.topikLemah = Object.entries(agg.salahPerTopik)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([t]) => t);
-    m.topikKuat = Object.entries(agg.benarPerTopik)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([t]) => t);
+  const soalSalahNomor = Array.from(salahNomorSet).sort((a, b) => a - b);
+  const polaAI1 = ai1?.pola ?? [];
+  const ringkasanAI1 = ai1?.ringkasan ?? '';
+  const rekomendasiAI1 = ai1?.rekomendasi ?? [];
 
-    // Pesan coach personal berdasarkan data real
-    const lemahTxt = m.topikLemah.length > 0 ? m.topikLemah[0] : null;
-    const kuatTxt = m.topikKuat.length > 0 ? m.topikKuat[0] : null;
-    if (m.totalSoal === 0) {
-      m.pesanCoach = `Belum ada data ${m.mapelName}. Yuk kerjakan paket soalnya dulu, nanti aku analisis polanya!`;
-    } else if (m.akurasiPct < 60) {
-      m.pesanCoach = `Dari ${m.totalSoal} soal ${m.mapelName}, akurasimu ${m.akurasiPct}%. Fokus ke ${lemahTxt ? `"${lemahTxt}"` : 'konsep dasar'} dulu — itu sumber kebocoran terbesarmu. Mau kita bedah bareng?`;
-    } else if (m.akurasiPct < 80) {
-      m.pesanCoach = `Lumayan! Akurasi ${m.mapelName}-mu ${m.akurasiPct}% dari ${m.totalSoal} soal.${lemahTxt ? ` Tinggal beresin "${lemahTxt}" biar tembus 80%.` : ''}${kuatTxt ? ` "${kuatTxt}"-mu udah solid, pertahankan!` : ''}`;
-    } else {
-      m.pesanCoach = `Mantap! Akurasi ${m.mapelName}-mu ${m.akurasiPct}% dari ${m.totalSoal} soal.${kuatTxt ? ` "${kuatTxt}" udah jadi senjata andalanmu.` : ''} Tinggal jaga konsistensi!`;
-    }
+  const lemahUtama =
+    topikLemah[0] ||
+    (soalSalahNomor.length > 0 ? `Soal #${soalSalahNomor.slice(0, 3).join(', #')}` : 'tidak ada topik lemah');
+  const polaSingkat =
+    polaAI1.length > 0
+      ? polaAI1
+          .map((p) => `${p.nama}${p.soalContoh !== undefined ? ` (Soal #${p.soalContoh})` : ''}`)
+          .join(', ')
+      : 'ritme belajar sudah stabil';
+
+  let pesanCoach: string;
+  if (totalSalah > 0) {
+    pesanCoach = `Di ${mapelName} Paket ${targetPaket}, kamu masih lemah di ${lemahUtama} (akurasi ${akurasiPct}% dari ${totalSoal} soal). AI #1 bilang polamu: ${polaSingkat}. Yuk bahas!`;
+  } else if (totalSoal > 0) {
+    pesanCoach = `Di ${mapelName} Paket ${targetPaket}, akurasimu ${akurasiPct}% (${totalSoal} soal benar, kuat di ${topikKuat[0] || 'semua topik'}). AI #1 bilang: ${polaSingkat}. Yuk bahas!`;
+  } else {
+    pesanCoach = `Di ${mapelName} Paket ${targetPaket}, AI #1 bilang: ${polaSingkat}. Yuk bahas!`;
   }
 
-  return { adaData: true, totalSoal, akurasiPct, jamFokus, perMapel };
+  const statItem: StatMapel = {
+    mapelName,
+    paket: targetPaket,
+    totalSoal,
+    akurasiPct,
+    topikLemah,
+    topikKuat,
+    soalSalahNomor,
+    polaAI1,
+    pesanCoach,
+  };
+
+  return {
+    adaData: true,
+    mapel: targetMapel,
+    mapelName,
+    paket: targetPaket,
+    totalSoal,
+    totalBenar,
+    totalSalah,
+    akurasiPct,
+    jamFokus,
+    topikLemah,
+    topikKuat,
+    soalSalahNomor,
+    polaAI1,
+    ringkasanAI1,
+    rekomendasiAI1,
+    pesanCoach,
+    perMapel: {
+      [targetMapel]: statItem,
+      [`${targetMapel}_p${targetPaket}`]: statItem,
+    },
+  };
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { analyzeRuangAI, getQuizHistory } from '../../lib/analisis';
+import { analyzeRuangAI, getAI1Insight } from '../../lib/analisis';
+import { MAPEL_CATALOG } from '../arena/data';
 import {
   BottomNav,
   ChatInput,
@@ -10,130 +11,128 @@ import {
   LogPanelLive,
   NeoBtn,
   Toast,
+  renderLatexToHtml,
   useBehaviorLog,
   useToast,
 } from '../components/ui';
 
-/* ================= Data dummy coach per mapel ================= */
-
-const COACH_DATA: Record<string, { kuat: string; kuatPct: string; lemah: string; lemahPct: string; pesan: string }> = {
-  matematika: {
-    kuat: 'SPLDV & Matriks',
-    kuatPct: '88%',
-    lemah: 'Fungsi Kuadrat',
-    lemahPct: '52%',
-    pesan:
-      'Halo Agus! Dari 2 paket terakhir, aljabar linearmu udah mantap. Tapi di Fungsi Kuadrat kamu sering lupa syarat titik puncak. Mau latihan sekarang?',
-  },
-  fisika: {
-    kuat: 'Kinematika',
-    kuatPct: '81%',
-    lemah: 'Dinamika Rotasi',
-    lemahPct: '47%',
-    pesan:
-      'Halo Agus! Gerak lurusmu rapi banget. Tapi soal torsi & momen inersia masih sering kepleset. Kita bedah bareng?',
-  },
-  tkj: {
-    kuat: 'Subnetting Dasar',
-    kuatPct: '90%',
-    lemah: 'VLAN & Routing',
-    lemahPct: '55%',
-    pesan:
-      'Halo Agus! Perhitungan subnet udah kenceng. Tapi konfigurasi VLAN antar-switch masih goyang. Mau simulasi lagi?',
-  },
-  inggris: {
-    kuat: 'Reading Comprehension',
-    kuatPct: '85%',
-    lemah: 'Structure & Written Expression',
-    lemahPct: '58%',
-    pesan:
-      'Halo Agus! Reading-mu stabil. Tapi soal structure (tenses & clause) masih jadi kebocoran. Latihan fokus 10 soal?',
-  },
-};
-
-const MAPEL_OPTIONS = [
-  { value: 'matematika', label: 'Matematika (Wajib)' },
-  { value: 'fisika', label: 'Fisika (Saintek)' },
-  { value: 'tkj', label: 'SMK - Teknik Jaringan (TKJ)' },
-  { value: 'inggris', label: 'Bahasa Inggris' },
-];
-
-/* ================= Jawaban dummy Coach per mapel (bukan LLM) ================= */
-
-const COACH_REPLIES: Record<string, string[]> = {
-  matematika: [
-    'Oke, kita bedah <b>Fungsi Kuadrat</b>! Ingat 3 hal: (1) titik puncak di x = −b/2a, (2) kalau a &gt; 0 grafik buka ke atas (titik minimum), a &lt; 0 buka ke bawah (maksimum), (3) diskriminan D = b²−4ac nentuin berapa kali grafik motong sumbu-x. Mau coba 1 soal cepat?',
-    'Jebakan paling sering di fungsi kuadrat: <b>lupa tanda minus</b> di rumus x = −b/2a. Trik: tulis dulu a, b, c di kertas sebelum hitung — 5 detik yang nyelametin 1 soal. Bagian mana yang masih bikin ragu?',
-    'Latihan singkat: f(x) = x² − 4x + 3. Titik puncaknya di mana? (Petunjuk: a=1, b=−4, c=3 → x = −(−4)/2 = 2, lalu y = f(2) = −1. Jadi <b>(2, −1)</b>.) Coba kerjain yang mirip: g(x) = x² + 6x + 5!',
-  ],
-  fisika: [
-    'Dinamika rotasi itu cuma <b>"versi muter" dari gerak lurus</b>: gaya → torsi (τ = r × F), massa → momen inersia (I), F = ma → τ = Iα. Kalau hafal pasangannya, soalnya jadi gampang ditebak polanya.',
-    'Yang paling sering keluar: torsi <b>maksimum saat gaya tegak lurus lengan</b> (sin 90° = 1), dan momen inersia silinder pejal (½MR²) vs bola pejal (⅖MR²). Hafalin 4 rumus I benda umum — itu udah nutup 80% soal.',
-    'Coba ini: kunci pas panjang 0,3 m diputar dengan gaya 50 N tegak lurus. Torsi = 0,3 × 50 = <b>15 N·m</b>. Gampang kan? Sekarang bayangin gayanya miring 30° — tinggal kali sin 30° = 0,5 → 7,5 N·m.',
-  ],
-  tkj: [
-    'VLAN itu cara <b>mecah satu switch jadi beberapa "switch virtual"</b> biar broadcast domain kepisah tanpa beli perangkat baru. Ingat: port access = 1 VLAN (ke PC), port trunk = banyak VLAN (antar switch), ditandai protokol 802.1Q.',
-    'Urutan config VLAN di switch: (1) buat VLAN (vlan 10, name LAB), (2) assign port (switchport mode access + switchport access vlan 10), (3) trunk antar switch (switchport mode trunk). <b>Ketinggalan 1 langkah = antar-VLAN nggak nyambung.</b>',
-    'Routing antar-VLAN butuh <b>router-on-a-stick</b>: 1 kabel trunk dari switch ke router, terus di router bikin sub-interface per VLAN (encapsulation dot1Q). Atau pakai switch layer 3 + perintah "ip routing". Ini favorit soal UKK!',
-  ],
-  inggris: [
-    'Structure itu soal <b>grammar murni</b>: subject-verb agreement, tenses, clause, paralelisme. Trik: baca kalimat, cari verb-nya dulu — kalau verb-nya aneh (double verb / nggak ada verb), di situlah errornya.',
-    'Pola paling sering: <b>reduced clause</b> (mis. "The man standing there..." = who is standing) dan <b>parallel structure</b> ("likes reading, swimming, and jogging" — semua gerund). Ketemu "and/or/but", cek kiri-kanan harus sejajar.',
-    'Coba: "Neither the teacher nor the students ___ present." Jawabannya <b>"were"</b> — aturan neither/nor: verb ikut subject TERDEKAT (students → were). Ini jebakan klasik, sekarang kamu udah tahu!',
-  ],
-};
+const MAPEL_OPTIONS = MAPEL_CATALOG.map((m) => ({
+  value: m.key,
+  label: m.name,
+  hasP2: m.p2 > 0,
+}));
 
 /* ================= Halaman ================= */
 
 export default function RuangPage() {
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
   const [mapelCoach, setMapelCoach] = useState('matematika');
+  const [paketCoach, setPaketCoach] = useState<1 | 2>(1);
   const { toast, showToastMsg } = useToast();
   const { logEvent, useLogCount, useLogs, showLogPanel, setShowLogPanel } = useBehaviorLog('ruang');
 
-  /* ---------- AI #3: Analisis soal salah — DATA BENERAN dari history ---------- */
-  const statRuang = useMemo(() => analyzeRuangAI(getQuizHistory()), []);
-  const statMapel = statRuang.perMapel[mapelCoach];
-  // Fallback ke COACH_DATA dummy hanya jika belum ada data real
-  const coachDummy = COACH_DATA[mapelCoach] ?? COACH_DATA.matematika;
-  const coachKuat = statMapel?.topikKuat[0] ?? coachDummy.kuat;
-  const coachLemah = statMapel?.topikLemah[0] ?? coachDummy.lemah;
-  const coachPesan = statMapel?.pesanCoach ?? coachDummy.pesan;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* ---------- AI #3: Kombinasi Log per (mapel, paket) + Insight AI #1 ---------- */
+  const statRuang = useMemo(() => {
+    if (!mounted) return analyzeRuangAI(mapelCoach, paketCoach, []);
+    return analyzeRuangAI(mapelCoach, paketCoach);
+  }, [mounted, mapelCoach, paketCoach]);
+
+  const ai1Insight = useMemo(() => {
+    if (!mounted) return null;
+    return getAI1Insight(mapelCoach, paketCoach);
+  }, [mounted, mapelCoach, paketCoach]);
+
+  const mapelLabel =
+    MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? statRuang.mapelName ?? 'Matematika (Wajib)';
+
+  const coachKuat = statRuang.adaData
+    ? statRuang.topikKuat[0] ?? 'Belum ada topik dominan'
+    : 'Belum ada data';
+  const coachLemah = statRuang.adaData
+    ? statRuang.topikLemah[0] ?? 'Tidak ada kebocoran topik'
+    : 'Belum ada data';
+  const coachPesan = statRuang.adaData
+    ? statRuang.pesanCoach
+    : `Belum ada data untuk ${mapelLabel} Paket ${paketCoach}!`;
 
   // Page view logging
   useEffect(() => {
     logEvent('page_view', { page: 'ruang' });
   }, []);
 
-  /* ===== Chat Coach per mapel ===== */
+  /* ===== Chat Coach per mapel + paket ===== */
   const [showCoach, setShowCoach] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
   const [coachQuota, setCoachQuota] = useState(24);
   const chatBoxRef = useRef<HTMLDivElement | null>(null);
-  const greetedMapelRef = useRef<string>('');
+  const greetedKeyRef = useRef<string>('');
   // Guard anti double-submit chat (<500ms, pesan sama)
   const lastCoachMsgRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
-
-  const mapelLabel = MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? 'Matematika';
+  const coachAbortRef = useRef<AbortController | null>(null);
 
   const gantiMapel = (v: string) => {
     setMapelCoach(v);
-    logEvent('switch_ai_room', { mapel: v });
+    setChatMsgs([]);
+    greetedKeyRef.current = '';
+    logEvent('switch_ai_room', { mapel: v, paket: paketCoach });
+  };
+
+  const gantiPaket = (p: 1 | 2) => {
+    setPaketCoach(p);
+    setChatMsgs([]);
+    greetedKeyRef.current = '';
+    logEvent('switch_ai_room_paket', { mapel: mapelCoach, paket: p });
   };
 
   const openCoach = () => {
     setShowCoach(true);
-    logEvent('coach_chat_open', { mapel: mapelCoach });
-    if (greetedMapelRef.current !== mapelCoach) {
-      greetedMapelRef.current = mapelCoach;
-      const label = MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? mapelCoach;
-      // Pakai pesan personal dari data real (fallback ke dummy jika belum ada data)
-      setChatMsgs((prev) => [...prev, { from: 'ai', html: `<b>Coach ${label}</b><br/>${coachPesan}` }]);
+    logEvent('coach_chat_open', { mapel: mapelCoach, paket: paketCoach });
+    const sessionKey = `${mapelCoach}_p${paketCoach}_${statRuang.adaData ? statRuang.totalSoal : 0}`;
+    if (greetedKeyRef.current !== sessionKey) {
+      greetedKeyRef.current = sessionKey;
+      const detailAI1 =
+        ai1Insight && ai1Insight.pola.length > 0
+          ? `<br/><br/>🔍 <b>Temuan AI #1 (Guru Autopsi):</b><br/>• ${ai1Insight.pola
+              .map((p) => `<b>${p.nama}</b>: ${p.bukti}`)
+              .join('<br/>• ')}`
+          : '';
+      setChatMsgs([
+        {
+          from: 'ai',
+          html: `<b>Coach ${mapelLabel} · Paket ${paketCoach}</b><br/>${coachPesan}${detailAI1}`,
+        },
+      ]);
     }
   };
 
-  const sendCoachMsg = (text: string) => {
+  const buildFallbackReply = (userQuestion: string): string => {
+    if (!statRuang.adaData) {
+      return `Belum ada data untuk <b>${mapelLabel} Paket ${paketCoach}</b>! Yuk kerjakan soal <b>${mapelLabel} Paket ${paketCoach}</b> terlebih dahulu supaya aku bisa membedah topik lemah dan pola belajarmu secara spesifik.`;
+    }
+    const lemahTxt = statRuang.topikLemah.join(', ') || 'soal yang masih salah';
+    const polaUtama = statRuang.polaAI1[0];
+    const rekTxt =
+      polaUtama?.rekomendasi ||
+      statRuang.rekomendasiAI1[0] ||
+      `Fokus ulangi soal yang salah pada ${mapelLabel} Paket ${paketCoach} dan baca 5 Pilar pembahasannya.`;
+    return (
+      `Berdasarkan evaluasi <b>${mapelLabel} Paket ${paketCoach}</b> (akurasi ${statRuang.akurasiPct}% dari ${statRuang.totalSoal} soal):<br/>` +
+      `• <b>Topik yang perlu dikejar:</b> ${lemahTxt}<br/>` +
+      (polaUtama
+        ? `• <b>Pola AI #1 (${polaUtama.nama}):</b> ${polaUtama.bukti}<br/>`
+        : `• <b>Pola AI #1:</b> Ritme pengerjaanmu sudah cukup terjaga.<br/>`) +
+      `• <b>Langkah Aksi:</b> ${rekTxt}<br/><br/>` +
+      `Terkait pertanyaanmu (<i>"${userQuestion}"</i>): pastikan kamu memetakan konsep dasar di Pilar 1 & alasan penggunaan rumus di Pilar 3 sebelum menghitung cepat.`
+    );
+  };
+
+  const sendCoachMsg = async (text: string) => {
     const msg = text.trim();
     if (!msg) return;
     // Guard: cegah pesan duplikat dari double-click (<500ms, pesan sama)
@@ -145,13 +144,101 @@ export default function RuangPage() {
       showToastMsg('⚠️ Kuota tanya habis hari ini');
       return;
     }
-    const userCount = chatMsgs.filter((m) => m.from === 'user').length;
-    const replies = COACH_REPLIES[mapelCoach] ?? COACH_REPLIES.matematika;
-    const reply = replies[userCount % replies.length];
+
     const nextQuota = Math.max(0, coachQuota - 1);
-    setChatMsgs((prev) => [...prev, { from: 'user', html: msg }, { from: 'ai', html: reply }]);
     setCoachQuota(nextQuota);
-    logEvent('coach_chat_ask', { mapel: mapelCoach, prompt: msg.slice(0, 60), quota_remaining: nextQuota });
+    const safeUserHtml = msg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    setChatMsgs((prev) => [
+      ...prev,
+      { from: 'user', html: safeUserHtml },
+      { from: 'ai', html: '⏳ <i>Coach sedang menganalisis datamu...</i>' },
+    ]);
+    logEvent('coach_chat_ask', {
+      mapel: mapelCoach,
+      paket: paketCoach,
+      prompt: msg.slice(0, 60),
+      quota_remaining: nextQuota,
+    });
+
+    const polaContext =
+      statRuang.polaAI1.length > 0
+        ? statRuang.polaAI1
+            .map(
+              (p) =>
+                `${p.nama} (${p.bukti}${p.rekomendasi ? ` | Rekomendasi: ${p.rekomendasi}` : ''})`
+            )
+            .join('; ')
+        : 'Tidak ada pola kebocoran spesifik';
+    const lemahContext =
+      statRuang.topikLemah.length > 0 ? statRuang.topikLemah.join(', ') : 'Tidak ada topik lemah';
+    const kuatContext =
+      statRuang.topikKuat.length > 0 ? statRuang.topikKuat.join(', ') : '-';
+    const nomorSalahContext =
+      statRuang.soalSalahNomor.length > 0
+        ? `Soal #${statRuang.soalSalahNomor.slice(0, 10).join(', #')}`
+        : 'Tidak ada';
+    const nomorRef = statRuang.soalSalahNomor[0] || statRuang.polaAI1[0]?.soalContoh || 1;
+
+    const contextualMessage =
+      `[KONTEKS DISKUSI RUANG AI #3 - ${mapelLabel} Paket ${paketCoach}]\n` +
+      `- Status Data: ${statRuang.adaData ? `Akurasi ${statRuang.akurasiPct}% (${statRuang.totalBenar}/${statRuang.totalSoal} soal benar)` : `Belum ada data pengerjaan untuk ${mapelLabel} Paket ${paketCoach}`}\n` +
+      `- Topik Lemah (${mapelLabel} Paket ${paketCoach}): ${lemahContext}\n` +
+      `- Topik Kuat (${mapelLabel} Paket ${paketCoach}): ${kuatContext}\n` +
+      `- Nomor Soal Salah: ${nomorSalahContext}\n` +
+      `- Insight AI #1 (Guru Autopsi): ${polaContext}\n\n` +
+      `Pertanyaan siswa: ${msg}`;
+
+    if (coachAbortRef.current) coachAbortRef.current.abort();
+    const aborter = new AbortController();
+    coachAbortRef.current = aborter;
+
+    try {
+      const res = await fetch('/api/tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: mapelCoach,
+          paket: paketCoach,
+          nomor: nomorRef,
+          topik_lemah: statRuang.topikLemah,
+          pola_ai1: statRuang.polaAI1.map((p) => p.nama),
+          message: contextualMessage,
+        }),
+        signal: aborter.signal,
+      });
+      const data = await res.json();
+
+      let replyHtml: string;
+      if (data.status === 'success' && data.reply) {
+        const escaped = String(data.reply)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n\n/g, '<br/><br/>')
+          .replace(/\n/g, '<br/>');
+        replyHtml = `<b>🤖 Coach ${mapelLabel} (P${paketCoach}):</b><br/>${escaped}`;
+        if (data.quota && typeof data.quota.remaining === 'number') {
+          setCoachQuota(data.quota.remaining);
+        }
+      } else if (data.status === 'rate_limited') {
+        replyHtml = `⏸️ <b>${data.message || 'Kuota habis, coba lagi nanti.'}</b>`;
+      } else {
+        replyHtml = buildFallbackReply(safeUserHtml);
+      }
+
+      setChatMsgs((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { from: 'ai', html: replyHtml };
+        return next;
+      });
+    } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
+      setChatMsgs((prev) => {
+        const next = [...prev];
+        next[next.length - 1] = { from: 'ai', html: buildFallbackReply(safeUserHtml) };
+        return next;
+      });
+    }
   };
 
   useEffect(() => {
@@ -178,7 +265,7 @@ export default function RuangPage() {
 
         {/* ===== Konten scroll ===== */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
-          {/* 3 kartu statistik — DATA BENERAN dari history */}
+          {/* 3 kartu statistik — DATA BENERAN khusus (mapelCoach, paketCoach) */}
           <div className="grid grid-cols-3 gap-2.5">
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
               <p className="font-mono text-lg text-[#111] font-extrabold">
@@ -202,7 +289,7 @@ export default function RuangPage() {
           {!statRuang.adaData && (
             <div className="border-2 border-dashed border-neutral-300 rounded-xl p-3 text-center">
               <p className="text-xs text-neutral-500 font-medium">
-                📊 Belum ada data. Kerjakan soal dulu, statistikmu muncul di sini!
+                📊 Belum ada data untuk {mapelLabel} Paket {paketCoach}!
               </p>
             </div>
           )}
@@ -210,50 +297,69 @@ export default function RuangPage() {
           {/* Kartu Ruang AI Coach */}
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#4F46E5]">
-                🧠 Ruang AI Coach Mapel
+              <span className="text-xs font-extrabold uppercase tracking-wider text-[#4F46E5] shrink-0">
+                🧠 Ruang AI Coach
               </span>
-              <select
-                value={mapelCoach}
-                onChange={(e) => gantiMapel(e.target.value)}
-                className="border-2 border-[#111] rounded-lg px-2 py-1 text-xs font-extrabold bg-[#FAFAF7]"
-              >
-                {MAPEL_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <select
+                  value={mapelCoach}
+                  onChange={(e) => gantiMapel(e.target.value)}
+                  className="border-2 border-[#111] rounded-lg px-2 py-1 text-xs font-extrabold bg-[#FAFAF7] min-w-0 truncate"
+                  aria-label="Pilih Mapel"
+                >
+                  {MAPEL_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={paketCoach}
+                  onChange={(e) => gantiPaket(Number(e.target.value) === 2 ? 2 : 1)}
+                  className="border-2 border-[#111] rounded-lg px-2 py-1 text-xs font-extrabold bg-[#FAFAF7] shrink-0"
+                  aria-label="Pilih Paket"
+                >
+                  <option value={1}>Paket 1</option>
+                  <option value={2}>Paket 2</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-green-50 border border-[#111] rounded-xl p-2.5">
                 <span className="text-[10px] font-extrabold text-green-800 uppercase">💪 Topik Terkuat</span>
-                <p className="font-extrabold mt-0.5">
-                  {coachKuat}
-                </p>
+                <p className="font-extrabold mt-0.5">{coachKuat}</p>
               </div>
               <div className="bg-red-50 border border-[#111] rounded-xl p-2.5">
                 <span className="text-[10px] font-extrabold text-red-800 uppercase">⚠️ Perlu Dikejar</span>
-                <p className="font-extrabold mt-0.5">
-                  {coachLemah}
-                </p>
+                <p className="font-extrabold mt-0.5">{coachLemah}</p>
               </div>
             </div>
 
             <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 space-y-2">
-              <div className="text-xs bg-white border border-[#111] rounded-xl p-2.5">
-                <span className="font-extrabold text-[#4F46E5]">Coach:</span> {coachPesan}
+              <div className="text-xs bg-white border border-[#111] rounded-xl p-2.5 space-y-1">
+                <div>
+                  <span className="font-extrabold text-[#4F46E5]">Coach:</span> {coachPesan}
+                </div>
+                {statRuang.adaData && statRuang.polaAI1.length > 0 && statRuang.polaAI1[0].rekomendasi && (
+                  <p className="text-[11px] text-neutral-700 pt-1 border-t border-dashed border-neutral-200">
+                    <b>💡 Saran AI #1:</b> {statRuang.polaAI1[0].rekomendasi}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
                 <NeoBtn
                   onClick={() => {
-                    logEvent('coach_latih_topik_lemah', { mapel: mapelCoach, topik: coachLemah });
-                    router.push('/beranda');
+                    logEvent('coach_latih_topik_lemah', {
+                      mapel: mapelCoach,
+                      paket: paketCoach,
+                      topik: coachLemah,
+                    });
+                    router.push(`/arena?mapel=${mapelCoach}&paket=${paketCoach}&mode=latihan`);
                   }}
                   className="flex-1 bg-[#B6FF00] py-2 rounded-xl text-xs"
                 >
-                  🎯 Latih Topik Lemah
+                  🎯 Latih Paket {paketCoach}
                 </NeoBtn>
                 <NeoBtn onClick={openCoach} className="flex-1 bg-white py-2 rounded-xl text-xs">
                   💬 Diskusi sama Coach
@@ -264,7 +370,7 @@ export default function RuangPage() {
 
           {!statRuang.adaData && (
             <p className="text-center text-[11px] text-neutral-400">
-              Data contoh — kerjakan soal untuk analisis beneran.
+              Kerjakan {mapelLabel} Paket {paketCoach} untuk melihat analisis AI #1 & AI #3.
             </p>
           )}
         </div>
@@ -290,9 +396,11 @@ export default function RuangPage() {
                     ✨
                   </span>
                   <div className="min-w-0">
-                    <h3 className="text-xs font-extrabold truncate">Coach {mapelLabel}</h3>
+                    <h3 className="text-xs font-extrabold truncate">
+                      Coach {mapelLabel} · Paket {paketCoach}
+                    </h3>
                     <p className="text-[10px] text-green-700 font-bold truncate">
-                      ✓ Siap diskusi materi {coachLemah}
+                      ✓ {statRuang.adaData ? `Siap bahas ${coachLemah}` : `Belum ada data Paket ${paketCoach}`}
                     </p>
                   </div>
                 </div>
@@ -319,14 +427,14 @@ export default function RuangPage() {
                       key={i}
                       className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-3 max-w-[92%]"
                     >
-                      <p className="font-medium" dangerouslySetInnerHTML={{ __html: m.html }} />
+                      <p className="font-medium" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
                     </div>
                   ),
                 )}
               </div>
 
               <div className="px-3 py-2 bg-white border-t border-neutral-200 flex gap-1.5 overflow-x-auto shrink-0">
-                {['Jelasin topik lemahku', 'Kasih latihan singkat', 'Tips ujian mapel ini'].map((qp) => (
+                {['Jelasin topik lemahku', 'Bahas pola AI #1-ku', 'Tips ujian paket ini'].map((qp) => (
                   <button
                     key={qp}
                     type="button"
@@ -339,7 +447,7 @@ export default function RuangPage() {
               </div>
 
               <ChatInput
-                placeholder={`Tanya materi ${mapelLabel}...`}
+                placeholder={`Tanya Coach ${mapelLabel} Paket ${paketCoach}...`}
                 onSend={sendCoachMsg}
               />
             </div>
