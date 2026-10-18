@@ -475,7 +475,7 @@ function HasilContent() {
             <div className="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-[11px] text-white/80">
               <span>{autoSubmit ? '⏰ Auto-Submit (Waktu Habis)' : '🏁 Diselesaikan'}</span>
               <span>
-                ⚡ Rata-rata: <b>24 dtk/soal</b>
+                ⚡ Rata-rata: <b>{analisis.adaData ? `${analisis.rataRataDetik} dtk/soal` : '24 dtk/soal'}</b>
               </span>
               <span>✓ Tersimpan</span>
             </div>
@@ -529,6 +529,11 @@ function HasilContent() {
                   <p className="text-xs text-neutral-700 mt-1">
                     <b>Bukti:</b> {p.bukti}
                   </p>
+                  {p.rekomendasi && (
+                    <p className="text-xs text-neutral-800 mt-1.5">
+                      <b>💡 Rekomendasi Aksi:</b> {p.rekomendasi}
+                    </p>
+                  )}
                   <div className="mt-3 flex gap-2">
                     <NeoBtn onClick={openStrategi} className="flex-1 bg-white py-2 px-3 rounded-xl text-xs">
                       📚 Pelajari 5 Strategi

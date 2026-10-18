@@ -256,9 +256,12 @@ function ArenaClient() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Timer untuk durasi per soal (behavior logging) - harus di atas fetch effect
   const soalStartTimeRef = useRef<number>(Date.now());
-  // Tracking untuk analisis AI: durasi per soal & jumlah ganti jawaban
+  // Tracking untuk analisis AI: durasi per soal, ganti jawaban, pindah tanpa jawab, & durasi baca pilar
   const durasiPerSoalRef = useRef<Record<number, number>>({});
   const gantiJawabanRef = useRef<Record<number, number>>({});
+  const pindahTanpaJawabRef = useRef<Record<number, number>>({});
+  const pilarStartTimeRef = useRef<Record<number, number>>({});
+  const durasiPilarRef = useRef<Record<number, number>>({});
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const evalRef = useRef<HTMLDivElement>(null);
   // Flag untuk tracking scroll depth pembahasan (sekali per soal)
@@ -402,7 +405,8 @@ function ArenaClient() {
     const hasil = questions.map((qq, i) => evaluateQuestion(qq, answers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
     // Log durasi soal terakhir
-    const durasiMs = Date.now() - soalStartTimeRef.current;
+    const now = Date.now();
+    const durasiMs = now - soalStartTimeRef.current;
     const durasiDetik = Math.round(durasiMs / 1000);
     if (questions[qIndex]) {
       logEvent('soal_duration', {
@@ -411,6 +415,11 @@ function ArenaClient() {
         mode,
       });
       durasiPerSoalRef.current[qIndex] = (durasiPerSoalRef.current[qIndex] || 0) + durasiDetik;
+      if (pilarStartTimeRef.current[qIndex]) {
+        const pilarSec = Math.max(1, Math.round((now - pilarStartTimeRef.current[qIndex]) / 1000));
+        durasiPilarRef.current[qIndex] = (durasiPilarRef.current[qIndex] || 0) + pilarSec;
+        pilarStartTimeRef.current[qIndex] = 0;
+      }
     }
     logEvent('attempt_finish', {
       mode,
@@ -418,8 +427,12 @@ function ArenaClient() {
       benar,
       total: questions.length,
     });
+    const totalPindahTanpaJawab = Object.values(pindahTanpaJawabRef.current).reduce(
+      (a, b) => a + b,
+      0
+    );
     // === Simpan detail attempt ke localStorage untuk analisis AI ===
-    // (last_attempt → halaman hasil / AI #2, history → ruang / AI #3)
+    // (last_attempt → halaman hasil / AI #1, history → ruang / AI #3)
     saveAttempt({
       mapel: mapelKey,
       mapelName: mapel?.name || mapelKey,
@@ -428,6 +441,7 @@ function ArenaClient() {
       tanggal: new Date().toISOString(),
       benar,
       total: questions.length,
+      pindahTanpaJawabCount: totalPindahTanpaJawab,
       perSoal: questions.map((qq, i) => ({
         nomor: qq.nomor,
         tipe: qq.tipe,
@@ -435,6 +449,8 @@ function ArenaClient() {
         status: hasil[i] as 'benar' | 'salah' | 'kosong',
         durasiDetik: durasiPerSoalRef.current[i] || 0,
         gantiJawaban: gantiJawabanRef.current[i] || 0,
+        pindahTanpaJawab: pindahTanpaJawabRef.current[i] || 0,
+        durasiPilarDetik: durasiPilarRef.current[i],
       })),
     });
     router.push(`/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&total=${questions.length}`);
@@ -462,19 +478,28 @@ function ArenaClient() {
   const goSoal = (idx: number) => {
     if (idx < 0 || idx >= questions.length) return;
     try {
-    // Log durasi soal sebelumnya
-    const durasiMs = Date.now() - soalStartTimeRef.current;
-    const durasiDetik = Math.round(durasiMs / 1000);
-    if (questions[qIndex]) {
-      logEvent('soal_duration', {
-        soal_no: questions[qIndex].nomor,
-        durasi_detik: durasiDetik,
-        mode,
-      });
-      // Simpan ke ref untuk analisis AI (akumulasi jika soal dikunjungi ulang)
-      const qIdx = qIndex;
-      durasiPerSoalRef.current[qIdx] = (durasiPerSoalRef.current[qIdx] || 0) + durasiDetik;
-    }
+      // Log durasi soal sebelumnya
+      const now = Date.now();
+      const durasiMs = now - soalStartTimeRef.current;
+      const durasiDetik = Math.round(durasiMs / 1000);
+      if (questions[qIndex]) {
+        logEvent('soal_duration', {
+          soal_no: questions[qIndex].nomor,
+          durasi_detik: durasiDetik,
+          mode,
+        });
+        // Simpan ke ref untuk analisis AI (akumulasi jika soal dikunjungi ulang)
+        const qIdx = qIndex;
+        durasiPerSoalRef.current[qIdx] = (durasiPerSoalRef.current[qIdx] || 0) + durasiDetik;
+        if (pilarStartTimeRef.current[qIdx]) {
+          const pilarSec = Math.max(1, Math.round((now - pilarStartTimeRef.current[qIdx]) / 1000));
+          durasiPilarRef.current[qIdx] = (durasiPilarRef.current[qIdx] || 0) + pilarSec;
+          pilarStartTimeRef.current[qIdx] = 0;
+        }
+        if (idx !== qIdx && evaluateQuestion(questions[qIdx], answers[qIdx]) === 'kosong') {
+          pindahTanpaJawabRef.current[qIdx] = (pindahTanpaJawabRef.current[qIdx] || 0) + 1;
+        }
+      }
     } catch (e) { /* abaikan error logging */ }
     // Reset timer untuk soal baru
     soalStartTimeRef.current = Date.now();
@@ -553,6 +578,7 @@ function ArenaClient() {
         return;
       }
       setChecked((prev) => ({ ...prev, [qIndex]: true }));
+      pilarStartTimeRef.current[qIndex] = Date.now();
       logEvent('check_answer', { soal_no: q.nomor, jawaban: ans });
       // Catat pilar pembahasan yang tersedia saat user cek jawaban
       const pilarTersedia: string[] = [];
