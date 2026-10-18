@@ -337,6 +337,30 @@ function unmaskMath(s: string, segs: string[]): string {
   return s.replace(/\u0000(\d+)\u0000/g, (_: string, n: string) => segs[Number(n)] ?? '');
 }
 
+/** Pecah paragraf menjadi kalimat-kalimat (satu kalimat = satu paragraf baru).
+ *  Split pada ". " (titik + spasi) dengan guard:
+ *  - angka desimal "200.000" / "3.14" tidak dipecah (titik tanpa spasi sesudahnya)
+ *  - singkatan umum "dkk.", "dll.", "dst.", "s.d." tidak dipecah
+ *  Segmen math $...$ di-mask dulu agar titik di rumus aman. */
+function splitSentences(text: string): string[] {
+  if (!text) return [];
+  const { text: masked, segs } = maskMath(text);
+  const abbrevRe = /^(dkk|dll|dst|dsb|sd|s\.d\.?|an|a\.n\.?|no|tgl|thn|bln)$/i;
+  const re = /\.\s+/g;
+  const parts: string[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(masked)) !== null) {
+    const before = masked.slice(0, m.index);
+    const wordBefore = before.match(/([A-Za-z.]+)$/)?.[1] ?? '';
+    if (abbrevRe.test(wordBefore.replace(/\.$/, ''))) continue;
+    parts.push(masked.slice(last, m.index + 1));
+    last = m.index + m[0].length;
+  }
+  parts.push(masked.slice(last));
+  return parts.map((p) => unmaskMath(p, segs).trim()).filter(Boolean);
+}
+
 /** Pecah daftar sub-bullet bertanda "-" (di luar rumus) menjadi array; [] bila tak ada. */
 function splitDashList(rest: string, segs: string[]): string[] {
   const parts = rest
@@ -383,6 +407,7 @@ function splitNestedSubs(item: string): { header: string; subs: string[] } | nul
  *  - "1." / "2." di awal baris → numbered list
  *  - "- " di awal baris → bullet list
  *  - baris baru → paragraf terpisah
+ *  - tiap kalimat (diakhiri titik) dalam paragraf → paragraf baru sendiri
  *  - sub-bullet "Header:- Sub1- Sub2" / label (A)/(B) → nested list
  *  Setiap item di-render via <Latex> agar rumus ke-render KaTeX.
  */
@@ -396,6 +421,10 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
   type SubItem = { text: string; subs?: string[] };
   type Chunk = { list: 'ul' | 'ol' | null } & SubItem;
   const chunks: Chunk[] = [];
+  // Paragraf polos → pecah per kalimat agar tiap kalimat jadi paragraf baru
+  const pushParagraph = (paraText: string) => {
+    for (const s of splitSentences(paraText)) chunks.push({ list: null, text: s });
+  };
   for (const line of t.split('\n').map((l) => l.trim()).filter(Boolean)) {
     if (line.includes('•')) {
       const parts = line.split('•').map((s) => s.trim()).filter(Boolean);
@@ -403,7 +432,7 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
       parts.forEach((s, idx) => {
         // Teks sebelum • pertama = paragraf pembuka, bukan bullet
         if (idx === 0 && !startsWithBullet) {
-          chunks.push({ list: null, text: s });
+          pushParagraph(s);
         } else {
           const nested = splitNestedSubs(s);
           chunks.push(nested ? { list: 'ul', text: nested.header, subs: nested.subs } : { list: 'ul', text: s });
@@ -416,7 +445,7 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
       const nested = splitNestedSubs(body);
       chunks.push(nested ? { list: 'ul', text: nested.header, subs: nested.subs } : { list: 'ul', text: body });
     } else {
-      chunks.push({ list: null, text: line });
+      pushParagraph(line);
     }
   }
 
@@ -469,10 +498,30 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
   );
 });
 
+/** Bersihkan output mentah AI sebelum di-render:
+ *  <br/> → newline, <b>teks</b> → **teks** (jadi bold), tag lain di-strip,
+ *  entities (&amp; &lt; &gt; &quot;) di-decode. Segmen math $...$ di-mask dulu. */
+function preprocessAiHtml(text: string): string {
+  if (!text) return text;
+  const { text: masked, segs } = maskMath(text);
+  let t = masked;
+  t = t.replace(/<br\s*\/?>/gi, '\n');
+  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
+  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
+  t = t
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'");
+  return unmaskMath(t, segs);
+}
+
 /** Render teks dengan LaTeX menjadi HTML string (untuk dangerouslySetInnerHTML) */
 export function renderLatexToHtml(text: string): string {
   if (!text) return text;
-  const src = autoWrapBareLatex(formatListNotation(text));
+  const clean = preprocessAiHtml(text);
+  const src = autoWrapBareLatex(formatListNotation(clean));
   if (!src.includes("$")) return richEsc(src);
   const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
   let lastIndex = 0;
@@ -499,10 +548,13 @@ export function renderLatexToHtml(text: string): string {
   return out;
 }
 
-/** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>. */
+/** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>.
+ *  Newline \n → <br/> agar ganti baris tampil di HTML string. */
 function richEsc(s: string): string {
   const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return esc(s).replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>');
+  return esc(s)
+    .replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>')
+    .replace(/\n/g, '<br/>');
 }
 
 export type NavKey = 'latihan' | 'ruang' | 'akun';
