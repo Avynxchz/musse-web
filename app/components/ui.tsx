@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 
 /* ================= Behavior log (shared) ================= */
@@ -14,26 +14,65 @@ export interface LogEntry {
 
 let logId = 1;
 
-/** Hook behavior log: console + counter + panel. prefix = label halaman utk console. */
+/** External log store: logEvent TIDAK memicu re-render komponen pemanggil.
+ * Hanya komponen yang subscribe (badge count / panel) yang re-render.
+ * Ini mencegah seluruh halaman quiz re-render setiap ada event log. */
+export interface LogStore {
+  logEvent: (event: string, payload?: Record<string, unknown>) => void;
+  useLogCount: () => number;
+  useLogs: () => LogEntry[];
+}
+
+export function createLogStore(prefix: string, max = 200): LogStore {
+  let logs: LogEntry[] = [];
+  const listeners = new Set<() => void>();
+  const emit = () => listeners.forEach((l) => l());
+
+  const logEvent = (event: string, payload: Record<string, unknown> = {}) => {
+    const entry: LogEntry = {
+      id: logId++,
+      event,
+      ts: new Date().toLocaleTimeString('id-ID'),
+      payload,
+    };
+    logs = [entry, ...logs].slice(0, max);
+    console.log(`[${prefix}]`, event, payload);
+    emit();
+  };
+
+  const subscribe = (cb: () => void) => {
+    listeners.add(cb);
+    return () => {
+      listeners.delete(cb);
+    };
+  };
+
+  // Snapshot harus immutable agar useSyncExternalStore tidak loop
+  const getCount = () => logs.length;
+  const getLogs = () => logs;
+
+  const useLogCount = () => useSyncExternalStore(subscribe, getCount, getCount);
+  const useLogs = () => useSyncExternalStore(subscribe, getLogs, getLogs);
+
+  return { logEvent, useLogCount, useLogs };
+}
+
+/** Hook behavior log: console + counter + panel. prefix = label halaman utk console.
+ * logEvent tidak me-re-render pemanggil; badge pakai useLogCount(), panel pakai useLogs(). */
 export function useBehaviorLog(prefix: string) {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const storeRef = useRef<LogStore | null>(null);
+  if (!storeRef.current) storeRef.current = createLogStore(prefix);
   const [showLogPanel, setShowLogPanel] = useState(false);
 
-  const logEvent = useCallback(
-    (event: string, payload: Record<string, unknown> = {}) => {
-      const entry: LogEntry = {
-        id: logId++,
-        event,
-        ts: new Date().toLocaleTimeString('id-ID'),
-        payload,
-      };
-      setLogs((prev) => [entry, ...prev].slice(0, 100));
-      console.log(`[${prefix}]`, event, payload);
-    },
-    [prefix]
-  );
-
-  return { logs, logEvent, showLogPanel, setShowLogPanel };
+  return {
+    logEvent: storeRef.current.logEvent,
+    useLogCount: storeRef.current.useLogCount,
+    useLogs: storeRef.current.useLogs,
+    // Kompat: logs kosong saat panel tutup (hindari re-render); panel baca via useLogs()
+    logs: [] as LogEntry[],
+    showLogPanel,
+    setShowLogPanel,
+  };
 }
 
 /** Panel viewer behavior log (overlay). */
@@ -563,6 +602,39 @@ function richEsc(s: string): string {
     .replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>')
     .replace(/\n/g, '<br/>');
 }
+
+/** Badge counter yang subscribe ke log count saja (isolasi re-render).
+ * Pakai ini agar halaman utama TIDAK re-render setiap ada event log. */
+export const LogCounterLive = memo(function LogCounterLive({
+  useLogCount,
+  onClick,
+}: {
+  useLogCount: () => number;
+  onClick: () => void;
+}) {
+  const count = useLogCount();
+  return <LogCounter count={count} onClick={onClick} />;
+});
+
+/** Panel log yang subscribe ke logs hanya saat terbuka (isolasi re-render). */
+export const LogPanelLive = memo(function LogPanelLive({
+  useLogs,
+  onClose,
+  badge,
+  title,
+  zIndex,
+  description,
+}: {
+  useLogs: () => LogEntry[];
+  onClose: () => void;
+  badge: string;
+  title: string;
+  zIndex?: string;
+  description?: string;
+}) {
+  const logs = useLogs();
+  return <LogPanel logs={logs} onClose={onClose} badge={badge ?? ''} title={title ?? ''} zIndex={zIndex} description={description} />;
+});
 
 export type NavKey = 'latihan' | 'ruang' | 'akun';
 
