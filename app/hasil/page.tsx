@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QUESTIONS, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
 import { Latex, LogCounterLive, LogPanelLive, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
@@ -13,7 +13,7 @@ import { analyzeLearningPattern, getLastAttempt } from '../../lib/analisis';
 // 1) HTML resmi CBT bila ada, 2) gambar + teks — gambar di depan bila teks
 //    diawali kata kerja ("merupakan…", "adalah…", dst), 3) teks saja.
 const STMT_IMG_FIRST_RE = /^(merupakan|adalah|sama dengan|lebih|kurang|termasuk)\b/i;
-function StatementBodyHasil({ st }: { st: Statement }) {
+const StatementBodyHasil = memo(function StatementBodyHasil({ st }: { st: Statement }) {
   if (st.html) {
     return <span className="opsi-html" dangerouslySetInnerHTML={{ __html: st.html }} />;
   }
@@ -34,7 +34,7 @@ function StatementBodyHasil({ st }: { st: Statement }) {
   ) : (
     <><span>{txt} </span>{imgEl}</>
   );
-}
+});
 
 function BedahSoalSheet({
   q,

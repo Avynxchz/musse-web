@@ -19,7 +19,6 @@ import {
 const MAPEL_OPTIONS = MAPEL_CATALOG.map((m) => ({
   value: m.key,
   label: m.name,
-  hasP2: m.p2 > 0,
 }));
 
 /* ================= Halaman ================= */
@@ -28,6 +27,7 @@ export default function RuangPage() {
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
+  const [storageTick, setStorageTick] = useState(0);
   const [mapelCoach, setMapelCoach] = useState('matematika');
   const [paketCoach, setPaketCoach] = useState<1 | 2>(1);
   const { toast, showToastMsg } = useToast();
@@ -35,18 +35,27 @@ export default function RuangPage() {
 
   useEffect(() => {
     setMounted(true);
+    const onSync = () => setStorageTick((t) => t + 1);
+    window.addEventListener('focus', onSync);
+    window.addEventListener('storage', onSync);
+    return () => {
+      window.removeEventListener('focus', onSync);
+      window.removeEventListener('storage', onSync);
+    };
   }, []);
 
   /* ---------- AI #3: Kombinasi Log per (mapel, paket) + Insight AI #1 ---------- */
   const statRuang = useMemo(() => {
     if (!mounted) return analyzeRuangAI(mapelCoach, paketCoach, []);
     return analyzeRuangAI(mapelCoach, paketCoach);
-  }, [mounted, mapelCoach, paketCoach]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, mapelCoach, paketCoach, storageTick]);
 
   const ai1Insight = useMemo(() => {
     if (!mounted) return null;
     return getAI1Insight(mapelCoach, paketCoach);
-  }, [mounted, mapelCoach, paketCoach]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, mapelCoach, paketCoach, storageTick]);
 
   const mapelLabel =
     MAPEL_OPTIONS.find((o) => o.value === mapelCoach)?.label ?? statRuang.mapelName ?? 'Matematika (Wajib)';
@@ -61,11 +70,6 @@ export default function RuangPage() {
     ? statRuang.pesanCoach
     : `Belum ada data untuk ${mapelLabel} Paket ${paketCoach}!`;
 
-  // Page view logging
-  useEffect(() => {
-    logEvent('page_view', { page: 'ruang' });
-  }, []);
-
   /* ===== Chat Coach per mapel + paket ===== */
   const [showCoach, setShowCoach] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
@@ -75,6 +79,14 @@ export default function RuangPage() {
   // Guard anti double-submit chat (<500ms, pesan sama)
   const lastCoachMsgRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
   const coachAbortRef = useRef<AbortController | null>(null);
+
+  // Page view logging + cleanup AbortController saat unmount
+  useEffect(() => {
+    logEvent('page_view', { page: 'ruang' });
+    return () => {
+      if (coachAbortRef.current) coachAbortRef.current.abort();
+    };
+  }, [logEvent]);
 
   const gantiMapel = (v: string) => {
     setMapelCoach(v);

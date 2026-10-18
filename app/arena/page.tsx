@@ -103,6 +103,53 @@ const ArenaLogCount = memo(function ArenaLogCount({ useLogCount }: { useLogCount
   return <>{count}</>;
 });
 
+const IMG_FIRST_RE = /^(merupakan|adalah|sama dengan|lebih|kurang|termasuk)\b/i;
+
+/**
+ * Render isi pernyataan (Benar-Salah / Matriks / Pernyataan-Label) ter-memo di level modul
+ * agar klik opsi/timer/modal tidak meng-unmount & me-mount ulang DOM gambar pernyataan.
+ */
+const ArenaStatementBody = memo(function ArenaStatementBody({
+  st,
+  onZoom,
+}: {
+  st: Statement;
+  onZoom: (url: string) => void;
+}) {
+  if (st.html) {
+    return <span className="opsi-html" dangerouslySetInnerHTML={{ __html: st.html }} />;
+  }
+  const txt = (st.text || '').trim();
+  const imgEl = st.image_url ? (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img
+      src={st.image_url}
+      alt={`Pernyataan ${st.key}`}
+      title="Klik untuk memperbesar gambar"
+      onClick={(e) => {
+        e.stopPropagation();
+        onZoom(st.image_url!);
+      }}
+      className="bs-stmt-img"
+      loading="lazy"
+    />
+  ) : null;
+  if (!txt) return <>{imgEl}</>;
+  const imgFirst = IMG_FIRST_RE.test(txt);
+  if (!imgEl) return <span>{txt}</span>;
+  return imgFirst ? (
+    <>
+      {imgEl}
+      <span> {txt}</span>
+    </>
+  ) : (
+    <>
+      <span>{txt} </span>
+      {imgEl}
+    </>
+  );
+});
+
 /* ================= Komponen utama ================= */
 
 function ArenaClient() {
@@ -162,6 +209,12 @@ function ArenaClient() {
   useEffect(() => {
     let cancelled = false;
     answersRef.current = {};
+    durasiPerSoalRef.current = {};
+    gantiJawabanRef.current = {};
+    pindahTanpaJawabRef.current = {};
+    pilarStartTimeRef.current = {};
+    durasiPilarRef.current = {};
+    pembahasanScrolledRef.current = {};
     setAnswers({});
     setRagu({});
     setChecked({});
@@ -260,6 +313,8 @@ function ArenaClient() {
   }, []);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const evalScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Timer untuk durasi per soal (behavior logging) - harus di atas fetch effect
   const soalStartTimeRef = useRef<number>(Date.now());
   // Tracking untuk analisis AI: durasi per soal, ganti jawaban, pindah tanpa jawab, & durasi baca pilar
@@ -277,10 +332,13 @@ function ArenaClient() {
   const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
   const chatAbortRef = useRef<AbortController | null>(null);
 
-  // Cleanup: cegah setState setelah unmount (toast timer)
+  // Cleanup: cegah setState / timer / fetch menggantung setelah unmount
   useEffect(() => {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
+      if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+      if (evalScrollTimerRef.current) clearTimeout(evalScrollTimerRef.current);
+      if (chatAbortRef.current) chatAbortRef.current.abort();
     };
   }, []);
 
@@ -355,37 +413,10 @@ function ArenaClient() {
     };
   }, [q?.stimulusHtml, q?.pertanyaanHtml, q?.options, q?.statements, qIndex]);
 
-  // Render isi pernyataan (Benar-Salah / Matriks / Pernyataan-Label) persis app lama:
-  // 1) HTML resmi CBT bila ada (gambar inline), 2) gambar + teks — gambar di depan
-  //    bila teks diawali kata kerja ("merupakan…", "adalah…", dst) seperti
-  //    "[gambar a] merupakan kelipatan dari 3.", 3) teks saja.
-  // Klik gambar -> lightbox zoom, tanpa mengubah nilai Benar/Salah.
-  const IMG_FIRST_RE = /^(merupakan|adalah|sama dengan|lebih|kurang|termasuk)\b/i;
-  const StatementBody = ({ st }: { st: Statement }) => {
-    if (st.html) {
-      return <span className="opsi-html" dangerouslySetInnerHTML={{ __html: st.html }} />;
-    }
-    const txt = (st.text || '').trim();
-    const imgEl = st.image_url ? (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
-        src={st.image_url}
-        alt={`Pernyataan ${st.key}`}
-        title="Klik untuk memperbesar gambar"
-        onClick={(e) => { e.stopPropagation(); setZoomImg(st.image_url!); setZoomLevel(1); }}
-        className="bs-stmt-img"
-        loading="lazy"
-      />
-    ) : null;
-    if (!txt) return <>{imgEl}</>;
-    const imgFirst = IMG_FIRST_RE.test(txt);
-    if (!imgEl) return <span>{txt}</span>;
-    return imgFirst ? (
-      <>{imgEl}<span> {txt}</span></>
-    ) : (
-      <><span>{txt} </span>{imgEl}</>
-    );
-  };
+  const handleZoomImg = useCallback((url: string) => {
+    setZoomImg(url);
+    setZoomLevel(1);
+  }, []);
 
   const isLast = qIndex === questions.length - 1;
   const fontScale = FONT_SCALES[fontScaleIdx];
@@ -405,7 +436,8 @@ function ArenaClient() {
     // Reset otomatis setelah 3 detik sebagai pengaman kalau navigasi gagal
     if (finishingRef.current) return;
     finishingRef.current = true;
-    setTimeout(() => {
+    if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+    finishTimerRef.current = setTimeout(() => {
       finishingRef.current = false;
     }, 3000);
     const currentAnswers = answersRef.current;
@@ -603,7 +635,11 @@ function ArenaClient() {
         pilar_tersedia: pilarTersedia,
         mode,
       });
-      setTimeout(() => evalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+      if (evalScrollTimerRef.current) clearTimeout(evalScrollTimerRef.current);
+      evalScrollTimerRef.current = setTimeout(
+        () => evalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }),
+        120
+      );
     } else {
       if (isLast) finishQuiz('user');
       else goSoal(qIndex + 1);
@@ -1076,7 +1112,7 @@ function ArenaClient() {
                       >
                         <div className="flex-1">
                           <b className="mr-1">{st.key}.</b>
-                          <StatementBody st={st} />
+                          <ArenaStatementBody st={st} onZoom={handleZoomImg} />
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <NeoBtn
@@ -1124,7 +1160,7 @@ function ArenaClient() {
                       >
                         <div className="mb-2">
                           <b className="mr-1">{st.key}.</b>
-                          <StatementBody st={st} />
+                          <ArenaStatementBody st={st} onZoom={handleZoomImg} />
                         </div>
                         <div className="flex gap-1">
                           <span className="flex-1" />

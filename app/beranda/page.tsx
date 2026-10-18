@@ -242,6 +242,7 @@ export default function BerandaPage() {
   const [lastAttempt, setLastAttempt] = useState<QuizAttempt | null>(null);
   // Guard anti double-start quiz (double-click tombol Mulai)
   const startingRef = useRef(false);
+  const startingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast, showToastMsg } = useToast();
   const { logEvent, useLogCount, useLogs, showLogPanel, setShowLogPanel } = useBehaviorLog('beranda');
 
@@ -258,6 +259,7 @@ export default function BerandaPage() {
     return () => {
       window.removeEventListener('focus', syncStorage);
       window.removeEventListener('storage', syncStorage);
+      if (startingTimerRef.current) clearTimeout(startingTimerRef.current);
     };
   }, [logEvent]);
 
@@ -389,7 +391,8 @@ export default function BerandaPage() {
     // Reset otomatis setelah 3 detik sebagai pengaman kalau navigasi gagal
     if (startingRef.current) return;
     startingRef.current = true;
-    setTimeout(() => {
+    if (startingTimerRef.current) clearTimeout(startingTimerRef.current);
+    startingTimerRef.current = setTimeout(() => {
       startingRef.current = false;
     }, 3000);
     logEvent('quiz_start', {

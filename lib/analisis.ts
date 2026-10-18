@@ -10,6 +10,8 @@
  * - KEY_QUIZ_HISTORY ('musse_quiz_history'): array attempt (maks MAX_QUIZ_HISTORY)
  */
 
+import { getMapel } from '../app/arena/data';
+
 // ================= Tipe data =================
 
 export interface PerSoalResult {
@@ -111,6 +113,16 @@ export function saveAI1Insight(item: AI1InsightItem): void {
   try {
     if (typeof window === 'undefined' || !item.mapel) return;
     const existing = safeGet<AI1Insight | null>(KEY_AI1_INSIGHT, null);
+    const key = `${item.mapel}_p${Number(item.paket) === 2 ? 2 : 1}`;
+    if (
+      existing &&
+      existing.mapel === item.mapel &&
+      Number(existing.paket) === Number(item.paket) &&
+      existing.tanggal === item.tanggal &&
+      existing.perPaket?.[key]?.tanggal === item.tanggal
+    ) {
+      return;
+    }
     const perPaket: Record<string, AI1InsightItem> = {
       ...(existing?.perPaket ?? {}),
     };
@@ -129,7 +141,6 @@ export function saveAI1Insight(item: AI1InsightItem): void {
         };
       }
     }
-    const key = `${item.mapel}_p${Number(item.paket) === 2 ? 2 : 1}`;
     perPaket[key] = item;
     const payload: AI1Insight = {
       ...item,
@@ -508,36 +519,6 @@ export function analyzeLearningPattern(attempt: QuizAttempt | null): HasilAnalis
 
 // ================= AI #3: Analisis kumulatif per mapel & per paket =================
 
-const MAPEL_NAMES_FALLBACK: Record<string, string> = {
-  matematika: 'Matematika (Wajib)',
-  indonesia: 'Bahasa Indonesia (Wajib)',
-  inggris: 'Bahasa Inggris (Wajib)',
-  fisika: 'Fisika (Peminatan)',
-  kimia: 'Kimia (Peminatan)',
-  biologi: 'Biologi (Peminatan)',
-  ekonomi: 'Ekonomi (Peminatan)',
-  sosiologi: 'Sosiologi (Peminatan)',
-  tkj: 'SMK - Teknik Jaringan (TKJ)',
-  tkr: 'SMK - Teknik Otomotif (TKR)',
-  jepang: 'Bahasa Jepang',
-  akuntansi: 'SMK - Akuntansi',
-  antropologi: 'Antropologi (Peminatan)',
-  arab: 'Bahasa Arab',
-  indonesia_lanjut: 'B. Indonesia Lanjut',
-  inggris_lanjut: 'B. Inggris Lanjut',
-  jerman: 'Bahasa Jerman',
-  korea: 'Bahasa Korea',
-  mandarin: 'Bahasa Mandarin',
-  prancis: 'Bahasa Prancis',
-  geografi: 'Geografi (Peminatan)',
-  kewirausahaan: 'SMK - Kewirausahaan',
-  mp: 'SMK - Manajemen Perkantoran',
-  matlanjut: 'Matematika Lanjut',
-  ppkn: 'PPKn (Wajib)',
-  sejarah: 'Sejarah (Peminatan)',
-  mesin: 'SMK - Teknik Mesin',
-};
-
 export interface StatRuang {
   adaData: boolean;
   mapel: string;
@@ -635,7 +616,7 @@ export function analyzeRuangAI(
   const mapelName =
     filtered[filtered.length - 1]?.mapelName ||
     ai1?.mapelName ||
-    MAPEL_NAMES_FALLBACK[targetMapel] ||
+    getMapel(targetMapel)?.name ||
     targetMapel;
 
   if (filtered.length === 0 && !ai1) {
