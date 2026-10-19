@@ -896,6 +896,7 @@ function ArenaClient() {
     finishTimerRef.current = setTimeout(() => {
       finishingRef.current = false;
     }, 3000);
+    try {
     const mergedAnswers: Record<number, Answer> = { ...answers, ...answersRef.current };
     answersRef.current = mergedAnswers;
     const hasil = questions.map((qq, i) => evaluateQuestion(qq, mergedAnswers[i]));
@@ -931,10 +932,20 @@ function ArenaClient() {
     // (last_attempt → halaman hasil / AI #1, history → ruang / AI #3)
     syncAttemptProgress(mergedAnswers);
     // Hapus progress sesi yang sudah selesai
-    clearArenaProgress();
-    router.push(
-      `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
-    );
+    try { clearArenaProgress(); } catch {}
+    } catch (e) {
+      console.error('finishQuiz error:', e);
+      finishingRef.current = false;
+    }
+    // Navigasi SELALU dijalankan walau save gagal — jangan kunci user di arena
+    try {
+      router.push(
+        `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
+      );
+    } catch {
+      // Fallback: hard navigation bila router gagal
+      window.location.href = `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`;
+    }
   };
 
   // --- timer: state countdown hidup di <ArenaTimer> (terisolasi).
