@@ -1092,7 +1092,7 @@ function ArenaClient() {
   if (soalLoading || !q) {
     return (
       <div className="min-h-dvh bg-[#18181B] flex justify-center">
-        <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
+        <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl px-6 py-4 text-sm font-extrabold bg-white text-center">
             <div className="text-2xl mb-2">📚</div>
             Memuat soal…
@@ -1102,9 +1102,150 @@ function ArenaClient() {
     );
   }
 
+  let petaDijawabCount = 0;
+  let petaRaguCount = 0;
+  let petaBelumCount = 0;
+  questions.forEach((qq, i) => {
+    const ans = answers[i] ?? answersRef.current[i];
+    const dijawab = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
+    if (ragu[i]) petaRaguCount++;
+    if (dijawab) petaDijawabCount++;
+    else petaBelumCount++;
+  });
+
+  const defaultTutorGreeting = `<b>AI Tutor</b><br/>Halo! ${
+    mode === 'simulasi'
+      ? 'Mode Simulasi: aku kasih petunjuk konsep tanpa bocorin kunci ya!'
+      : `Aku udah baca <b>Soal #${q.nomor} (${q.topik})</b>. Bagian mana yang bikin bingung?`
+  }`;
+  const desktopChatMsgs =
+    chatMsgs.length > 0 ? chatMsgs : [{ from: 'ai' as const, html: defaultTutorGreeting }];
+
+  const pilarCards = (
+    <>
+      {/* ===== PILAR 1: Identifikasi Masalah (kartu mandiri) ===== */}
+      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 1</span>
+          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Identifikasi Masalah</h2>
+        </header>
+        <div className="p-3.5 flex flex-col gap-3">
+          {q.diketahui ? (
+            <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
+              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#E0E7FF]">📋 Diketahui</span>
+              <PilarText text={q.diketahui} />
+            </div>
+          ) : null}
+          {q.ditanyakan ? (
+            <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
+              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FDE68A]">🎯 Ditanyakan</span>
+              <PilarText text={q.ditanyakan} />
+            </div>
+          ) : null}
+          {!(q.diketahui || q.ditanyakan) ? (
+            <PilarText text={q.pilar1} />
+          ) : null}
+          {(q.conceptKunci?.length ?? 0) > 0 && (
+            <div>
+              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">🔑 Konsep & Rumus Utama</span>
+              <div className="flex flex-wrap gap-1.5">
+                {q.conceptKunci!.map((c, i) => (
+                  <span key={i} className="bg-[#B6FF00] border-[1.5px] border-[#111] shadow-[0_2px_0_#111] rounded-full px-2.5 py-1 text-xs font-extrabold"><Latex text={c} /></span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </article>
+      {/* ===== PILAR 2: Glosarium (kartu mandiri, tidak digabung dengan Pilar 3) ===== */}
+      {(q.glossary?.length ?? 0) > 0 && (
+        <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+          <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#E0E7FF]">Pilar 2</span>
+            <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Glosarium</h2>
+          </header>
+          <div className="p-3.5 flex flex-col gap-3">
+            {q.glossary!.map((g, i) => (
+              <div key={i} className="border-[1.5px] border-[#111] rounded-[14px] p-3 bg-[#FAFAF7]">
+                <div className="inline-block bg-[#E0E7FF] border-[1.5px] border-[#111] rounded-[7px] px-2 py-0.5 text-[12px] font-extrabold mb-1.5"><Latex text={g.term} /></div>
+                <p className="text-sm font-medium leading-relaxed"><Latex text={g.meaning} /></p>
+              </div>
+            ))}
+          </div>
+        </article>
+      )}
+      {/* ===== PILAR 3: Mengapa Rumus Ini Dipakai? (kartu mandiri) ===== */}
+      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 3</span>
+          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Mengapa Rumus Ini Dipakai?</h2>
+        </header>
+        <div className="p-3.5">
+          <div className="border-[1.5px] border-[#111] border-l-[5px] border-l-[#4F46E5] rounded-[14px] p-3 bg-[#F5F7FF]">
+            <PilarText text={q.pilar3} />
+          </div>
+        </div>
+      </article>
+      {/* ===== PILAR 4: Langkah-Langkah Pengerjaan (kartu mandiri) ===== */}
+      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 4</span>
+          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Langkah-Langkah Pengerjaan</h2>
+        </header>
+        <div className="p-3.5 flex flex-col gap-3">
+          {q.stepsDetailed?.length ? (
+            q.stepsDetailed.map((s, i, arr) => (
+              <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 flex flex-col gap-1.5 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
+                <div className="flex items-start gap-2">
+                  <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
+                  {s.title ? <h3 className="text-[13.5px] font-extrabold leading-snug"><Latex text={s.title} /></h3> : null}
+                </div>
+                <PilarText text={s.explanation} />
+              </div>
+            ))
+          ) : (
+            (q.pilar4 ?? []).map((s, i, arr) => (
+              <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
+                <div className="flex items-start gap-2">
+                  <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
+                  <PilarText text={s} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </article>
+      {/* ===== PILAR 5: Trik Cepat & Jebakan Umum (kartu mandiri) ===== */}
+      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
+        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 5</span>
+          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Trik Cepat & Jebakan Umum</h2>
+        </header>
+        <div className="p-3.5 flex flex-col gap-3">
+          {q.pilar5 ? (
+            <div className="bg-[#DCFCE7] border-[1.5px] border-[#111] rounded-[14px] p-3">
+              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">⚡ Trik Cepat</span>
+              <PilarText text={q.pilar5} />
+            </div>
+          ) : null}
+          {(q.commonMistakes?.length ?? 0) > 0 && (
+            <div className="bg-[#FEE2E2] border-[1.5px] border-[#111] rounded-[14px] p-3">
+              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FCA5A5]">⚠️ Jebakan Umum</span>
+              <div className="text-sm font-medium leading-relaxed space-y-1.5">
+                {q.commonMistakes!.map((m, i) => (
+                  <PilarText key={i} text={m} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </article>
+    </>
+  );
+
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
         {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
         {soalError && soalSource === 'dummy' && (
           <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
@@ -1112,7 +1253,7 @@ function ArenaClient() {
           </div>
         )}
         {/* ===== TOP BAR ===== */}
-        <header className="bg-white border-b-2 border-[#111] px-3 py-2.5 flex items-center justify-between gap-1.5 shrink-0 sticky top-0 z-30">
+        <header className="bg-white border-b-2 border-[#111] px-3 md:px-6 py-2.5 md:py-3 flex items-center justify-between gap-1.5 md:gap-3 shrink-0 sticky top-0 z-30">
           <NeoBtn
             onClick={() => setShowExitConfirm(true)}
             className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-xs shrink-0"
@@ -1121,16 +1262,16 @@ function ArenaClient() {
             ✕
           </NeoBtn>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 md:gap-2">
               <span
-                className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-[#111] shrink-0 ${
+                className={`text-[10px] md:text-xs font-extrabold px-1.5 md:px-2.5 py-0.5 rounded border border-[#111] shrink-0 ${
                   mode === 'simulasi' ? 'bg-amber-300' : 'bg-[#B6FF00]'
                 }`}
               >
                 {mode === 'simulasi' ? '⚡ Simulasi' : '🌱 Latihan'}
               </span>
-              <span className="text-xs font-extrabold truncate">{soalLabel}</span>
-              <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded shrink-0">
+              <span className="text-xs md:text-sm font-extrabold truncate">{soalLabel}</span>
+              <span className="bg-[#111] text-[#B6FF00] text-[10px] md:text-xs font-extrabold px-1.5 md:px-2 py-0.5 rounded shrink-0">
                 {q.nomor}/{questions.length}
               </span>
             </div>
@@ -1154,7 +1295,7 @@ function ArenaClient() {
               setShowPeta(true);
               logEvent('peta_soal_open', { soal_no: q.nomor });
             }}
-            className="px-2 py-1 rounded-lg bg-[#E0E7FF] text-xs flex items-center gap-1 shrink-0"
+            className="px-2 py-1 rounded-lg bg-[#E0E7FF] text-xs flex md:hidden items-center gap-1 shrink-0"
           >
             <span>▦</span>
             <span>Peta</span>
@@ -1170,7 +1311,7 @@ function ArenaClient() {
         </header>
 
         {/* ===== PROGRESS BAR ===== */}
-        <div className="w-full h-1.5 bg-neutral-200 border-b border-[#111] shrink-0">
+        <div className="w-full h-1.5 bg-neutral-200 border-b border-[#111] shrink-0 md:sticky md:top-[53px] md:z-20">
           <div
             className="h-full w-full bg-[#B6FF00] transition-transform duration-300 origin-left"
             style={{ transform: `scaleX(${(((qIndex + 1) / questions.length)).toFixed(4)})` }}
@@ -1187,13 +1328,28 @@ function ArenaClient() {
           </div>
         )}
 
-        {/* ===== AREA SOAL ===== */}
-        <div
-          ref={scrollBodyRef}
-          className="flex-1 overflow-y-auto p-4 pb-28"
-          style={{ fontSize: `${fontScale}%` }}
-        >
-          <div className="space-y-4">
+        {/* ===== DESKTOP 2-COLUMN WRAPPER (Mobile: flex-col utuh, Desktop: 60% kiri + 40% kanan sticky) ===== */}
+        <div className="flex-1 flex flex-col md:flex-row md:items-start md:gap-6 md:p-6">
+          {/* ===== KOLOM KIRI (60% di desktop): Navigasi Prev/Next Kiri-Kanan + Area Soal + Action Bar ===== */}
+          <div className="flex-1 flex flex-col w-full md:w-[60%] md:min-w-0">
+            <div className="flex-1 flex flex-col md:flex-row md:items-start md:gap-3">
+              {/* Tombol Navigasi Soal Sebelumnya (Besar di Kiri Area Soal - Desktop Only) */}
+              <NeoBtn
+                onClick={() => goSoal(qIndex - 1)}
+                disabled={qIndex === 0}
+                title="Soal Sebelumnya"
+                className="hidden md:flex w-12 h-16 rounded-2xl bg-white items-center justify-center text-lg shrink-0 sticky top-24"
+              >
+                ←
+              </NeoBtn>
+
+              {/* ===== AREA SOAL ===== */}
+              <div
+                ref={scrollBodyRef}
+                className="flex-1 overflow-y-auto md:overflow-visible p-4 pb-28 md:p-0 md:pb-4 min-w-0"
+                style={{ fontSize: `${fontScale}%` }}
+              >
+                <div className="space-y-4">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="bg-[#E0E7FF] border border-[#111] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold">
@@ -1452,124 +1608,8 @@ function ArenaClient() {
                   </div>
 
                   {pilarExpanded && (
-                    <div className="mt-4 space-y-4 border-t-2 border-dashed border-neutral-300 pt-3">
-                      {/* ===== PILAR 1: Identifikasi Masalah (kartu mandiri) ===== */}
-                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-                        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 1</span>
-                          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Identifikasi Masalah</h2>
-                        </header>
-                        <div className="p-3.5 flex flex-col gap-3">
-                          {q.diketahui ? (
-                            <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
-                              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#E0E7FF]">📋 Diketahui</span>
-                              <PilarText text={q.diketahui} />
-                            </div>
-                          ) : null}
-                          {q.ditanyakan ? (
-                            <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
-                              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FDE68A]">🎯 Ditanyakan</span>
-                              <PilarText text={q.ditanyakan} />
-                            </div>
-                          ) : null}
-                          {!(q.diketahui || q.ditanyakan) ? (
-                            <PilarText text={q.pilar1} />
-                          ) : null}
-                          {(q.conceptKunci?.length ?? 0) > 0 && (
-                            <div>
-                              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">🔑 Konsep & Rumus Utama</span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {q.conceptKunci!.map((c, i) => (
-                                  <span key={i} className="bg-[#B6FF00] border-[1.5px] border-[#111] shadow-[0_2px_0_#111] rounded-full px-2.5 py-1 text-xs font-extrabold"><Latex text={c} /></span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </article>
-                      {/* ===== PILAR 2: Glosarium (kartu mandiri, tidak digabung dengan Pilar 3) ===== */}
-                      {(q.glossary?.length ?? 0) > 0 && (
-                        <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-                          <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#E0E7FF]">Pilar 2</span>
-                            <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Glosarium</h2>
-                          </header>
-                          <div className="p-3.5 flex flex-col gap-3">
-                            {q.glossary!.map((g, i) => (
-                              <div key={i} className="border-[1.5px] border-[#111] rounded-[14px] p-3 bg-[#FAFAF7]">
-                                <div className="inline-block bg-[#E0E7FF] border-[1.5px] border-[#111] rounded-[7px] px-2 py-0.5 text-[12px] font-extrabold mb-1.5"><Latex text={g.term} /></div>
-                                <p className="text-sm font-medium leading-relaxed"><Latex text={g.meaning} /></p>
-                              </div>
-                            ))}
-                          </div>
-                        </article>
-                      )}
-                      {/* ===== PILAR 3: Mengapa Rumus Ini Dipakai? (kartu mandiri) ===== */}
-                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-                        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 3</span>
-                          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Mengapa Rumus Ini Dipakai?</h2>
-                        </header>
-                        <div className="p-3.5">
-                          <div className="border-[1.5px] border-[#111] border-l-[5px] border-l-[#4F46E5] rounded-[14px] p-3 bg-[#F5F7FF]">
-                            <PilarText text={q.pilar3} />
-                          </div>
-                        </div>
-                      </article>
-                      {/* ===== PILAR 4: Langkah-Langkah Pengerjaan (kartu mandiri) ===== */}
-                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-                        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 4</span>
-                          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Langkah-Langkah Pengerjaan</h2>
-                        </header>
-                        <div className="p-3.5 flex flex-col gap-3">
-                          {q.stepsDetailed?.length ? (
-                            q.stepsDetailed.map((s, i, arr) => (
-                              <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 flex flex-col gap-1.5 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
-                                <div className="flex items-start gap-2">
-                                  <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
-                                  {s.title ? <h3 className="text-[13.5px] font-extrabold leading-snug"><Latex text={s.title} /></h3> : null}
-                                </div>
-                                <PilarText text={s.explanation} />
-                              </div>
-                            ))
-                          ) : (
-                            (q.pilar4 ?? []).map((s, i, arr) => (
-                              <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
-                                <div className="flex items-start gap-2">
-                                  <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
-                                  <PilarText text={s} />
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </article>
-                      {/* ===== PILAR 5: Trik Cepat & Jebakan Umum (kartu mandiri) ===== */}
-                      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-                        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 5</span>
-                          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Trik Cepat & Jebakan Umum</h2>
-                        </header>
-                        <div className="p-3.5 flex flex-col gap-3">
-                          {q.pilar5 ? (
-                            <div className="bg-[#DCFCE7] border-[1.5px] border-[#111] rounded-[14px] p-3">
-                              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">⚡ Trik Cepat</span>
-                              <PilarText text={q.pilar5} />
-                            </div>
-                          ) : null}
-                          {(q.commonMistakes?.length ?? 0) > 0 && (
-                            <div className="bg-[#FEE2E2] border-[1.5px] border-[#111] rounded-[14px] p-3">
-                              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FCA5A5]">⚠️ Jebakan Umum</span>
-                              <div className="text-sm font-medium leading-relaxed space-y-1.5">
-                                {q.commonMistakes!.map((m, i) => (
-                                  <PilarText key={i} text={m} />
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </article>
+                    <div className="mt-4 space-y-4 border-t-2 border-dashed border-neutral-300 pt-3 md:hidden">
+                      {pilarCards}
                     </div>
                   )}
 
@@ -1626,50 +1666,235 @@ function ArenaClient() {
                 )}
               </div>
             )}
+                </div>
+              </div>
+
+              {/* Tombol Navigasi Soal Selanjutnya (Besar di Kanan Area Soal - Desktop Only) */}
+              <NeoBtn
+                onClick={() => goSoal(qIndex + 1)}
+                disabled={isLast}
+                title="Soal Selanjutnya"
+                className="hidden md:flex w-12 h-16 rounded-2xl bg-white items-center justify-center text-lg shrink-0 sticky top-24"
+              >
+                →
+              </NeoBtn>
+            </div>
+
+            {/* ===== BOTTOM BAR ===== */}
+            <footer className="absolute bottom-0 left-0 right-0 md:static md:mt-2 md:mx-15 bg-white border-t-2 md:border-2 border-[#111] md:rounded-2xl md:shadow-[0_4px_0_#111] px-3 md:px-4 py-2.5 md:py-3 flex items-center gap-2 shrink-0 z-30">
+              <NeoBtn
+                onClick={() => goSoal(qIndex - 1)}
+                disabled={qIndex === 0}
+                className="px-3 py-2.5 rounded-xl bg-white text-xs"
+              >
+                ←
+              </NeoBtn>
+              <NeoBtn
+                onClick={toggleRagu}
+                className={`px-3 py-2.5 rounded-xl text-xs flex items-center gap-1 ${ragu[qIndex] ? 'bg-amber-300' : 'bg-white'}`}
+              >
+                <span>⚑</span>
+                <span>Ragu</span>
+              </NeoBtn>
+              <NeoBtn
+                onClick={openTutor}
+                className="px-3 py-2.5 rounded-xl bg-[#E0E7FF] text-xs flex md:hidden items-center gap-1"
+              >
+                <span>✨</span>
+                <span>AI ({tutorQuota})</span>
+              </NeoBtn>
+              {mode === 'simulasi' && (
+                <button
+                  onClick={() => {
+                    showToastMsg('🔒 Mode Simulasi: kunci & pembahasan dibuka setelah Selesai!');
+                    logEvent('simulasi_locked_check_attempt', { soal_no: q.nomor });
+                  }}
+                  className="px-2.5 py-2.5 rounded-xl bg-neutral-200 text-neutral-600 text-[11px] font-extrabold border-2 border-[#111] shadow-[0_3px_0_#111] flex items-center gap-1"
+                  title="Cek Jawaban dikunci selama Mode Simulasi"
+                >
+                  🔒 Cek Dikunci
+                </button>
+              )}
+              <NeoBtn
+                onClick={handlePrimary}
+                className={`flex-1 py-2.5 px-3 rounded-xl text-xs text-center truncate ${primaryStyle}`}
+              >
+                {primaryLabel}
+              </NeoBtn>
+            </footer>
           </div>
-        </div>
-        {/* ===== BOTTOM BAR ===== */}
-        <footer className="absolute bottom-0 left-0 right-0 bg-white border-t-2 border-[#111] px-3 py-2.5 flex items-center gap-2 shrink-0 z-30">
-          <NeoBtn
-            onClick={() => goSoal(qIndex - 1)}
-            disabled={qIndex === 0}
-            className="px-3 py-2.5 rounded-xl bg-white text-xs"
-          >
-            ←
-          </NeoBtn>
-          <NeoBtn
-            onClick={toggleRagu}
-            className={`px-3 py-2.5 rounded-xl text-xs flex items-center gap-1 ${ragu[qIndex] ? 'bg-amber-300' : 'bg-white'}`}
-          >
-            <span>⚑</span>
-            <span>Ragu</span>
-          </NeoBtn>
-          <NeoBtn
-            onClick={openTutor}
-            className="px-3 py-2.5 rounded-xl bg-[#E0E7FF] text-xs flex items-center gap-1"
-          >
-            <span>✨</span>
-            <span>AI ({tutorQuota})</span>
-          </NeoBtn>
-          {mode === 'simulasi' && (
-            <button
-              onClick={() => {
-                showToastMsg('🔒 Mode Simulasi: kunci & pembahasan dibuka setelah Selesai!');
-                logEvent('simulasi_locked_check_attempt', { soal_no: q.nomor });
-              }}
-              className="px-2.5 py-2.5 rounded-xl bg-neutral-200 text-neutral-600 text-[11px] font-extrabold border-2 border-[#111] shadow-[0_3px_0_#111] flex items-center gap-1"
-              title="Cek Jawaban dikunci selama Mode Simulasi"
+
+          {/* ===== KOLOM KANAN (40% di desktop, sticky): Peta Soal Permanen + AI Tutor Permanen (Bisa Minimize/Collapse) ===== */}
+          <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:gap-4 md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)] md:overflow-y-auto">
+            {/* Panel 1: Peta Nomor Soal Permanen */}
+            <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 space-y-3 shrink-0">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold flex items-center gap-1.5">
+                  <span>▦</span>
+                  <span>Peta Nomor Soal</span>
+                </h3>
+                <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-2 py-0.5 rounded">
+                  Soal #{q.nomor}/{questions.length}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-3 text-[11px] font-bold">
+                <span className="flex items-center gap-1">
+                  <i className="w-3 h-3 inline-block bg-[#B6FF00] border border-[#111] rounded" /> Dijawab ({petaDijawabCount})
+                </span>
+                <span className="flex items-center gap-1">
+                  <i className="w-3 h-3 inline-block bg-amber-300 border border-[#111] rounded" /> Ragu-ragu ({petaRaguCount})
+                </span>
+                <span className="flex items-center gap-1">
+                  <i className="w-3 h-3 inline-block bg-white border border-[#111] rounded" /> Belum ({petaBelumCount})
+                </span>
+              </div>
+              <div className="grid grid-cols-5 lg:grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-0.5">
+                {questions.map((qq, i) => {
+                  const ans = answers[i] ?? answersRef.current[i];
+                  const dijawab = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
+                  const bg = ragu[i] ? 'bg-amber-300' : dijawab ? 'bg-[#B6FF00]' : 'bg-white';
+                  return (
+                    <button
+                      key={qq.nomor ?? i}
+                      type="button"
+                      onClick={() => goSoal(i)}
+                      className={`h-10 rounded-xl font-extrabold text-xs border-2 border-[#111] shadow-[0_3px_0_#111] ${bg} ${
+                        i === qIndex ? 'ring-2 ring-[#4F46E5]' : ''
+                      }`}
+                    >
+                      {qq.nomor}
+                    </button>
+                  );
+                })}
+              </div>
+              <NeoBtn
+                onClick={() => finishQuiz('user')}
+                className="w-full bg-[#111] text-[#B6FF00] py-2.5 rounded-xl text-xs"
+              >
+                🏁 Selesai & Kumpulkan Jawaban
+              </NeoBtn>
+            </div>
+
+            {/* Panel 2: AI Tutor Permanen (Bisa Minimize/Collapse) */}
+            <details
+              open
+              className="group bg-[#FAFAF7] border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl overflow-hidden flex flex-col"
             >
-              🔒 Cek Dikunci
-            </button>
-          )}
-          <NeoBtn
-            onClick={handlePrimary}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs text-center truncate ${primaryStyle}`}
+              <summary className="list-none cursor-pointer bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between select-none">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-full bg-[#B6FF00] border border-[#111] flex items-center justify-center text-xs font-extrabold">
+                    ✨
+                  </span>
+                  <div>
+                    <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
+                    <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+                    {tutorQuota}/25 Tanya
+                  </span>
+                  <span className="px-2 py-0.5 rounded-lg border-2 border-[#111] bg-[#FAFAF7] text-[10px] font-extrabold hidden group-open:inline">
+                    − Minimize
+                  </span>
+                  <span className="px-2 py-0.5 rounded-lg border-2 border-[#111] bg-[#B6FF00] text-[10px] font-extrabold inline group-open:hidden">
+                    + Buka
+                  </span>
+                </div>
+              </summary>
+
+              <div className="flex flex-col">
+                <div className="bg-[#FFFBEB] border-b-2 border-[#111] px-4 py-2 shrink-0">
+                  <button
+                    onClick={() => setPreviewSoalOpen((v) => !v)}
+                    className="w-full flex items-center justify-between text-left text-xs font-extrabold"
+                  >
+                    <span>📌 Intip Soal #{q.nomor} (klik buka/tutup)</span>
+                    <span>{previewSoalOpen ? '▲' : '▼'}</span>
+                  </button>
+                  {previewSoalOpen && (
+                    <div className="mt-2 pt-2 border-t border-amber-300 text-xs text-neutral-800">{q.prompt}</div>
+                  )}
+                </div>
+
+                <div className="max-h-[260px] overflow-y-auto p-4 space-y-3 text-xs">
+                  {desktopChatMsgs.map((m, i) =>
+                    m.from === 'user' ? (
+                      <div key={i} className="flex justify-end">
+                        <div className="bg-[#111] text-white rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] font-semibold">
+                          {m.html}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        key={i}
+                        className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-3 max-w-[92%]"
+                      >
+                        <p className="font-medium" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
+                      </div>
+                    )
+                  )}
+                </div>
+
+                <div className="px-3 py-2 bg-white border-t border-neutral-200 flex gap-1.5 overflow-x-auto shrink-0">
+                  {['Petunjuk konsep', 'Ada cara cepatnya?', 'Analogi gampang'].map((qp) => (
+                    <button
+                      key={qp}
+                      onClick={() => sendChat(qp === 'Petunjuk konsep' ? 'Beri petunjuk konsep tanpa bocorin kunci' : qp)}
+                      className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold"
+                    >
+                      {qp}
+                    </button>
+                  ))}
+                </div>
+
+                <ChatInput
+                  placeholder="Tanya langkah atau konsep soal ini..."
+                  onSend={sendChat}
+                />
+              </div>
+            </details>
+          </aside>
+        </div>
+
+        {/* ===== MODAL LEBAR PEMBAHASAN 5 PILAR (Desktop Only) ===== */}
+        {showEval && pilarExpanded && (
+          <div
+            className="hidden md:flex fixed inset-0 z-50 bg-black/50 items-center justify-center p-6"
+            onClick={() => setPilarExpanded(false)}
           >
-            {primaryLabel}
-          </NeoBtn>
-        </footer>
+            <div
+              className="bg-[#FAFAF7] border-2 border-[#111] shadow-[0_6px_0_#111] rounded-3xl w-full max-w-3xl max-h-[85dvh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white border-b-2 border-[#111] px-6 py-4 flex items-center justify-between shrink-0">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded">
+                    📖 Pembahasan 5 Pilar · Soal #{q.nomor}
+                  </span>
+                  <h3 className="text-base font-extrabold mt-1">Kunci Jawaban: {kunciStr}</h3>
+                </div>
+                <NeoBtn
+                  onClick={() => setPilarExpanded(false)}
+                  className="w-8 h-8 rounded-lg bg-white text-xs flex items-center justify-center"
+                >
+                  ✕
+                </NeoBtn>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {pilarCards}
+              </div>
+              <div className="bg-white border-t-2 border-[#111] px-6 py-3 flex items-center justify-end gap-2 shrink-0">
+                <NeoBtn
+                  onClick={() => setPilarExpanded(false)}
+                  className="bg-[#B6FF00] px-4 py-2 rounded-xl text-xs"
+                >
+                  Tutup Pembahasan
+                </NeoBtn>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ===== MODAL ZOOM GAMBAR (lightbox dengan +, -, 100%, X seperti app lama) ===== */}
         {zoomImg && (
@@ -1719,20 +1944,10 @@ function ArenaClient() {
           </div>
         )}
 
-        {/* ===== DRAWER PETA SOAL ===== */}
+        {/* ===== DRAWER PETA SOAL (Mobile Only) ===== */}
         {showPeta && (() => {
-          let dijawabCount = 0;
-          let raguCount = 0;
-          let belumCount = 0;
-          questions.forEach((qq, i) => {
-            const ans = answers[i] ?? answersRef.current[i];
-            const dijawab = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
-            if (ragu[i]) raguCount++;
-            if (dijawab) dijawabCount++;
-            else belumCount++;
-          });
           return (
-            <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowPeta(false)}>
+            <div className="fixed inset-0 z-40 bg-black/50 flex md:hidden flex-col justify-end" onClick={() => setShowPeta(false)}>
               <div
                 className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-4 max-h-[85dvh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
@@ -1745,13 +1960,13 @@ function ArenaClient() {
                 </div>
                 <div className="flex gap-3 text-[11px] font-bold shrink-0">
                   <span className="flex items-center gap-1">
-                    <i className="w-3 h-3 inline-block bg-[#B6FF00] border border-[#111] rounded" /> Dijawab ({dijawabCount})
+                    <i className="w-3 h-3 inline-block bg-[#B6FF00] border border-[#111] rounded" /> Dijawab ({petaDijawabCount})
                   </span>
                   <span className="flex items-center gap-1">
-                    <i className="w-3 h-3 inline-block bg-amber-300 border border-[#111] rounded" /> Ragu-ragu ({raguCount})
+                    <i className="w-3 h-3 inline-block bg-amber-300 border border-[#111] rounded" /> Ragu-ragu ({petaRaguCount})
                   </span>
                   <span className="flex items-center gap-1">
-                    <i className="w-3 h-3 inline-block bg-white border border-[#111] rounded" /> Belum ({belumCount})
+                    <i className="w-3 h-3 inline-block bg-white border border-[#111] rounded" /> Belum ({petaBelumCount})
                   </span>
                 </div>
                 <div className="grid grid-cols-5 gap-2 max-h-[52dvh] overflow-y-auto p-0.5">
@@ -1787,9 +2002,9 @@ function ArenaClient() {
           );
         })()}
 
-        {/* ===== AI TUTOR SHEET ===== */}
+        {/* ===== AI TUTOR SHEET (Mobile Only) ===== */}
         {showTutor && (
-          <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowTutor(false)}>
+          <div className="fixed inset-0 z-40 bg-black/50 flex md:hidden flex-col justify-end" onClick={() => setShowTutor(false)}>
             <div
               className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl h-[82%] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
