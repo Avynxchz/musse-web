@@ -1115,6 +1115,7 @@ function ArenaClient() {
         return;
       }
       setChecked((prev) => ({ ...prev, [qIndex]: true }));
+      setSidebarTab('pilar');
       pilarStartTimeRef.current[qIndex] = Date.now();
       logEvent('check_answer', { soal_no: q.nomor, jawaban: ans });
       // Catat pilar pembahasan yang tersedia saat user cek jawaban
