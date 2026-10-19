@@ -44,6 +44,81 @@ const FONT_SCALES = [90, 100, 115, 130];
 
 type Answer = string | string[] | Record<string, string> | undefined;
 
+const KEY_ARENA_PROGRESS = 'musse_arena_progress';
+const ARENA_PROGRESS_TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
+
+interface ArenaProgressData {
+  mapel: string;
+  paket: 1 | 2;
+  mode: QuizMode;
+  qIndex: number;
+  answers: Record<number, Answer>;
+  timestamp: number;
+}
+
+function readArenaProgress(mapel: string, paket: 1 | 2, mode: QuizMode): ArenaProgressData | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(KEY_ARENA_PROGRESS);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ArenaProgressData>;
+    if (!parsed || typeof parsed !== 'object') {
+      window.localStorage.removeItem(KEY_ARENA_PROGRESS);
+      return null;
+    }
+    const ts = typeof parsed.timestamp === 'number' ? parsed.timestamp : 0;
+    if (!ts || Date.now() - ts > ARENA_PROGRESS_TTL_MS) {
+      // Kedaluwarsa setelah 24 jam → hapus otomatis
+      window.localStorage.removeItem(KEY_ARENA_PROGRESS);
+      return null;
+    }
+    if (
+      parsed.mapel !== mapel ||
+      Number(parsed.paket) !== paket ||
+      parsed.mode !== mode
+    ) {
+      return null;
+    }
+    const rawAnswers = parsed.answers && typeof parsed.answers === 'object' ? parsed.answers : {};
+    const normalizedAnswers: Record<number, Answer> = {};
+    for (const [k, v] of Object.entries(rawAnswers)) {
+      const idx = Number(k);
+      if (Number.isFinite(idx) && isAnswerFilled(v as Answer)) {
+        normalizedAnswers[idx] = v as Answer;
+      }
+    }
+    const qIdx = typeof parsed.qIndex === 'number' && Number.isFinite(parsed.qIndex) ? parsed.qIndex : 0;
+    return {
+      mapel,
+      paket,
+      mode,
+      qIndex: Math.max(0, qIdx),
+      answers: normalizedAnswers,
+      timestamp: ts,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeArenaProgress(data: ArenaProgressData): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(KEY_ARENA_PROGRESS, JSON.stringify(data));
+  } catch {
+    // Abaikan jika storage penuh / private mode
+  }
+}
+
+function clearArenaProgress(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(KEY_ARENA_PROGRESS);
+  } catch {
+    // Abaikan
+  }
+}
+
 /* ================= Timer terisolasi ================= */
 
 /**
@@ -176,6 +251,11 @@ function ArenaClient() {
   const [showPeta, setShowPeta] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [resumeDialog, setResumeDialog] = useState<{
+    resumeIdx: number;
+    resumeNomor: number;
+    answers: Record<number, Answer>;
+  } | null>(null);
   const [zoomImg, setZoomImg] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1); // 1 = 100%, bisa zoom in/out
   // Ref untuk kontainer HTML soal (stimulus + pertanyaan) — dipakai untuk klasifikasi
@@ -221,7 +301,9 @@ function ArenaClient() {
     setRagu({});
     setChecked({});
     setQIndex(0);
+    setResumeDialog(null);
     (async () => {
+      let loadedQuestions: Question[] = QUESTIONS;
       try {
         const rows = await getSoal(mapelKey, paket);
         if (cancelled) return;
@@ -238,6 +320,7 @@ function ArenaClient() {
             }
           }
           if (parsed.length > 0) {
+            loadedQuestions = parsed;
             setQuestions(parsed);
             setSoalSource('supabase');
             setSoalError(
@@ -250,12 +333,14 @@ function ArenaClient() {
             }
           } else {
             // Semua soal gagal di-parse → pakai dummy
+            loadedQuestions = QUESTIONS;
             setQuestions(QUESTIONS);
             setSoalSource('dummy');
             setSoalError('\u26a0\ufe0f Semua soal gagal di-parse, pakai soal contoh');
           }
         } else {
           // Supabase kosong untuk mapel+paket ini → pakai dummy
+          loadedQuestions = QUESTIONS;
           setQuestions(QUESTIONS);
           setSoalSource('dummy');
         }
@@ -264,17 +349,53 @@ function ArenaClient() {
       } catch (e) {
         if (cancelled) return;
         // Gagal fetch → fallback dummy agar tidak blank
+        loadedQuestions = QUESTIONS;
         setQuestions(QUESTIONS);
         setSoalSource('dummy');
         setSoalError(e instanceof Error ? e.message : 'Gagal memuat soal');
       } finally {
-        if (!cancelled) setSoalLoading(false);
+        if (!cancelled) {
+          const saved = readArenaProgress(mapelKey, paket, mode);
+          if (saved && loadedQuestions.length > 0) {
+            const totalQ = loadedQuestions.length;
+            const validAnswers: Record<number, Answer> = {};
+            for (const [k, v] of Object.entries(saved.answers)) {
+              const idx = Number(k);
+              if (Number.isFinite(idx) && idx >= 0 && idx < totalQ && isAnswerFilled(v)) {
+                validAnswers[idx] = v;
+              }
+            }
+            const answeredCount = Object.keys(validAnswers).length;
+            const clampedSavedIdx = Math.min(Math.max(0, saved.qIndex), totalQ - 1);
+            const hasProgress = answeredCount > 0 || clampedSavedIdx > 0;
+            if (hasProgress) {
+              // Jika soal pada saved.qIndex sudah dijawab dan soal berikutnya masih kosong,
+              // arahkan ke soal berikutnya (contoh: jawab 3 soal #1-#3 → "Lanjutkan dari soal #4?")
+              const nextIdx =
+                isAnswerFilled(validAnswers[clampedSavedIdx]) &&
+                clampedSavedIdx + 1 < totalQ &&
+                !isAnswerFilled(validAnswers[clampedSavedIdx + 1])
+                  ? clampedSavedIdx + 1
+                  : clampedSavedIdx;
+              const resumeNomor = loadedQuestions[nextIdx]?.nomor ?? nextIdx + 1;
+              answersRef.current = validAnswers;
+              setAnswers(validAnswers);
+              setQIndex(nextIdx);
+              setResumeDialog({
+                resumeIdx: nextIdx,
+                resumeNomor,
+                answers: validAnswers,
+              });
+            }
+          }
+          setSoalLoading(false);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [mapelKey, paket]);
+  }, [mapelKey, paket, mode]);
 
   // Page view logging
   useEffect(() => {
@@ -528,6 +649,8 @@ function ArenaClient() {
     // === Simpan detail attempt ke localStorage untuk analisis AI ===
     // (last_attempt → halaman hasil / AI #1, history → ruang / AI #3)
     syncAttemptProgress(mergedAnswers);
+    // Hapus progress sesi yang sudah selesai
+    clearArenaProgress();
     router.push(
       `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
     );
@@ -550,6 +673,33 @@ function ArenaClient() {
     logEvent('timer_expired_latihan', {});
     showToastMsg('⏰ Waktu acuan habis! Lanjut santai.');
   }, [logEvent, showToastMsg]);
+
+  // --- dialog lanjut / mulai baru ---
+  const handleResumeContinue = () => {
+    if (!resumeDialog) return;
+    answersRef.current = resumeDialog.answers;
+    setAnswers(resumeDialog.answers);
+    setQIndex(resumeDialog.resumeIdx);
+    writeArenaProgress({
+      mapel: mapelKey,
+      paket,
+      mode,
+      qIndex: resumeDialog.resumeIdx,
+      answers: resumeDialog.answers,
+      timestamp: Date.now(),
+    });
+    setResumeDialog(null);
+  };
+
+  const handleResumeReset = () => {
+    clearArenaProgress();
+    answersRef.current = {};
+    setAnswers({});
+    setRagu({});
+    setChecked({});
+    setQIndex(0);
+    setResumeDialog(null);
+  };
 
   // --- navigasi soal ---
   const goSoal = (idx: number) => {
@@ -584,6 +734,14 @@ function ArenaClient() {
     // Reset flag scroll pembahasan untuk soal baru
     // (gunakan nomor soal sebagai key)
     setQIndex(idx);
+    writeArenaProgress({
+      mapel: mapelKey,
+      paket,
+      mode,
+      qIndex: idx,
+      answers: { ...answers, ...answersRef.current },
+      timestamp: Date.now(),
+    });
     setPilarExpanded(false);
     setSimSoalOpen(false);
     setSimFeedback(null);
@@ -617,6 +775,14 @@ function ArenaClient() {
     answersRef.current = updated;
     setAnswers(updated);
     setChecked((prev) => ({ ...prev, [qIndex]: false }));
+    writeArenaProgress({
+      mapel: mapelKey,
+      paket,
+      mode,
+      qIndex,
+      answers: updated,
+      timestamp: Date.now(),
+    });
     syncAttemptProgress(updated);
     logEvent('option_click', { soal_no: q.nomor, opsi: key, mode });
   };
@@ -636,6 +802,14 @@ function ArenaClient() {
     answersRef.current = updated;
     setAnswers(updated);
     setChecked((prev) => ({ ...prev, [qIndex]: false }));
+    writeArenaProgress({
+      mapel: mapelKey,
+      paket,
+      mode,
+      qIndex,
+      answers: updated,
+      timestamp: Date.now(),
+    });
     syncAttemptProgress(updated);
     logEvent('option_click_bs', { soal_no: q.nomor, statement: stmtKey, val, mode });
   };
@@ -1712,6 +1886,30 @@ function ArenaClient() {
                 </NeoBtn>
                 <NeoBtn onClick={() => setShowExitConfirm(false)} className="flex-1 bg-white py-2.5 rounded-xl text-xs">
                   Batal
+                </NeoBtn>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===== MODAL LANJUTKAN PROGRESS ===== */}
+        {resumeDialog && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+            <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 w-full max-w-[300px] text-center">
+              <div className="text-3xl mb-2">📌</div>
+              <p className="text-sm font-bold mb-4">Lanjutkan dari soal #{resumeDialog.resumeNomor}?</p>
+              <div className="flex gap-2">
+                <NeoBtn
+                  onClick={handleResumeContinue}
+                  className="flex-1 bg-[#B6FF00] py-2.5 rounded-xl text-xs"
+                >
+                  Lanjut
+                </NeoBtn>
+                <NeoBtn
+                  onClick={handleResumeReset}
+                  className="flex-1 bg-white py-2.5 rounded-xl text-xs"
+                >
+                  Mulai Baru
                 </NeoBtn>
               </div>
             </div>
