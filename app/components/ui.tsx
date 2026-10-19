@@ -600,7 +600,9 @@ export function renderLatexToHtml(text: string): string {
 function richEsc(s: string): string {
   const esc = escapeHtml(s);
   // Bold: **teks** atau ***teks*** → <strong>
-  const withBold = esc.replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>');
+  let withBold = esc.replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>');
+  // Bersihkan sisa ** yang jompo (tidak berpasangan) → hapus saja
+  withBold = withBold.replace(/\*{2,3}/g, '');
   // Italic: *teks* (single, bukan list) → <em>
   const withItalic = withBold.replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, '$1<em class="italic">$2</em>');
   // List: baris diawali "* " atau "1. " → <ul>/<ol> dengan <li>
