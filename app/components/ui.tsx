@@ -596,13 +596,15 @@ export function renderLatexToHtml(text: string): string {
 }
 
 /** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>.
- *  Markdown list (* item / 1. item) → <ul>/<ol>. Newline \n → <br/> agar tampil di HTML string. */
+ *  Markdown list (* item / 1. item) → <ul>/<ol>. *italic* → <em>. Newline \n → <br/>. */
 function richEsc(s: string): string {
   const esc = escapeHtml(s);
   // Bold: **teks** atau ***teks*** → <strong>
   const withBold = esc.replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>');
+  // Italic: *teks* (single, bukan list) → <em>
+  const withItalic = withBold.replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, '$1<em class="italic">$2</em>');
   // List: baris diawali "* " atau "1. " → <ul>/<ol> dengan <li>
-  const lines = withBold.split('\n');
+  const lines = withItalic.split('\n');
   const out: string[] = [];
   let inList: 'ul' | 'ol' | null = null;
   const closeList = () => {
