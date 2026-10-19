@@ -344,6 +344,7 @@ function wrapBareCommands(seg: string): string {
  *  Segmen $...$ / $$...$$ yang sudah ada tidak disentuh. */
 export function autoWrapBareLatex(text: string): string {
   if (!text) return text;
+  text = repairBrokenLatex(text);
   // Konversi \(...\) menjadi $...$ dulu (format AI yang umum)
   let t = text.replace(/\\\(([\s\S]+?)\\\)/g, '$$$1$$');
   t = t.replace(/\x0c/g, "\\f"); // form feed (korupsi \f dari \frac) → \f, SEBELUM deteksi LaTeX
