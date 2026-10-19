@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { DesktopSidebar } from '../components/DesktopSidebar';
 import {
   BottomNav,
   LogCounter,
@@ -46,15 +47,20 @@ export default function AkunPage() {
 
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] md:max-w-4xl min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
-        {/* ===== Header ===== */}
-        <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
-          <h2 className="text-base font-extrabold">Akun & Pengaturan</h2>
-          <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
-        </header>
+      <div className="relative w-full max-w-[430px] md:max-w-none min-h-dvh bg-[#FAFAF7] flex flex-col md:flex-row sm:border-x-2 md:border-x-0 sm:border-[#111] overflow-hidden md:overflow-visible">
+        {/* ===== Sidebar Kiri Desktop (md:+) ===== */}
+        <DesktopSidebar active="akun" />
 
-        {/* ===== Konten scroll ===== */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-0 pb-8 md:grid md:grid-cols-2 md:gap-6 md:content-start">
+        {/* ===== Kolom Utama Konten ===== */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* ===== Header ===== */}
+          <header className="bg-white border-b-2 border-[#111] px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shrink-0 md:sticky md:top-0 md:z-20">
+            <h2 className="text-base md:text-lg font-extrabold">Akun & Pengaturan</h2>
+            <LogCounter count={logs.length} onClick={() => setShowLogPanel((v) => !v)} />
+          </header>
+
+          {/* ===== Konten scroll ===== */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-0 pb-8 md:grid md:grid-cols-2 md:gap-6 md:content-start md:max-w-4xl">
           {/* Kartu profil */}
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 flex items-center gap-3 bg-white">
             <div className="w-12 h-12 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-base shrink-0">
@@ -116,24 +122,25 @@ export default function AkunPage() {
             Keluar dari Akun Google
           </button>
 
-          <p className="text-center text-[11px] text-neutral-400">
+          <p className="text-center text-[11px] text-neutral-400 md:col-span-2">
             Data dummy — profil & pengaturan nyata menyusul setelah konek backend.
           </p>
 
-          <p className="text-center text-[10px] text-neutral-400 leading-relaxed px-2">
+          <p className="text-center text-[10px] text-neutral-400 leading-relaxed px-2 md:col-span-2">
             Kami mencatat pola penggunaan (halaman dibuka, fitur dipakai) untuk
             meningkatkan app. Tidak ada data pribadi yang dibagikan.
           </p>
         </div>
 
-        {/* ===== Bottom nav ===== */}
-        {/* Spacer agar konten tidak tertutup navbar fixed */}
-        <div className="h-20 shrink-0" />
-        <BottomNav active="akun" />
+        {/* ===== Bottom nav (Hanya tampil di Mobile) ===== */}
+        <div className="h-20 shrink-0 md:hidden" />
+        <div className="md:hidden">
+          <BottomNav active="akun" />
+        </div>
 
         {/* ===== Modal tanggal custom ===== */}
         {modalTanggalOpen && (
-          <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full max-w-[300px] text-center">
               <div className="text-3xl mb-2">📅</div>
               <p className="text-sm font-bold text-[#111] mb-3">Target tanggal TKA (cth: 26 Okt 2026)</p>
@@ -171,6 +178,7 @@ export default function AkunPage() {
             title="Behavior Log"
           />
         )}
+        </div>
       </div>
     </div>
   );
