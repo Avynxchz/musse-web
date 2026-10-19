@@ -162,7 +162,7 @@ export function dbRowToQuestion(row: SoalRow): Question {
     fn && !/logo|loader/i.test(fn) ? imgPrefix + fn : undefined;
   const options = (row.pilihan ?? []).map((p) => ({
     key: p.key,
-    text: p.text?.trim() ? p.text.trim() : p.latex ? `$${p.latex}$` : p.key,
+    text: p.text?.trim() ? p.text.trim() : p.latex ? `$${p.latex}$` : (p.image ? '' : p.key),
     image_url: toImgUrl(p.image?.filename),
     html: p.html?.trim() ? renderHtmlWithImages(p.html, row.mapel, row.paket) : undefined,
   }));
