@@ -441,6 +441,7 @@ function ArenaTutorChatBody({
   previewSoalOpen,
   onTogglePreviewSoal,
   messages,
+  disabled,
   onSendChat,
 }: {
   variant: 'desktop' | 'mobile';
@@ -448,6 +449,7 @@ function ArenaTutorChatBody({
   previewSoalOpen: boolean;
   onTogglePreviewSoal: () => void;
   messages: { from: 'user' | 'ai'; html: string }[];
+  disabled?: boolean;
   onSendChat: (text: string) => void;
 }) {
   const isDesktop = variant === 'desktop';
@@ -489,8 +491,10 @@ function ArenaTutorChatBody({
         {TUTOR_QUICK_PROMPTS.map((qp) => (
           <button
             key={qp}
+            type="button"
+            disabled={disabled}
             onClick={() => onSendChat(qp === 'Petunjuk konsep' ? 'Beri petunjuk konsep tanpa bocorin kunci' : qp)}
-            className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold"
+            className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold disabled:opacity-50"
           >
             {qp}
           </button>
@@ -499,6 +503,7 @@ function ArenaTutorChatBody({
 
       <ChatInput
         placeholder="Tanya langkah atau konsep soal ini..."
+        disabled={disabled}
         onSend={onSendChat}
       />
     </>
@@ -559,6 +564,7 @@ function ArenaClient() {
   const [simFeedback, setSimFeedback] = useState<string | null>(null);
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
 
   // --- soal dari Supabase (fallback ke dummy jika gagal) ---
   const [questions, setQuestions] = useState<Question[]>(QUESTIONS);
@@ -732,6 +738,7 @@ function ArenaClient() {
   const pembahasanScrolledRef = useRef<Record<number, boolean>>({});
   // Guard anti double-submit / double-finish (race condition)
   const finishingRef = useRef(false);
+  const primaryLockRef = useRef(false);
   const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
   const chatAbortRef = useRef<AbortController | null>(null);
 
@@ -1008,6 +1015,10 @@ function ArenaClient() {
         }
       }
     } catch (e) { /* abaikan error logging */ }
+    if (chatAbortRef.current) chatAbortRef.current.abort();
+    setChatLoading(false);
+    setChatMsgs([]);
+    if (evalScrollTimerRef.current) clearTimeout(evalScrollTimerRef.current);
     // Reset timer untuk soal baru
     soalStartTimeRef.current = Date.now();
     // Reset flag scroll pembahasan untuk soal baru
@@ -1025,7 +1036,7 @@ function ArenaClient() {
     setSimSoalOpen(false);
     setSimFeedback(null);
     try {
-    logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
+      logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
     } catch (e) { /* abaikan */ }
     scrollBodyRef.current?.scrollTo({ top: 0 });
   };
@@ -1100,6 +1111,12 @@ function ArenaClient() {
 
   // --- aksi utama ---
   const handlePrimary = () => {
+    if (primaryLockRef.current) return;
+    primaryLockRef.current = true;
+    setTimeout(() => {
+      primaryLockRef.current = false;
+    }, 350);
+
     if (mode === 'simulasi') {
       if (isLast) finishQuiz('user');
       else goSoal(qIndex + 1);
@@ -1157,11 +1174,16 @@ function ArenaClient() {
   const sendChat = async (text: string) => {
     const msg = text.trim();
     if (!msg) return;
+    if (chatLoading) return;
     // Guard: cegah pesan duplikat dari double-click submit (<500ms, pesan sama)
     // eslint-disable-next-line react-hooks/purity -- Date.now() di event handler (bukan render), aman
     const now = Date.now();
     if (lastChatRef.current.msg === msg && now - lastChatRef.current.ts < 500) return;
     lastChatRef.current = { msg, ts: now };
+    if (tutorQuota <= 0) {
+      showToastMsg('⚠️ Kuota tanya AI Tutor habis hari ini');
+      return;
+    }
     setTutorQuota((qt) => Math.max(0, qt - 1));
 
     // Ambil 2-3 chat terakhir di soal ini (sebelum pesan baru ditambahkan) agar tanya lanjutan nyambung
@@ -1265,6 +1287,7 @@ function ArenaClient() {
     if (chatAbortRef.current) chatAbortRef.current.abort();
     const aborter = new AbortController();
     chatAbortRef.current = aborter;
+    setChatLoading(true);
 
     try {
       const res = await fetch('/api/tutor', {
@@ -1319,6 +1342,8 @@ function ArenaClient() {
         };
         return next;
       });
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -1929,6 +1954,7 @@ function ArenaClient() {
                   previewSoalOpen={previewSoalOpen}
                   onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
                   messages={desktopChatMsgs}
+                  disabled={chatLoading}
                   onSendChat={sendChat}
                 />
               </div>
@@ -2090,6 +2116,7 @@ function ArenaClient() {
                 previewSoalOpen={previewSoalOpen}
                 onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
                 messages={chatMsgs}
+                disabled={chatLoading}
                 onSendChat={sendChat}
               />
             </div>

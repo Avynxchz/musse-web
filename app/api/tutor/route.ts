@@ -16,7 +16,15 @@ const TIMEOUT_MS = 60000; // AI bisa butuh waktu lama
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: { subject?: string; paket?: number | string; nomor?: number | string; message?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { status: 'error', message: 'Payload JSON tidak valid.' },
+        { status: 400 }
+      );
+    }
     const { subject, paket, nomor, message } = body;
 
     // Validasi input
@@ -44,14 +52,19 @@ export async function POST(req: NextRequest) {
         signal: controller.signal,
       });
 
-      clearTimeout(timeout);
-
-      const data = await res.json();
+      let data: unknown;
+      try {
+        data = await res.json();
+      } catch {
+        data = {
+          status: 'backend_unavailable',
+          message: 'Format balasan AI tidak valid.',
+        };
+      }
 
       // Teruskan status & body dari Railway apa adanya
       return NextResponse.json(data, { status: res.status });
     } catch (fetchErr) {
-      clearTimeout(timeout);
       // Railway down / timeout -> kasih tau frontend biar fallback ke template
       const isTimeout =
         fetchErr instanceof Error && fetchErr.name === 'AbortError';
@@ -64,6 +77,8 @@ export async function POST(req: NextRequest) {
         },
         { status: 503 }
       );
+    } finally {
+      clearTimeout(timeout);
     }
   } catch (err) {
     return NextResponse.json(

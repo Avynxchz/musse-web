@@ -386,26 +386,30 @@ function HasilContent() {
     return lastAttempt;
   }, [lastAttempt, mapelKey, paket]);
 
+  const hasPerSoal = Boolean(
+    matchedAttempt && Array.isArray(matchedAttempt.perSoal) && matchedAttempt.perSoal.length > 0
+  );
+
   const total =
-    matchedAttempt && matchedAttempt.perSoal.length > 0
+    hasPerSoal && matchedAttempt
       ? matchedAttempt.total || matchedAttempt.perSoal.length
       : Number.isFinite(totalParam) && totalParam > 0
         ? totalParam
         : questions.length;
   const benar =
-    matchedAttempt && matchedAttempt.perSoal.length > 0
+    hasPerSoal && matchedAttempt
       ? matchedAttempt.perSoal.filter((s) => s.status === 'benar').length
       : Number.isFinite(benarParam) && benarParam >= 0
         ? Math.min(benarParam, total)
         : 0;
   const salah =
-    matchedAttempt && matchedAttempt.perSoal.length > 0
+    hasPerSoal && matchedAttempt
       ? matchedAttempt.perSoal.filter((s) => s.status === 'salah').length
       : Number.isFinite(salahParam) && salahParam >= 0
         ? Math.min(salahParam, total - benar)
         : 0;
   const kosong =
-    matchedAttempt && matchedAttempt.perSoal.length > 0
+    hasPerSoal && matchedAttempt
       ? matchedAttempt.perSoal.filter((s) => s.status === 'kosong').length
       : Number.isFinite(kosongParam) && kosongParam >= 0
         ? Math.min(kosongParam, total - benar - salah)
@@ -427,7 +431,7 @@ function HasilContent() {
 
   /* ---------- status per soal (real dari attempt, fallback URL params) ---------- */
   const statusPerSoal: ('benar' | 'salah' | 'kosong')[] = useMemo(() => {
-    if (matchedAttempt && matchedAttempt.perSoal.length > 0) {
+    if (hasPerSoal && matchedAttempt) {
       const byNomor = new Map(matchedAttempt.perSoal.map((ps) => [ps.nomor, ps.status]));
       return questions.map((q, i) => byNomor.get(q.nomor) ?? matchedAttempt.perSoal[i]?.status ?? 'kosong');
     }
@@ -436,7 +440,7 @@ function HasilContent() {
       if (i < benar + salah) return 'salah';
       return 'kosong';
     });
-  }, [questions, matchedAttempt, benar, salah]);
+  }, [questions, matchedAttempt, hasPerSoal, benar, salah]);
 
   const openStrategi = useCallback(() => {
     setStrategiOpen(true);

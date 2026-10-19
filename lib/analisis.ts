@@ -207,7 +207,7 @@ function labelTopik(s: PerSoalResult | undefined, attempt: QuizAttempt): string 
 }
 
 export function analyzeLearningPattern(attempt: QuizAttempt | null): HasilAnalisisBelajar {
-  if (!attempt || !attempt.perSoal || attempt.perSoal.length === 0) {
+  if (!attempt || !Array.isArray(attempt.perSoal) || attempt.perSoal.length === 0) {
     return {
       adaData: false,
       observasi: [],
@@ -661,7 +661,8 @@ export function analyzeRuangAI(
   const salahNomorSet = new Set<number>();
 
   for (const att of filtered) {
-    for (const s of att.perSoal || []) {
+    const list = Array.isArray(att.perSoal) ? att.perSoal : [];
+    for (const s of list) {
       if (s.status === 'kosong') continue;
       totalSoal++;
       totalDetik += s.durasiDetik || 0;

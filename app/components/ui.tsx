@@ -553,15 +553,16 @@ function preprocessAiHtml(text: string): string {
   if (!text) return text;
   const { text: masked, segs } = maskMath(text);
   let t = masked;
-  t = t.replace(/<br\s*\/?>/gi, '\n');
-  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
-  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
+  // Decode entities paling atas agar &lt;b&gt; diubah jadi <b> sebelum diganti jadi **teks**
   t = t
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'");
+  t = t.replace(/<br\s*\/?>/gi, '\n');
+  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
+  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
   return unmaskMath(t, segs);
 }
 
@@ -745,16 +746,18 @@ export const LogCounter = memo(function LogCounter({ count, onClick }: { count: 
 export const ChatInput = memo(function ChatInput({
   placeholder,
   onSend,
+  disabled,
 }: {
   placeholder: string;
   onSend: (text: string) => void;
+  disabled?: boolean;
 }) {
   const [value, setValue] = useState('');
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (!value.trim()) return;
+        if (disabled || !value.trim()) return;
         onSend(value);
         setValue('');
       }}
@@ -763,11 +766,12 @@ export const ChatInput = memo(function ChatInput({
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        disabled={disabled}
         type="text"
         placeholder={placeholder}
-        className="flex-1 border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none min-w-0"
+        className="flex-1 border-2 border-[#111] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none min-w-0 disabled:bg-neutral-100 disabled:cursor-not-allowed"
       />
-      <NeoBtn type="submit" className="bg-[#B6FF00] px-4 py-2 rounded-xl text-xs">
+      <NeoBtn type="submit" disabled={disabled} className="bg-[#B6FF00] px-4 py-2 rounded-xl text-xs">
         Kirim
       </NeoBtn>
     </form>

@@ -45,6 +45,7 @@ function RuangCoachChatBody({
   messages,
   mapelLabel,
   paketCoach,
+  loading,
   onSend,
 }: {
   variant: 'desktop' | 'mobile';
@@ -52,6 +53,7 @@ function RuangCoachChatBody({
   messages: { from: 'user' | 'ai'; html: string }[];
   mapelLabel: string;
   paketCoach: 1 | 2;
+  loading?: boolean;
   onSend: (text: string) => void;
 }) {
   const isDesktop = variant === 'desktop';
@@ -107,11 +109,12 @@ function RuangCoachChatBody({
           <button
             key={qp}
             type="button"
+            disabled={loading}
             onClick={() => onSend(qp)}
             className={
               isDesktop
-                ? 'shrink-0 bg-[#FAFAF7] hover:bg-[#B6FF00] transition-colors border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1.5 rounded-full text-xs font-bold'
-                : 'shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold'
+                ? 'shrink-0 bg-[#FAFAF7] hover:bg-[#B6FF00] transition-colors border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1.5 rounded-full text-xs font-bold disabled:opacity-50'
+                : 'shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold disabled:opacity-50'
             }
           >
             {qp}
@@ -121,6 +124,7 @@ function RuangCoachChatBody({
 
       <ChatInput
         placeholder={`Tanya Coach ${mapelLabel} Paket ${paketCoach}...`}
+        disabled={loading}
         onSend={onSend}
       />
     </>
@@ -180,6 +184,7 @@ export default function RuangPage() {
   const [showCoach, setShowCoach] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
   const [coachQuota, setCoachQuota] = useState(24);
+  const [coachLoading, setCoachLoading] = useState(false);
   const chatBoxRef = useRef<HTMLDivElement | null>(null);
   const greetedKeyRef = useRef<string>('');
   // Guard anti double-submit chat (<500ms, pesan sama)
@@ -195,6 +200,8 @@ export default function RuangPage() {
   }, [logEvent]);
 
   const gantiMapel = (v: string) => {
+    if (coachAbortRef.current) coachAbortRef.current.abort();
+    setCoachLoading(false);
     setMapelCoach(v);
     setChatMsgs([]);
     greetedKeyRef.current = '';
@@ -202,6 +209,8 @@ export default function RuangPage() {
   };
 
   const gantiPaket = (p: 1 | 2) => {
+    if (coachAbortRef.current) coachAbortRef.current.abort();
+    setCoachLoading(false);
     setPaketCoach(p);
     setChatMsgs([]);
     greetedKeyRef.current = '';
@@ -303,6 +312,7 @@ export default function RuangPage() {
     if (coachAbortRef.current) coachAbortRef.current.abort();
     const aborter = new AbortController();
     coachAbortRef.current = aborter;
+    setCoachLoading(true);
 
     try {
       const res = await fetch('/api/tutor', {
@@ -350,6 +360,8 @@ export default function RuangPage() {
         next[next.length - 1] = { from: 'ai', html: buildFallbackReply(safeUserHtml) };
         return next;
       });
+    } finally {
+      setCoachLoading(false);
     }
   };
 
@@ -529,6 +541,7 @@ export default function RuangPage() {
                 messages={desktopCoachMsgs}
                 mapelLabel={mapelLabel}
                 paketCoach={paketCoach}
+                loading={coachLoading}
                 onSend={sendCoachMsg}
               />
             </div>
@@ -580,6 +593,7 @@ export default function RuangPage() {
                 messages={chatMsgs}
                 mapelLabel={mapelLabel}
                 paketCoach={paketCoach}
+                loading={coachLoading}
                 onSend={sendCoachMsg}
               />
             </div>

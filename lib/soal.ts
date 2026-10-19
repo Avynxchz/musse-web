@@ -86,9 +86,11 @@ export async function getSoal(mapel: string, paket: number): Promise<SoalRow[]> 
   if (!res.ok) {
     throw new Error(`Gagal memuat soal (${res.status}): ${dbMapel} paket ${paket}`);
   }
-  const rows = (await res.json()) as SoalRow[];
-  // Pastikan urut nomor
-  rows.sort((a, b) => a.nomor - b.nomor);
+  const raw = await res.json();
+  if (!Array.isArray(raw)) return [];
+  const rows = raw as SoalRow[];
+  // Pastikan urut nomor secara defensif
+  rows.sort((a, b) => (Number(a.nomor) || 0) - (Number(b.nomor) || 0));
   return rows;
 }
 
