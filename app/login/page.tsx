@@ -43,9 +43,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+      <div className="relative w-full max-w-[430px] md:max-w-4xl min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
         {/* ===== Isi: header / hero / footer ===== */}
-        <div className="flex-1 flex flex-col justify-between p-6 overflow-y-auto">
+        <div className="flex-1 flex flex-col justify-between p-6 md:p-10 overflow-y-auto">
           {/* Logo + badge */}
           <div className="flex items-center justify-between">
             <span className="font-[var(--font-heading)] text-2xl font-extrabold tracking-tight">
@@ -57,7 +57,7 @@ export default function LoginPage() {
           </div>
 
           {/* Hero */}
-          <div className="my-auto py-6">
+          <div className="my-auto py-6 md:grid md:grid-cols-2 md:gap-10 md:items-center">
             <div className="inline-block bg-[#E0E7FF] border-2 border-[#111] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4">
               Persiapan TKA SMA/SMK 2026
             </div>
