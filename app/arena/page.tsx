@@ -1873,8 +1873,8 @@ function ArenaClient() {
           <button
             type="button"
             onClick={() => setSidebarHidden((v) => !v)}
-            className="hidden md:flex fixed right-[40%] top-1/2 -translate-y-1/2 z-40 w-8 h-16 bg-[#B6FF00] border-2 border-[#111] rounded-l-xl items-center justify-center font-extrabold shadow-[-2px_0_0_#111]"
-            style={{ right: sidebarHidden ? '0' : '40%' }}
+            className="hidden md:flex fixed top-1/2 -translate-y-1/2 z-40 w-10 h-20 bg-[#B6FF00] border-2 border-[#111] rounded-l-xl items-center justify-center text-lg font-extrabold shadow-[-3px_0_0_#111] hover:bg-[#c8ff2e] transition-all"
+            style={{ right: sidebarHidden ? '0px' : 'calc(40% - 2px)' }}
             title={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'}
           >
             {sidebarHidden ? '◀' : '▶'}
