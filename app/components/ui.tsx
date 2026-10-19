@@ -555,17 +555,19 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
 function repairBrokenLatex(text: string): string {
   if (!text) return text;
   let t = text;
-  // \r (CR) + "ightarrow" → \rightarrow  (28 kasus)
+  // Kasus 1: dengan karakter kontrol (CR=\r, TAB=\t, FF=\f)
   t = t.replace(/\rightarrow/g, '\\rightarrow');
-  // \t (TAB) + "ext{" → \text{  (9 kasus)
   t = t.replace(/\text\{/g, '\\text{');
-  // \t (TAB) + "imes" → \times  (1 kasus; TAB memastikan bukan kata "times")
   t = t.replace(/\times/g, '\\times');
-  // \f (FF) + "rac{" → \frac{  (1 kasus)
   t = t.replace(/\frac\{/g, '\\frac{');
-  // \t (TAB) + "heta" → \theta  (1 kasus)
   t = t.replace(/\theta/g, '\\theta');
-  // "ight)" tanpa huruf sebelumnya → \right)  (2 kasus; hindari "light)"/"right)"/"night)")
+  t = t.replace(/\right\)/g, '\\right)');
+  // Kasus 2: karakter kontrol ke-strip total (tinggal sisa katanya)
+  t = t.replace(/ightarrow/g, '\\rightarrow');
+  t = t.replace(/([^a-zA-Z])ext\{/g, '$1\\text{');
+  t = t.replace(/([^a-zA-Z])imes([^a-zA-Z])/g, '$1\\times$2');
+  t = t.replace(/([^a-zA-Z])rac\{/g, '$1\\frac{');
+  t = t.replace(/([^a-zA-Z])heta([^a-zA-Z])/g, '$1\\theta$2');
   t = t.replace(/([^a-zA-Z])ight\)/g, '$1\\right)');
   t = t.replace(/^ight\)/g, '\\right)');
   return t;
