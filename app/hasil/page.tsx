@@ -209,6 +209,17 @@ const BedahSoalSheet = memo(function BedahSoalSheet({
                       ) : (
                         <span className="flex-1"><Latex text={opt.text} /></span>
                       )}
+                      {opt.image_url && (
+                        <span className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={opt.image_url}
+                            alt={`Gambar opsi ${opt.key}`}
+                            className="h-10 w-auto object-contain"
+                            loading="lazy"
+                          />
+                        </span>
+                      )}
                       {kunci && <span className="text-xs font-extrabold">✓ Kunci</span>}
                     </div>
                   );
