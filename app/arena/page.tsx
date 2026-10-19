@@ -9,6 +9,7 @@ import {
   formatKunci,
   getDurasiDetik,
   getMapel,
+  isAnswerFilled,
 } from './data';
 import {
   ChatInput,
@@ -208,6 +209,7 @@ function ArenaClient() {
 
   useEffect(() => {
     let cancelled = false;
+    sessionTanggalRef.current = new Date().toISOString();
     answersRef.current = {};
     durasiPerSoalRef.current = {};
     gantiJawabanRef.current = {};
@@ -315,6 +317,7 @@ function ArenaClient() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const evalScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionTanggalRef = useRef<string>(new Date().toISOString());
   // Timer untuk durasi per soal (behavior logging) - harus di atas fetch effect
   const soalStartTimeRef = useRef<number>(Date.now());
   // Tracking untuk analisis AI: durasi per soal, ganti jawaban, pindah tanpa jawab, & durasi baca pilar
@@ -352,27 +355,33 @@ function ArenaClient() {
   //   tanpa border); besar -> diagram-img (blok tengah, max-height 320px di mobile).
   // Opsi: rumus (atribut data-latex) atau kecil (height <=65px) -> opt-math-img
   //   (sebaris teks); besar -> opt-diagram-img (blok, max-height 280px).
-  // Klik gambar -> buka lightbox zoom (tanpa memilih opsi).
+  // PENTING: Gambar di dalam tombol opsi PG (opsiHtmlRef) TIDAK boleh memanggil
+  // stopPropagation agar tap pada rumus/gambar di HP tetap memilih opsi jawaban!
   useEffect(() => {
     const cleanups: Array<() => void> = [];
     const wireContainer = (
       container: HTMLElement | null,
       selector: string,
       classify: (el: HTMLImageElement) => void,
+      allowZoom = true,
     ) => {
       if (!container) return;
       const imgs = Array.from(container.querySelectorAll(selector));
       imgs.forEach((img) => {
         const el = img as HTMLImageElement;
-        const openZoom = (e: Event) => {
-          e.stopPropagation();
-          e.preventDefault();
-          setZoomImg(el.currentSrc || el.src);
-          setZoomLevel(1);
-        };
-        el.style.cursor = 'zoom-in';
-        el.addEventListener('click', openZoom);
-        cleanups.push(() => el.removeEventListener('click', openZoom));
+        if (allowZoom) {
+          const openZoom = (e: Event) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setZoomImg(el.currentSrc || el.src);
+            setZoomLevel(1);
+          };
+          el.style.cursor = 'zoom-in';
+          el.addEventListener('click', openZoom);
+          cleanups.push(() => el.removeEventListener('click', openZoom));
+        } else {
+          el.style.cursor = 'pointer';
+        }
         if (el.complete && el.naturalHeight > 0) {
           classify(el);
         } else {
@@ -382,36 +391,51 @@ function ArenaClient() {
         }
       });
     };
-    wireContainer(soalHtmlRef.current, 'img', (el) => {
-      if (el.naturalHeight <= 55 || el.naturalWidth <= 95) {
-        el.classList.add('inline-symbol-img');
-      } else {
-        el.classList.add('diagram-img');
-      }
-    });
-    wireContainer(opsiHtmlRef.current, '.opsi-html img', (el) => {
-      const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
-      if (isFormula) {
-        el.classList.add('opt-math-img');
-      } else {
-        el.classList.add('opt-diagram-img');
-      }
-    });
+    wireContainer(
+      soalHtmlRef.current,
+      'img',
+      (el) => {
+        if (el.naturalHeight <= 55 || el.naturalWidth <= 95) {
+          el.classList.add('inline-symbol-img');
+        } else {
+          el.classList.add('diagram-img');
+        }
+      },
+      true
+    );
+    wireContainer(
+      opsiHtmlRef.current,
+      '.opsi-html img',
+      (el) => {
+        const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
+        if (isFormula) {
+          el.classList.add('opt-math-img');
+        } else {
+          el.classList.add('opt-diagram-img');
+        }
+      },
+      false
+    );
     // Pernyataan (Benar-Salah / Matriks / Pernyataan-Label): klasifikasi gambar
     // dalam HTML pernyataan dengan aturan yang sama seperti opsi (rumus kecil
     // → inline, diagram besar → blok). Klik gambar → lightbox, tanpa toggle nilai.
-    wireContainer(stmtRef.current, '.opsi-html img', (el) => {
-      const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
-      if (isFormula) {
-        el.classList.add('opt-math-img');
-      } else {
-        el.classList.add('opt-diagram-img');
-      }
-    });
+    wireContainer(
+      stmtRef.current,
+      '.opsi-html img',
+      (el) => {
+        const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
+        if (isFormula) {
+          el.classList.add('opt-math-img');
+        } else {
+          el.classList.add('opt-diagram-img');
+        }
+      },
+      true
+    );
     return () => {
       cleanups.forEach((fn) => fn());
     };
-  }, [q?.stimulusHtml, q?.pertanyaanHtml, q?.options, q?.statements, qIndex]);
+  }, [q?.stimulusHtml, q?.pertanyaanHtml, q?.options, q?.statements, qIndex, soalLoading]);
 
   const handleZoomImg = useCallback((url: string) => {
     setZoomImg(url);
@@ -430,6 +454,36 @@ function ArenaClient() {
     toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
 
+  // Simpan snapshot pengerjaan secara real-time setiap jawaban dipilih
+  const syncAttemptProgress = (answerMap: Record<number, Answer>) => {
+    const hasil = questions.map((qq, i) => evaluateQuestion(qq, answerMap[i]));
+    const benar = hasil.filter((h) => h === 'benar').length;
+    const totalPindahTanpaJawab = Object.values(pindahTanpaJawabRef.current).reduce(
+      (a, b) => a + b,
+      0
+    );
+    saveAttempt({
+      mapel: mapelKey,
+      mapelName: mapel?.name || mapelKey,
+      paket,
+      mode,
+      tanggal: sessionTanggalRef.current,
+      benar,
+      total: questions.length,
+      pindahTanpaJawabCount: totalPindahTanpaJawab,
+      perSoal: questions.map((qq, i) => ({
+        nomor: qq.nomor,
+        tipe: qq.tipe,
+        topik: qq.topik || '',
+        status: hasil[i],
+        durasiDetik: durasiPerSoalRef.current[i] || 0,
+        gantiJawaban: gantiJawabanRef.current[i] || 0,
+        pindahTanpaJawab: pindahTanpaJawabRef.current[i] || 0,
+        durasiPilarDetik: durasiPilarRef.current[i],
+      })),
+    });
+  };
+
   // --- timer ---
   const finishQuiz = (endedBy: 'user' | 'timer') => {
     // Guard: cegah double-finish (double-click / timer + klik manual bersamaan)
@@ -440,8 +494,9 @@ function ArenaClient() {
     finishTimerRef.current = setTimeout(() => {
       finishingRef.current = false;
     }, 3000);
-    const currentAnswers = answersRef.current;
-    const hasil = questions.map((qq, i) => evaluateQuestion(qq, currentAnswers[i] ?? answers[i]));
+    const mergedAnswers: Record<number, Answer> = { ...answers, ...answersRef.current };
+    answersRef.current = mergedAnswers;
+    const hasil = questions.map((qq, i) => evaluateQuestion(qq, mergedAnswers[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
     const salah = hasil.filter((h) => h === 'salah').length;
     const kosong = hasil.filter((h) => h === 'kosong').length;
@@ -470,32 +525,9 @@ function ArenaClient() {
       kosong,
       total: questions.length,
     });
-    const totalPindahTanpaJawab = Object.values(pindahTanpaJawabRef.current).reduce(
-      (a, b) => a + b,
-      0
-    );
     // === Simpan detail attempt ke localStorage untuk analisis AI ===
     // (last_attempt → halaman hasil / AI #1, history → ruang / AI #3)
-    saveAttempt({
-      mapel: mapelKey,
-      mapelName: mapel?.name || mapelKey,
-      paket,
-      mode,
-      tanggal: new Date().toISOString(),
-      benar,
-      total: questions.length,
-      pindahTanpaJawabCount: totalPindahTanpaJawab,
-      perSoal: questions.map((qq, i) => ({
-        nomor: qq.nomor,
-        tipe: qq.tipe,
-        topik: qq.topik || '',
-        status: hasil[i] as 'benar' | 'salah' | 'kosong',
-        durasiDetik: durasiPerSoalRef.current[i] || 0,
-        gantiJawaban: gantiJawabanRef.current[i] || 0,
-        pindahTanpaJawab: pindahTanpaJawabRef.current[i] || 0,
-        durasiPilarDetik: durasiPilarRef.current[i],
-      })),
-    });
+    syncAttemptProgress(mergedAnswers);
     router.push(
       `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
     );
@@ -542,7 +574,7 @@ function ArenaClient() {
           pilarStartTimeRef.current[qIdx] = 0;
         }
         const curAns = answersRef.current[qIdx] ?? answers[qIdx];
-        if (idx !== qIdx && evaluateQuestion(questions[qIdx], curAns) === 'kosong') {
+        if (idx !== qIdx && !isAnswerFilled(curAns)) {
           pindahTanpaJawabRef.current[qIdx] = (pindahTanpaJawabRef.current[qIdx] || 0) + 1;
         }
       }
@@ -566,10 +598,7 @@ function ArenaClient() {
     const isComplex = q.tipe === 'Pilihan Ganda Kompleks';
     // Track ganti jawaban untuk analisis AI
     const prevAns = answersRef.current[qIndex] ?? answers[qIndex];
-    const sudahAdaJawaban = prevAns !== undefined && (
-      typeof prevAns === 'string' ? prevAns !== '' :
-      Array.isArray(prevAns) ? prevAns.length > 0 : Object.keys(prevAns).length > 0
-    );
+    const sudahAdaJawaban = isAnswerFilled(prevAns);
     if (sudahAdaJawaban) {
       gantiJawabanRef.current[qIndex] = (gantiJawabanRef.current[qIndex] || 0) + 1;
     }
@@ -579,10 +608,16 @@ function ArenaClient() {
           return arr.includes(key) ? arr.filter((k) => k !== key) : [...arr, key];
         })()
       : key;
-    const updated = { ...answersRef.current, [qIndex]: nextAns };
+    const updated: Record<number, Answer> = { ...answers, ...answersRef.current };
+    if (isAnswerFilled(nextAns)) {
+      updated[qIndex] = nextAns;
+    } else {
+      delete updated[qIndex];
+    }
     answersRef.current = updated;
     setAnswers(updated);
     setChecked((prev) => ({ ...prev, [qIndex]: false }));
+    syncAttemptProgress(updated);
     logEvent('option_click', { soal_no: q.nomor, opsi: key, mode });
   };
 
@@ -593,10 +628,15 @@ function ArenaClient() {
       gantiJawabanRef.current[qIndex] = (gantiJawabanRef.current[qIndex] || 0) + 1;
     }
     const cur = (prevAns && typeof prevAns === 'object' && !Array.isArray(prevAns)) ? prevAns : {};
-    const updated = { ...answersRef.current, [qIndex]: { ...cur, [stmtKey]: val } };
+    const updated: Record<number, Answer> = {
+      ...answers,
+      ...answersRef.current,
+      [qIndex]: { ...cur, [stmtKey]: val },
+    };
     answersRef.current = updated;
     setAnswers(updated);
     setChecked((prev) => ({ ...prev, [qIndex]: false }));
+    syncAttemptProgress(updated);
     logEvent('option_click_bs', { soal_no: q.nomor, statement: stmtKey, val, mode });
   };
 
@@ -1043,7 +1083,7 @@ function ArenaClient() {
               {q.options && (
                 <div className="space-y-2 pt-1" ref={opsiHtmlRef}>
                   {q.options.map((opt) => {
-                    const ans = answers[qIndex];
+                    const ans = answers[qIndex] ?? answersRef.current[qIndex];
                     const selected =
                       q.tipe === 'Pilihan Ganda Kompleks'
                         ? Array.isArray(ans) && ans.includes(opt.key)
@@ -1052,13 +1092,14 @@ function ArenaClient() {
                     return (
                       <button
                         key={opt.key}
+                        type="button"
                         onClick={() => pickOption(opt.key)}
                         className={`w-full p-3 rounded-xl text-left flex items-center gap-3 text-xs font-bold border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-all ${
                           selected ? 'bg-[#B6FF00]' : 'bg-white'
                         }`}
                       >
                         <span
-                          className={`w-6 h-6 ${isComplex ? 'rounded-md' : 'rounded-full'} border-2 border-[#111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0`}
+                          className={`w-6 h-6 ${isComplex ? 'rounded-md' : 'rounded-full'} border-2 border-[#111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0 pointer-events-none`}
                         >
                           {isComplex && selected ? '✓' : opt.key}
                         </span>
@@ -1066,16 +1107,13 @@ function ArenaClient() {
                             1) HTML resmi CBT (gambar rumus inline),
                             2) gambar + teks, 3) teks/latex via KaTeX */}
                         {opt.html ? (
-                          <span className="flex-1 opsi-html" dangerouslySetInnerHTML={{ __html: opt.html }} />
+                          <span className="flex-1 opsi-html pointer-events-none" dangerouslySetInnerHTML={{ __html: opt.html }} />
                         ) : (
                           <>
-                            <span className="flex-1"><Latex text={opt.text} /></span>
+                            <span className="flex-1 pointer-events-none"><Latex text={opt.text} /></span>
                             {/* Gambar opsi: kecil inline di samping teks (seperti app lama, ~40px) */}
                             {opt.image_url && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setZoomImg(opt.image_url!); setZoomLevel(1); }}
-                                className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white"
-                              >
+                              <span className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white pointer-events-none">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={opt.image_url}
@@ -1083,7 +1121,7 @@ function ArenaClient() {
                                   className="h-10 w-auto object-contain"
                                   loading="lazy"
                                 />
-                              </button>
+                              </span>
                             )}
                           </>
                         )}
@@ -1508,59 +1546,72 @@ function ArenaClient() {
         )}
 
         {/* ===== DRAWER PETA SOAL ===== */}
-        {showPeta && (
-          <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowPeta(false)}>
-            <div
-              className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold">Peta Nomor Soal</h3>
-                <NeoBtn onClick={() => setShowPeta(false)} className="w-7 h-7 rounded-lg bg-white text-xs">
-                  ✕
+        {showPeta && (() => {
+          let dijawabCount = 0;
+          let raguCount = 0;
+          let belumCount = 0;
+          questions.forEach((qq, i) => {
+            const ans = answers[i] ?? answersRef.current[i];
+            const dijawab = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
+            if (ragu[i]) raguCount++;
+            if (dijawab) dijawabCount++;
+            else belumCount++;
+          });
+          return (
+            <div className="fixed inset-0 z-40 bg-black/50 flex flex-col justify-end" onClick={() => setShowPeta(false)}>
+              <div
+                className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl p-4 space-y-4 max-h-[85dvh] flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between shrink-0">
+                  <h3 className="text-sm font-extrabold">Peta Nomor Soal</h3>
+                  <NeoBtn onClick={() => setShowPeta(false)} className="w-7 h-7 rounded-lg bg-white text-xs">
+                    ✕
+                  </NeoBtn>
+                </div>
+                <div className="flex gap-3 text-[11px] font-bold shrink-0">
+                  <span className="flex items-center gap-1">
+                    <i className="w-3 h-3 inline-block bg-[#B6FF00] border border-[#111] rounded" /> Dijawab ({dijawabCount})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <i className="w-3 h-3 inline-block bg-amber-300 border border-[#111] rounded" /> Ragu-ragu ({raguCount})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <i className="w-3 h-3 inline-block bg-white border border-[#111] rounded" /> Belum ({belumCount})
+                  </span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 max-h-[52dvh] overflow-y-auto p-0.5">
+                  {questions.map((qq, i) => {
+                    const ans = answers[i] ?? answersRef.current[i];
+                    const dijawab = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
+                    const bg = ragu[i] ? 'bg-amber-300' : dijawab ? 'bg-[#B6FF00]' : 'bg-white';
+                    return (
+                      <button
+                        key={qq.nomor ?? i}
+                        type="button"
+                        onClick={() => {
+                          goSoal(i);
+                          setShowPeta(false);
+                        }}
+                        className={`h-11 rounded-xl font-extrabold text-xs border-2 border-[#111] shadow-[0_3px_0_#111] ${bg} ${
+                          i === qIndex ? 'ring-2 ring-[#4F46E5]' : ''
+                        }`}
+                      >
+                        {qq.nomor}
+                      </button>
+                    );
+                  })}
+                </div>
+                <NeoBtn
+                  onClick={() => finishQuiz('user')}
+                  className="w-full bg-[#111] text-[#B6FF00] py-3 rounded-xl text-xs shrink-0"
+                >
+                  🏁 Selesai & Kumpulkan Jawaban
                 </NeoBtn>
               </div>
-              <div className="flex gap-3 text-[11px] font-bold">
-                <span className="flex items-center gap-1">
-                  <i className="w-3 h-3 inline-block bg-[#B6FF00] border border-[#111] rounded" /> Dijawab
-                </span>
-                <span className="flex items-center gap-1">
-                  <i className="w-3 h-3 inline-block bg-amber-300 border border-[#111] rounded" /> Ragu-ragu
-                </span>
-                <span className="flex items-center gap-1">
-                  <i className="w-3 h-3 inline-block bg-white border border-[#111] rounded" /> Belum
-                </span>
-              </div>
-              <div className="grid grid-cols-5 gap-2">
-                {questions.map((qq, i) => {
-                  const ans = answers[i];
-                  const dijawab = evaluateQuestion(qq, ans) !== 'kosong';
-                  const bg = ragu[i] ? 'bg-amber-300' : dijawab ? 'bg-[#B6FF00]' : 'bg-white';
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        goSoal(i);
-                        setShowPeta(false);
-                      }}
-                      className={`h-11 rounded-xl font-extrabold text-xs border-2 border-[#111] shadow-[0_3px_0_#111] ${bg} ${
-                        i === qIndex ? 'ring-2 ring-[#4F46E5]' : ''
-                      }`}
-                    >
-                      {qq.nomor}
-                    </button>
-                  );
-                })}
-              </div>
-              <NeoBtn
-                onClick={() => finishQuiz('user')}
-                className="w-full bg-[#111] text-[#B6FF00] py-3 rounded-xl text-xs"
-              >
-                🏁 Selesai & Kumpulkan Jawaban
-              </NeoBtn>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ===== AI TUTOR SHEET ===== */}
         {showTutor && (

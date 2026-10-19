@@ -236,31 +236,58 @@ export function getDurasiDetik(mapel: Mapel, paket: 1 | 2): number {
   return Math.round(jumlahSoal * mapel.jatahMenitPerSoal * 60);
 }
 
+/** Cek apakah jawaban sudah diisi (tidak kosong) untuk tipe soal apa pun */
+export function isAnswerFilled(
+  answer: string | string[] | Record<string, string> | undefined
+): boolean {
+  if (answer === undefined || answer === null) return false;
+  if (typeof answer === 'string') return answer.trim() !== '';
+  if (Array.isArray(answer)) return answer.some((x) => String(x ?? '').trim() !== '');
+  if (typeof answer === 'object') {
+    return Object.values(answer).some((v) => typeof v === 'string' && v.trim() !== '');
+  }
+  return false;
+}
+
 /** Cek jawaban user untuk satu soal: 'benar' | 'salah' | 'kosong' */
 export function evaluateQuestion(
   q: Question,
   answer: string | string[] | Record<string, string> | undefined
 ): 'benar' | 'salah' | 'kosong' {
-  if (answer === undefined) return 'kosong';
+  if (!isAnswerFilled(answer)) return 'kosong';
   if (q.tipe === 'Pilihan Ganda') {
-    if (typeof answer !== 'string' || answer === '') return 'kosong';
+    if (typeof answer !== 'string') return 'salah';
     return answer.trim() === String(q.kunci).trim() ? 'benar' : 'salah';
   }
   if (q.tipe === 'Pilihan Ganda Kompleks') {
-    if (!Array.isArray(answer) || answer.length === 0) return 'kosong';
-    const u = [...answer].map((x) => String(x).trim()).sort().join(',');
-    const k = [...(Array.isArray(q.kunci) ? q.kunci : [String(q.kunci)])].map((x) => String(x).trim()).sort().join(',');
+    if (!Array.isArray(answer)) return 'salah';
+    const u = [...answer].map((x) => String(x).trim()).filter(Boolean).sort().join(',');
+    const k = [...(Array.isArray(q.kunci) ? q.kunci : [String(q.kunci)])]
+      .map((x) => String(x).trim())
+      .filter(Boolean)
+      .sort()
+      .join(',');
     return u === k ? 'benar' : 'salah';
   }
   // Benar-Salah, Matriks, Pernyataan-Label: jika ada pernyataan yang dipilih, dinilai benar/salah (bukan kosong)
   if (q.tipe === 'Benar-Salah' || q.tipe === 'Matriks' || q.tipe === 'Pernyataan-Label') {
-    if (typeof answer !== 'object' || Array.isArray(answer) || Object.keys(answer).length === 0) return 'kosong';
-    const kunci = q.kunci as Record<string, string>;
+    if (typeof answer !== 'object' || Array.isArray(answer)) return 'salah';
+    const kunci = (q.kunci && typeof q.kunci === 'object' && !Array.isArray(q.kunci))
+      ? (q.kunci as Record<string, string>)
+      : {};
     const stmts = q.statements ?? [];
-    if (stmts.length === 0) return 'kosong';
+    if (stmts.length === 0) {
+      const keys = Object.keys(kunci);
+      if (keys.length === 0) return 'salah';
+      return keys.every((k) => answer[k] && answer[k] === kunci[k]) ? 'benar' : 'salah';
+    }
     return stmts.every((s) => answer[s.key] && answer[s.key] === kunci[s.key]) ? 'benar' : 'salah';
   }
-  return 'kosong';
+  // Fallback untuk tipe lain bila answer sudah terisi
+  if (typeof answer === 'string' && typeof q.kunci === 'string') {
+    return answer.trim() === q.kunci.trim() ? 'benar' : 'salah';
+  }
+  return 'salah';
 }
 
 export function formatKunci(q: Question): string {

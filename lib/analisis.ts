@@ -179,7 +179,17 @@ export function saveAttempt(attempt: QuizAttempt): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(KEY_LAST_ATTEMPT, JSON.stringify(attempt));
     const hist = getQuizHistory();
-    hist.push(attempt);
+    const existingIdx = hist.findIndex(
+      (h) =>
+        h.tanggal === attempt.tanggal &&
+        h.mapel === attempt.mapel &&
+        Number(h.paket) === Number(attempt.paket)
+    );
+    if (existingIdx >= 0) {
+      hist[existingIdx] = attempt;
+    } else {
+      hist.push(attempt);
+    }
     localStorage.setItem(KEY_QUIZ_HISTORY, JSON.stringify(hist.slice(-MAX_QUIZ_HISTORY)));
     analyzeLearningPattern(attempt);
   } catch {
