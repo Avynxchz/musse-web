@@ -547,21 +547,21 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
 });
 
 /** Bersihkan output mentah AI sebelum di-render:
- *  entities (&amp; &lt; &gt; &quot;) di-decode dulu, lalu <br/> → newline,
- *  <b>teks</b> → **teks** (jadi bold), tag lain di-strip. Segmen math $...$ di-mask dulu. */
+ *  <br/> → newline, <b>teks</b> → **teks** (jadi bold), tag lain di-strip,
+ *  entities (&amp; &lt; &gt; &quot;) di-decode. Segmen math $...$ di-mask dulu. */
 function preprocessAiHtml(text: string): string {
   if (!text) return text;
   const { text: masked, segs } = maskMath(text);
   let t = masked;
+  t = t.replace(/<br\s*\/?>/gi, '\n');
+  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
+  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
   t = t
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'");
-  t = t.replace(/<br\s*\/?>/gi, '\n');
-  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
-  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
   return unmaskMath(t, segs);
 }
 
@@ -596,11 +596,52 @@ export function renderLatexToHtml(text: string): string {
 }
 
 /** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>.
- *  Newline \n → <br/> agar ganti baris tampil di HTML string. */
+ *  Markdown list (* item / 1. item) → <ul>/<ol>. Newline \n → <br/> agar tampil di HTML string. */
 function richEsc(s: string): string {
-  return escapeHtml(s)
-    .replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>')
-    .replace(/\n/g, '<br/>');
+  const esc = escapeHtml(s);
+  // Bold: **teks** atau ***teks*** → <strong>
+  const withBold = esc.replace(/\*{2,3}([^*]+?)\*{2,3}/g, '<strong class="font-extrabold">$1</strong>');
+  // List: baris diawali "* " atau "1. " → <ul>/<ol> dengan <li>
+  const lines = withBold.split('\n');
+  const out: string[] = [];
+  let inList: 'ul' | 'ol' | null = null;
+  const closeList = () => {
+    if (inList) {
+      out.push(inList === 'ul' ? '</ul>' : '</ol>');
+      inList = null;
+    }
+  };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const ulMatch = /^\*\s+(.+)$/.exec(trimmed);
+    const olMatch = /^(\d+)\.\s+(.+)$/.exec(trimmed);
+    if (ulMatch) {
+      if (inList !== 'ul') {
+        closeList();
+        out.push('<ul class="list-disc pl-5 my-1 space-y-0.5">');
+        inList = 'ul';
+      }
+      out.push(`<li>${ulMatch[1]}</li>`);
+    } else if (olMatch) {
+      if (inList !== 'ol') {
+        closeList();
+        out.push('<ol class="list-decimal pl-5 my-1 space-y-0.5">');
+        inList = 'ol';
+      }
+      out.push(`<li>${olMatch[2]}</li>`);
+    } else {
+      closeList();
+      // Sisa single "*" yang bukan list (misal "*note") → tampil apa adanya
+      // Baris biasa: \n → <br/> (kecuali baris kosong)
+      const cleaned = line.replace(/^\*\s*/, '• ');
+      out.push(cleaned === '' ? '' : cleaned + '<br/>');
+    }
+  }
+  closeList();
+  // Hapus <br/> terakhir yang berlebih di akhir
+  let result = out.join('\n');
+  result = result.replace(/(<br\/>)+$/, '');
+  return result.replace(/\n/g, '');
 }
 
 /** Badge counter yang subscribe ke log count saja (isolasi re-render).
