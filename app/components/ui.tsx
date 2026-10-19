@@ -549,9 +549,31 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
 /** Bersihkan output mentah AI sebelum di-render:
  *  <br/> → newline, <b>teks</b> → **teks** (jadi bold), tag lain di-strip,
  *  entities (&amp; &lt; &gt; &quot;) di-decode. Segmen math $...$ di-mask dulu. */
+/** Perbaiki LaTeX rusak akibat unicode-escape decoding saat scraping.
+ *  \r→CR merusak \right/\rightarrow, \t→TAB merusak \text/\times/\theta, \f→FF merusak \frac.
+ *  Dipanggil paling awal di preprocessAiHtml sebelum maskMath. */
+function repairBrokenLatex(text: string): string {
+  if (!text) return text;
+  let t = text;
+  // \r (CR) + "ightarrow" → \rightarrow  (28 kasus)
+  t = t.replace(/\rightarrow/g, '\\rightarrow');
+  // \t (TAB) + "ext{" → \text{  (9 kasus)
+  t = t.replace(/\text\{/g, '\\text{');
+  // \t (TAB) + "imes" → \times  (1 kasus; TAB memastikan bukan kata "times")
+  t = t.replace(/\times/g, '\\times');
+  // \f (FF) + "rac{" → \frac{  (1 kasus)
+  t = t.replace(/\frac\{/g, '\\frac{');
+  // \t (TAB) + "heta" → \theta  (1 kasus)
+  t = t.replace(/\theta/g, '\\theta');
+  // "ight)" tanpa huruf sebelumnya → \right)  (2 kasus; hindari "light)"/"right)"/"night)")
+  t = t.replace(/([^a-zA-Z])ight\)/g, '$1\\right)');
+  t = t.replace(/^ight\)/g, '\\right)');
+  return t;
+}
+
 function preprocessAiHtml(text: string): string {
   if (!text) return text;
-  const { text: masked, segs } = maskMath(text);
+  const { text: masked, segs } = maskMath(repairBrokenLatex(text));
   let t = masked;
   // Decode entities paling atas agar &lt;b&gt; diubah jadi <b> sebelum diganti jadi **teks**
   t = t
