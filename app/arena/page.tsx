@@ -559,6 +559,7 @@ function ArenaClient() {
   const [simFeedback, setSimFeedback] = useState<string | null>(null);
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<'peta' | 'ai' | 'pilar'>('peta');
+  const [sidebarHidden, setSidebarHidden] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
 
   // --- soal dari Supabase (fallback ke dummy jika gagal) ---
@@ -1868,8 +1869,18 @@ function ArenaClient() {
             </footer>
           </div>
 
+          {/* Tombol hide/show sidebar */}
+          <button
+            type="button"
+            onClick={() => setSidebarHidden((v) => !v)}
+            className="hidden md:flex fixed right-[40%] top-1/2 -translate-y-1/2 z-40 w-8 h-16 bg-[#B6FF00] border-2 border-[#111] rounded-l-xl items-center justify-center font-extrabold shadow-[-2px_0_0_#111]"
+            style={{ right: sidebarHidden ? '0' : '40%' }}
+            title={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'}
+          >
+            {sidebarHidden ? '◀' : '▶'}
+          </button>
           {/* ===== KOLOM KANAN (40% di desktop): Tab Peta / AI Tutor / 5 Pilar ===== */}
-          <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)]">
+          {!sidebarHidden && <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)]">
             {/* Tab buttons */}
             <div className="flex border-2 border-[#111] rounded-t-2xl overflow-hidden shrink-0 bg-white shadow-[0_4px_0_#111]">
               <button
@@ -1954,7 +1965,7 @@ function ArenaClient() {
                 </div>
               )}
             </div>
-          </aside>
+          </aside>}
         </div>
 
         {/* ===== MODAL LEBAR PEMBAHASAN 5 PILAR (Desktop Only) ===== */}
