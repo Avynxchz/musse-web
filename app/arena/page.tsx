@@ -1585,7 +1585,9 @@ function ArenaClient() {
                           <span className="flex-1 opsi-html pointer-events-none" dangerouslySetInnerHTML={{ __html: opt.html }} />
                         ) : (
                           <>
-                            <span className="flex-1 pointer-events-none"><Latex text={opt.text} /></span>
+                            {opt.text ? (
+                              <span className="flex-1 pointer-events-none"><Latex text={opt.text} /></span>
+                            ) : null}
                             {/* Gambar opsi: kecil inline di samping teks (seperti app lama, ~40px) */}
                             {opt.image_url && (
                               <span className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white pointer-events-none">
