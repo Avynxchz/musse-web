@@ -9,6 +9,7 @@ import {
   getQuizHistory,
   type QuizAttempt,
 } from '../../lib/analisis';
+import { DesktopSidebar } from '../components/DesktopSidebar';
 import {
   BottomNav,
   LogPanelLive,
@@ -229,7 +230,6 @@ export default function BerandaPage() {
   /* ---------- state ---------- */
   const [activeCategory, setActiveCategory] = useState<Category>('pilihanmu');
   const [searchQuery, setSearchQuery] = useState('');
-  const [akunPopupOpen, setAkunPopupOpen] = useState(false);
   const [favOverrides, setFavOverrides] = useState<Record<string, boolean>>({});
   const [modeSheet, setModeSheet] = useState<ModeSheetConfig | null>(null);
   const [quizMode, setQuizMode] = useState<QuizMode>('latihan');
@@ -452,104 +452,9 @@ export default function BerandaPage() {
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
       <div className="relative w-full max-w-[430px] md:max-w-none min-h-dvh bg-[#FAFAF7] flex flex-col md:flex-row sm:border-x-2 md:border-x-0 sm:border-[#111] overflow-hidden">
         {/* ===== Sidebar Kiri (KHUSUS DESKTOP md:+) ===== */}
-        <aside className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r-2 border-[#111] flex-col justify-between md:sticky md:top-0 md:h-dvh z-30">
-          <div className="p-5 space-y-6">
-            {/* Logo */}
-            <div className="flex items-center gap-3 pb-4 border-b-2 border-[#111]">
-              <div className="w-10 h-10 rounded-xl bg-[#B6FF00] border-2 border-[#111] shadow-[0_3px_0_#111] flex items-center justify-center font-extrabold text-base text-[#111] shrink-0">
-                ⚡
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-base font-extrabold text-[#111] tracking-tight leading-none">
-                  MUSSE
-                </h1>
-                <p className="text-[11px] font-bold text-neutral-500 mt-1 truncate">
-                  Arena Latihan TKA Resmi
-                </p>
-              </div>
-            </div>
-
-            {/* Menu Navigasi */}
-            <nav className="space-y-2" aria-label="Menu Utama">
-              <p className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 px-1">
-                Menu Navigasi
-              </p>
-              <button
-                type="button"
-                onClick={() => router.push('/beranda')}
-                className="w-full border-2 border-[#111] shadow-[0_3px_0_#111] bg-[#B6FF00] text-[#111] px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2.5 text-left transition-all"
-              >
-                <span className="text-sm">📚</span>
-                <span>Beranda</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push('/ruang')}
-                className="w-full border-2 border-transparent hover:border-[#111] hover:bg-[#FAFAF7] text-neutral-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition-all"
-              >
-                <span className="text-sm">🧠</span>
-                <span>Ruang AI</span>
-              </button>
-
-            </nav>
-          </div>
-
-          {/* Profil User di Bawah Sidebar - klik untuk popup akun */}
-          <div className="p-4 border-t-2 border-[#111] bg-[#FAFAF7] space-y-3 relative">
-            <button
-              type="button"
-              onClick={() => setAkunPopupOpen((v) => !v)}
-              className="w-full flex items-center gap-2.5 rounded-xl border-2 border-transparent hover:border-[#111] hover:bg-white px-2 py-1.5 -mx-2 text-left transition-all"
-            >
-              <div className="w-9 h-9 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs shrink-0">
-                AG
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-extrabold text-[#111] truncate">Agus Putra 👋</p>
-                <p className="text-[11px] text-neutral-500 font-semibold truncate">
-                  Siap tempur hari ini
-                </p>
-              </div>
-              <span className="text-neutral-400 text-xs">▲</span>
-            </button>
-            {/* Popup akun ala Vercel */}
-            {akunPopupOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setAkunPopupOpen(false)} />
-                <div className="absolute bottom-full left-2 right-2 mb-2 z-50 border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl bg-white overflow-hidden">
-                  <div className="p-4 border-b-2 border-[#111] bg-[#FAFAF7]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-sm shrink-0">
-                        AG
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-extrabold truncate">Agus Alfiansyah Putra</p>
-                        <p className="text-xs text-neutral-500 truncate">agus@gmail.com</p>
-                        <span className="inline-block mt-1 bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold">
-                          Kuota AI: 24/25
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-2">
-                    <button
-                      type="button"
-                      onClick={() => { setAkunPopupOpen(false); router.push('/akun'); }}
-                      className="w-full px-3 py-2.5 rounded-xl text-xs font-bold text-left hover:bg-[#FAFAF7] flex items-center gap-2.5"
-                    >
-                      <span>⚙️</span> Pengaturan Akun
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setAkunPopupOpen(false); }}
-                      className="w-full px-3 py-2.5 rounded-xl text-xs font-extrabold text-left text-red-700 hover:bg-red-50 flex items-center gap-2.5"
-                    >
-                      <span>🚪</span> Keluar
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+        <DesktopSidebar
+          active="beranda"
+          footerExtra={
             <div className="flex items-center gap-1.5">
               <div className="border-2 border-[#111] shadow-[0_2px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-[11px] font-extrabold bg-[#FFEDD5]">
                 <span>🔥</span>
@@ -564,8 +469,8 @@ export default function BerandaPage() {
                 <span className="truncate">{countdownText}</span>
               </NeoBtn>
             </div>
-          </div>
-        </aside>
+          }
+        />
 
         {/* ===== Kolom Utama ===== */}
         <div className="flex-1 flex flex-col min-w-0">
