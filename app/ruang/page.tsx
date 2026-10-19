@@ -258,14 +258,30 @@ export default function RuangPage() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [chatMsgs, showCoach]);
 
+  const detailAI1Greeting =
+    ai1Insight && ai1Insight.pola.length > 0
+      ? `<br/><br/>🔍 <b>Temuan AI #1 (Guru Autopsi):</b><br/>• ${ai1Insight.pola
+          .map((p) => `<b>${p.nama}</b>: ${p.bukti}`)
+          .join('<br/>• ')}`
+      : '';
+  const desktopCoachMsgs =
+    chatMsgs.length > 0
+      ? chatMsgs
+      : [
+          {
+            from: 'ai' as const,
+            html: `<b>Coach ${mapelLabel} · Paket ${paketCoach}</b><br/>${coachPesan}${detailAI1Greeting}`,
+          },
+        ];
+
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
+      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
         {/* ===== Header ===== */}
-        <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
+        <header className="bg-white border-b-2 border-[#111] px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shrink-0 md:sticky md:top-0 md:z-30">
           <div>
-            <h2 className="text-base font-extrabold">Ruang AI & Progres Belajar</h2>
-            <p className="text-[11px] text-neutral-500">Analisis kumulatif & konsultasi AI Coach per mapel</p>
+            <h2 className="text-base md:text-lg font-extrabold">Ruang AI & Progres Belajar</h2>
+            <p className="text-[11px] md:text-xs text-neutral-500">Analisis kumulatif & konsultasi AI Coach per mapel</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <LogCounterLive useLogCount={useLogCount} onClick={() => setShowLogPanel((v) => !v)} />
@@ -275,116 +291,185 @@ export default function RuangPage() {
           </div>
         </header>
 
-        {/* ===== Konten scroll ===== */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
-          {/* 3 kartu statistik — DATA BENERAN khusus (mapelCoach, paketCoach) */}
-          <div className="grid grid-cols-3 gap-2.5">
-            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
-              <p className="font-mono text-lg text-[#111] font-extrabold">
-                {statRuang.adaData ? statRuang.totalSoal : '—'}
-              </p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Soal Selesai</p>
-            </div>
-            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-[#B6FF00]">
-              <p className="font-mono text-lg text-[#111] font-extrabold">
-                {statRuang.adaData ? `${statRuang.akurasiPct}%` : '—'}
-              </p>
-              <p className="text-[10px] font-extrabold text-[#111] uppercase mt-1">Akurasi</p>
-            </div>
-            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
-              <p className="font-mono text-lg text-[#4F46E5] font-extrabold">
-                {statRuang.adaData ? statRuang.jamFokus : '—'}
-              </p>
-              <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Jam Fokus</p>
-            </div>
-          </div>
-          {!statRuang.adaData && (
-            <div className="border-2 border-dashed border-neutral-300 rounded-xl p-3 text-center">
-              <p className="text-xs text-neutral-500 font-medium">
-                📊 Belum ada data untuk {mapelLabel} Paket {paketCoach}!
-              </p>
-            </div>
-          )}
-
-          {/* Kartu Ruang AI Coach */}
-          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-[#4F46E5] shrink-0">
-                🧠 Ruang AI Coach
-              </span>
-              <div className="flex items-center gap-1.5 min-w-0">
-                <select
-                  value={mapelCoach}
-                  onChange={(e) => gantiMapel(e.target.value)}
-                  className="border-2 border-[#111] rounded-lg px-2 py-1 text-xs font-extrabold bg-[#FAFAF7] min-w-0 truncate"
-                  aria-label="Pilih Mapel"
-                >
-                  {MAPEL_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={paketCoach}
-                  onChange={(e) => gantiPaket(Number(e.target.value) === 2 ? 2 : 1)}
-                  className="border-2 border-[#111] rounded-lg px-2 py-1 text-xs font-extrabold bg-[#FAFAF7] shrink-0"
-                  aria-label="Pilih Paket"
-                >
-                  <option value={1}>Paket 1</option>
-                  <option value={2}>Paket 2</option>
-                </select>
+        {/* ===== Konten scroll (Mobile: 1 kolom, Desktop: 2 kolom 35% kiri sticky + 65% kanan chat Coach) ===== */}
+        <div className="flex-1 overflow-y-auto md:overflow-visible p-4 md:p-6 space-y-4 md:space-y-0 pb-8 md:flex md:flex-row md:items-start md:gap-6">
+          {/* ===== KOLOM KIRI (35% di desktop, sticky): Selector Mapel/Paket + Statistik + Topik ===== */}
+          <div className="w-full md:w-[35%] md:shrink-0 md:sticky md:top-24 space-y-4">
+            {/* 3 kartu statistik — DATA BENERAN khusus (mapelCoach, paketCoach) */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
+                <p className="font-mono text-lg text-[#111] font-extrabold">
+                  {statRuang.adaData ? statRuang.totalSoal : '—'}
+                </p>
+                <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Soal Selesai</p>
+              </div>
+              <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-[#B6FF00]">
+                <p className="font-mono text-lg text-[#111] font-extrabold">
+                  {statRuang.adaData ? `${statRuang.akurasiPct}%` : '—'}
+                </p>
+                <p className="text-[10px] font-extrabold text-[#111] uppercase mt-1">Akurasi</p>
+              </div>
+              <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-xl p-3 text-center bg-white">
+                <p className="font-mono text-lg text-[#4F46E5] font-extrabold">
+                  {statRuang.adaData ? statRuang.jamFokus : '—'}
+                </p>
+                <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Jam Fokus</p>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-green-50 border border-[#111] rounded-xl p-2.5">
-                <span className="text-[10px] font-extrabold text-green-800 uppercase">💪 Topik Terkuat</span>
-                <p className="font-extrabold mt-0.5">{coachKuat}</p>
+            {!statRuang.adaData && (
+              <div className="border-2 border-dashed border-neutral-300 rounded-xl p-3 text-center">
+                <p className="text-xs text-neutral-500 font-medium">
+                  📊 Belum ada data untuk {mapelLabel} Paket {paketCoach}!
+                </p>
               </div>
-              <div className="bg-red-50 border border-[#111] rounded-xl p-2.5">
-                <span className="text-[10px] font-extrabold text-red-800 uppercase">⚠️ Perlu Dikejar</span>
-                <p className="font-extrabold mt-0.5">{coachLemah}</p>
-              </div>
-            </div>
+            )}
 
-            <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 space-y-2">
-              <div className="text-xs bg-white border border-[#111] rounded-xl p-2.5 space-y-1">
-                <div>
-                  <span className="font-extrabold text-[#4F46E5]">Coach:</span> {coachPesan}
+            {/* Kartu Ruang AI Coach */}
+            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white space-y-3">
+              <div className="flex items-center justify-between gap-2 md:flex-col md:items-stretch">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#4F46E5] shrink-0">
+                  🧠 Ruang AI Coach
+                </span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <select
+                    value={mapelCoach}
+                    onChange={(e) => gantiMapel(e.target.value)}
+                    className="border-2 border-[#111] rounded-lg px-2 py-1 md:py-1.5 text-xs font-extrabold bg-[#FAFAF7] min-w-0 flex-1 truncate"
+                    aria-label="Pilih Mapel"
+                  >
+                    {MAPEL_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={paketCoach}
+                    onChange={(e) => gantiPaket(Number(e.target.value) === 2 ? 2 : 1)}
+                    className="border-2 border-[#111] rounded-lg px-2 py-1 md:py-1.5 text-xs font-extrabold bg-[#FAFAF7] shrink-0"
+                    aria-label="Pilih Paket"
+                  >
+                    <option value={1}>Paket 1</option>
+                    <option value={2}>Paket 2</option>
+                  </select>
                 </div>
-                {statRuang.adaData && statRuang.polaAI1.length > 0 && statRuang.polaAI1[0].rekomendasi && (
-                  <p className="text-[11px] text-neutral-700 pt-1 border-t border-dashed border-neutral-200">
-                    <b>💡 Saran AI #1:</b> {statRuang.polaAI1[0].rekomendasi}
-                  </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-green-50 border border-[#111] rounded-xl p-2.5">
+                  <span className="text-[10px] font-extrabold text-green-800 uppercase">💪 Topik Terkuat</span>
+                  <p className="font-extrabold mt-0.5">{coachKuat}</p>
+                </div>
+                <div className="bg-red-50 border border-[#111] rounded-xl p-2.5">
+                  <span className="text-[10px] font-extrabold text-red-800 uppercase">⚠️ Perlu Dikejar</span>
+                  <p className="font-extrabold mt-0.5">{coachLemah}</p>
+                </div>
+              </div>
+
+              <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 space-y-2">
+                <div className="text-xs bg-white border border-[#111] rounded-xl p-2.5 space-y-1">
+                  <div>
+                    <span className="font-extrabold text-[#4F46E5]">Coach:</span> {coachPesan}
+                  </div>
+                  {statRuang.adaData && statRuang.polaAI1.length > 0 && statRuang.polaAI1[0].rekomendasi && (
+                    <p className="text-[11px] text-neutral-700 pt-1 border-t border-dashed border-neutral-200">
+                      <b>💡 Saran AI #1:</b> {statRuang.polaAI1[0].rekomendasi}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <NeoBtn
+                    onClick={() => {
+                      logEvent('coach_latih_topik_lemah', {
+                        mapel: mapelCoach,
+                        paket: paketCoach,
+                        topik: coachLemah,
+                      });
+                      router.push(`/arena?mapel=${mapelCoach}&paket=${paketCoach}&mode=latihan`);
+                    }}
+                    className="flex-1 bg-[#B6FF00] py-2 rounded-xl text-xs"
+                  >
+                    🎯 Latih Paket {paketCoach}
+                  </NeoBtn>
+                  <NeoBtn onClick={openCoach} className="flex-1 bg-white py-2 rounded-xl text-xs md:hidden">
+                    💬 Diskusi sama Coach
+                  </NeoBtn>
+                </div>
+              </div>
+            </div>
+
+            {!statRuang.adaData && (
+              <p className="text-center text-[11px] text-neutral-400">
+                Kerjakan {mapelLabel} Paket {paketCoach} untuk melihat analisis AI #1 & AI #3.
+              </p>
+            )}
+          </div>
+
+          {/* ===== KOLOM KANAN (65% di desktop): Chat Coach Permanen & Lebar ===== */}
+          <div className="hidden md:flex md:w-[65%] md:min-w-0 md:flex-col">
+            <div className="bg-[#FAFAF7] border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl h-[calc(100dvh-10rem)] min-h-[540px] flex flex-col overflow-hidden">
+              <div className="bg-white border-b-2 border-[#111] px-5 py-3.5 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="w-8 h-8 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center text-sm font-extrabold shrink-0">
+                    ✨
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-extrabold truncate">
+                      Coach {mapelLabel} · Paket {paketCoach}
+                    </h3>
+                    <p className="text-xs text-green-700 font-bold truncate">
+                      ✓ {statRuang.adaData ? `Siap bahas ${coachLemah}` : `Belum ada data Paket ${paketCoach}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="bg-[#E0E7FF] border-2 border-[#111] px-3 py-1 rounded-full text-xs font-extrabold">
+                    {coachQuota}/25 Tanya
+                  </span>
+                </div>
+              </div>
+
+              <div
+                ref={showCoach ? undefined : chatBoxRef}
+                className="flex-1 overflow-y-auto p-6 space-y-3.5 text-xs md:text-sm"
+              >
+                {desktopCoachMsgs.map((m, i) =>
+                  m.from === 'user' ? (
+                    <div key={i} className="flex justify-end">
+                      <div className="bg-[#111] text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] font-semibold">
+                        {m.html}
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      key={i}
+                      className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-4 max-w-[88%]"
+                    >
+                      <p className="font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
+                    </div>
+                  ),
                 )}
               </div>
-              <div className="flex gap-2">
-                <NeoBtn
-                  onClick={() => {
-                    logEvent('coach_latih_topik_lemah', {
-                      mapel: mapelCoach,
-                      paket: paketCoach,
-                      topik: coachLemah,
-                    });
-                    router.push(`/arena?mapel=${mapelCoach}&paket=${paketCoach}&mode=latihan`);
-                  }}
-                  className="flex-1 bg-[#B6FF00] py-2 rounded-xl text-xs"
-                >
-                  🎯 Latih Paket {paketCoach}
-                </NeoBtn>
-                <NeoBtn onClick={openCoach} className="flex-1 bg-white py-2 rounded-xl text-xs">
-                  💬 Diskusi sama Coach
-                </NeoBtn>
+
+              <div className="px-5 py-2.5 bg-white border-t border-neutral-200 flex gap-2 overflow-x-auto shrink-0">
+                {['Jelasin topik lemahku', 'Bahas pola AI #1-ku', 'Tips ujian paket ini'].map((qp) => (
+                  <button
+                    key={qp}
+                    type="button"
+                    onClick={() => sendCoachMsg(qp)}
+                    className="shrink-0 bg-[#FAFAF7] hover:bg-[#B6FF00] transition-colors border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1.5 rounded-full text-xs font-bold"
+                  >
+                    {qp}
+                  </button>
+                ))}
               </div>
+
+              <ChatInput
+                placeholder={`Tanya Coach ${mapelLabel} Paket ${paketCoach}...`}
+                onSend={sendCoachMsg}
+              />
             </div>
           </div>
-
-          {!statRuang.adaData && (
-            <p className="text-center text-[11px] text-neutral-400">
-              Kerjakan {mapelLabel} Paket {paketCoach} untuk melihat analisis AI #1 & AI #3.
-            </p>
-          )}
         </div>
 
         {/* ===== Bottom nav ===== */}
@@ -392,10 +477,10 @@ export default function RuangPage() {
         <div className="h-20 shrink-0" />
         <BottomNav active="ruang" />
 
-        {/* ===== COACH CHAT SHEET ===== */}
+        {/* ===== COACH CHAT SHEET (Mobile Only) ===== */}
         {showCoach && (
           <div
-            className="absolute inset-0 z-40 bg-black/50 flex flex-col justify-end"
+            className="absolute inset-0 z-40 bg-black/50 flex md:hidden flex-col justify-end"
             onClick={() => setShowCoach(false)}
           >
             <div

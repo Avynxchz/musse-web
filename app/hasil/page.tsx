@@ -92,13 +92,13 @@ function BedahSoalSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 flex flex-col justify-end"
+      className="fixed inset-0 z-50 bg-black/50 flex flex-col justify-end md:items-center md:justify-center md:p-6"
       onClick={onClose}
       role="dialog"
       aria-label={`Bedah Soal ${q.nomor}`}
     >
       <div
-        className="bg-[#FAFAF7] border-t-2 border-[#111] rounded-t-3xl max-h-[88%] flex flex-col overflow-hidden"
+        className="bg-[#FAFAF7] border-t-2 md:border-2 border-[#111] rounded-t-3xl md:rounded-3xl md:shadow-[0_6px_0_#111] md:w-full md:max-w-3xl max-h-[88%] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* header */}
@@ -451,11 +451,15 @@ function HasilContent() {
 
   /* ================= render ================= */
 
+  const pctBenar = total > 0 ? Math.round((benar / total) * 100) : 0;
+  const pctSalah = total > 0 ? Math.round((salah / total) * 100) : 0;
+  const pctKosong = Math.max(0, 100 - pctBenar - pctSalah);
+
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden">
-        {/* ===== Header ===== */}
-        <header className="bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
+        {/* ===== Header + Toolbar Horizontal Aksi (Desktop) ===== */}
+        <header className="bg-white border-b-2 border-[#111] px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3 shrink-0 md:sticky md:top-0 md:z-30">
           <div className="min-w-0">
             <span
               className={`text-[10px] font-extrabold uppercase border border-[#111] px-2 py-0.5 rounded ${
@@ -464,20 +468,38 @@ function HasilContent() {
             >
               {mode === 'simulasi' ? '⚡ Hasil Simulasi' : '🌱 Hasil Latihan'}
             </span>
-            <h2 className="text-base font-extrabold mt-0.5 truncate">
+            <h2 className="text-base md:text-lg font-extrabold mt-0.5 truncate">
               {mapelName} · Paket {paket}
             </h2>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <LogCounterLive useLogCount={useLogCount} onClick={() => setShowLogPanel((v) => !v)} />
-            <NeoBtn onClick={() => router.push('/beranda')} className="bg-white px-3 py-1.5 rounded-xl text-xs">
+            {/* Toolbar horizontal tombol aksi di desktop: Ulangi, Bedah Soal, Beranda */}
+            <NeoBtn
+              onClick={() => router.push(`/arena?mapel=${mapelKey}&paket=${paket}&mode=${mode}`)}
+              className="hidden md:inline-flex items-center gap-1.5 bg-[#B6FF00] px-3.5 py-2 rounded-xl text-xs"
+            >
+              <span>🔄</span>
+              <span>Ulangi</span>
+            </NeoBtn>
+            <NeoBtn
+              onClick={() => {
+                setBedahIdx(0);
+                logEvent('autopsi_jump_to_review', { soal_no: questions[0]?.nomor ?? 1 });
+              }}
+              className="hidden md:inline-flex items-center gap-1.5 bg-[#E0E7FF] px-3.5 py-2 rounded-xl text-xs"
+            >
+              <span>📖</span>
+              <span>Bedah Soal</span>
+            </NeoBtn>
+            <NeoBtn onClick={() => router.push('/beranda')} className="bg-white px-3 md:px-3.5 py-1.5 md:py-2 rounded-xl text-xs">
               Ke Beranda →
             </NeoBtn>
           </div>
         </header>
 
         {/* ===== Konten scroll ===== */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
+        <div className="flex-1 overflow-y-auto md:overflow-visible p-4 md:p-6 space-y-4 md:space-y-6 pb-8">
           {/* Banner auto-submit */}
           {autoSubmit && (
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-3.5 bg-red-100 text-xs font-bold text-red-900 flex items-center gap-2.5">
@@ -491,171 +513,265 @@ function HasilContent() {
             </div>
           )}
 
-          {/* ===== Kartu skor ===== */}
-          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-[#111] text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-white/70 font-semibold">Skor Akhir Kamu</p>
-                <p className="font-mono text-3xl text-[#B6FF00] mt-1 font-extrabold">{skor}%</p>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/20">
-                  <p className="text-sm font-extrabold text-[#B6FF00]">{benar}</p>
-                  <p className="text-[10px] text-white/70">Benar</p>
-                </div>
-                <div className="bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/20">
-                  <p className="text-sm font-extrabold text-red-400">{salah}</p>
-                  <p className="text-[10px] text-white/70">Salah</p>
-                </div>
-                <div className="bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/20">
-                  <p className="text-sm font-extrabold text-white">{kosong}</p>
-                  <p className="text-[10px] text-white/70">Kosong</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-[11px] text-white/80">
-              <span>{autoSubmit ? '⏰ Auto-Submit (Waktu Habis)' : '🏁 Diselesaikan'}</span>
-              <span>
-                ⚡ Rata-rata: <b>{analisis.adaData ? `${analisis.rataRataDetik} dtk/soal` : '24 dtk/soal'}</b>
-              </span>
-              <span>✓ Tersimpan</span>
-            </div>
-          </div>
-
-          {/* ===== Guru Autopsi AI ===== */}
-          <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 bg-white space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🔍</span>
-                <div>
-                  <h3 className="text-sm font-extrabold">Guru Autopsi AI</h3>
-                  <p className="text-[11px] text-neutral-500">
-                    Dari ritme waktu, klik opsi & pergantian jawabanmu
-                  </p>
-                </div>
-              </div>
-              <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0">
-                ✨ Analisis AI
-              </span>
-            </div>
-
-            <div className="space-y-3">
-            {/* Observasi — DATA BENERAN dari attempt terakhir */}
-            <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 text-xs space-y-1">
-              <p className="font-extrabold text-[#111]">👀 Yang Saya Lihat:</p>
-              {analisis.adaData && analisis.observasi.length > 0 ? (
-                <ul className="list-disc list-inside text-neutral-700 space-y-1 mt-1">
-                  {analisis.observasi.map((o, i) => (
-                    <li key={i} dangerouslySetInnerHTML={{ __html: o.html }} />
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-neutral-500 mt-1">
-                  Belum ada data pengerjaan. Kerjakan soal dulu, nanti aku analisis polamu di sini!
-                </p>
-              )}
-            </div>
-
-            {/* Pola terdeteksi — DATA BENERAN dari aturan analisis */}
-            {analisis.adaData && analisis.pola.length > 0 ? (
-              analisis.pola.map((p, i) => (
-                <div key={i} className="bg-[#FFFBEB] border-2 border-[#111] rounded-xl p-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase bg-amber-300 border border-[#111] px-2 py-0.5 rounded">
-                      {i === 0 ? 'Kebocoran Utama' : `Pola #${i + 1}`}
-                    </span>
-                    <span className="text-[11px] font-bold text-red-700">Pola: {p.nama}</span>
+          {/* ===== DESKTOP 2-COLUMN LAYOUT: Kiri = Skor + Statistik + Ringkasan (40%), Kanan = Guru Autopsi AI + Bedah Soal (60%) ===== */}
+          <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+            {/* ===== KOLOM KIRI (40% di desktop) ===== */}
+            <div className="w-full md:w-[40%] md:shrink-0 md:sticky md:top-24 space-y-4">
+              {/* ===== Kartu skor ===== */}
+              <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 md:p-6 bg-[#111] text-white">
+                <div className="flex items-center justify-between md:flex-col md:items-stretch md:gap-4">
+                  <div className="md:flex md:items-baseline md:justify-between">
+                    <p className="text-xs md:text-sm text-white/70 font-semibold">Skor Akhir Kamu</p>
+                    <p className="font-mono text-3xl md:text-5xl text-[#B6FF00] mt-1 md:mt-0 font-extrabold">{skor}%</p>
                   </div>
-                  <h4 className="text-sm font-extrabold mt-1.5">{p.judul}</h4>
-                  <p className="text-xs text-neutral-700 mt-1">
-                    <b>Bukti:</b> {p.bukti}
-                  </p>
-                  {p.rekomendasi && (
-                    <p className="text-xs text-neutral-800 mt-1.5">
-                      <b>💡 Rekomendasi Aksi:</b> {p.rekomendasi}
-                    </p>
-                  )}
-                  <div className="mt-3 flex gap-2">
-                    <NeoBtn onClick={openStrategi} className="flex-1 bg-white py-2 px-3 rounded-xl text-xs">
-                      📚 Pelajari 5 Strategi
-                    </NeoBtn>
-                    {p.soalContoh !== undefined && (
-                      <NeoBtn
-                        onClick={() => {
-                          // Cari index soal berdasarkan nomor
-                          const idx = questions.findIndex((qq) => qq.nomor === p.soalContoh);
-                          setBedahIdx(idx >= 0 ? idx : 0);
-                          logEvent('autopsi_bedah_soal', { soal_no: p.soalContoh });
-                        }}
-                        className="flex-1 bg-[#B6FF00] py-2 px-3 rounded-xl text-xs"
-                      >
-                        🎯 Bedah Soal #{p.soalContoh}
-                      </NeoBtn>
+                  <div className="grid grid-cols-3 gap-2 md:gap-3 text-center">
+                    <div className="bg-white/10 px-2.5 py-1.5 md:py-3 rounded-xl border border-white/20">
+                      <p className="text-sm md:text-xl font-extrabold text-[#B6FF00]">{benar}</p>
+                      <p className="text-[10px] md:text-xs text-white/70">Benar</p>
+                    </div>
+                    <div className="bg-white/10 px-2.5 py-1.5 md:py-3 rounded-xl border border-white/20">
+                      <p className="text-sm md:text-xl font-extrabold text-red-400">{salah}</p>
+                      <p className="text-[10px] md:text-xs text-white/70">Salah</p>
+                    </div>
+                    <div className="bg-white/10 px-2.5 py-1.5 md:py-3 rounded-xl border border-white/20">
+                      <p className="text-sm md:text-xl font-extrabold text-white">{kosong}</p>
+                      <p className="text-[10px] md:text-xs text-white/70">Kosong</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grafik proporsi jawaban (Desktop Only - manfaatkan lebar layar) */}
+                <div className="hidden md:block mt-5 pt-4 border-t border-white/15 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-white/80">
+                    <span>Distribusi Jawaban ({total} Soal)</span>
+                    <span className="text-[#B6FF00]">{pctBenar}% Akurasi</span>
+                  </div>
+                  <div className="w-full h-3.5 bg-white/10 rounded-full overflow-hidden flex border border-white/20">
+                    {pctBenar > 0 && (
+                      <div
+                        className="h-full bg-[#B6FF00]"
+                        style={{ width: `${pctBenar}%` }}
+                        title={`Benar: ${benar} (${pctBenar}%)`}
+                      />
+                    )}
+                    {pctSalah > 0 && (
+                      <div
+                        className="h-full bg-red-400"
+                        style={{ width: `${pctSalah}%` }}
+                        title={`Salah: ${salah} (${pctSalah}%)`}
+                      />
+                    )}
+                    {pctKosong > 0 && (
+                      <div
+                        className="h-full bg-white/30"
+                        style={{ width: `${pctKosong}%` }}
+                        title={`Kosong: ${kosong} (${pctKosong}%)`}
+                      />
                     )}
                   </div>
                 </div>
-              ))
-            ) : analisis.adaData ? (
-              <div className="bg-[#F0FDF4] border-2 border-[#111] rounded-xl p-3.5">
-                <p className="text-xs font-bold text-green-800">
-                  ✅ Tidak ada pola bermasalah yang terdeteksi. Ritme belajarmu stabil — pertahankan!
-                </p>
-              </div>
-            ) : null}
 
+                <div className="mt-3 md:mt-4 pt-2.5 md:pt-3 border-t border-white/15 flex items-center justify-between text-[11px] md:text-xs text-white/80">
+                  <span>{autoSubmit ? '⏰ Auto-Submit (Waktu Habis)' : '🏁 Diselesaikan'}</span>
+                  <span>
+                    ⚡ Rata-rata: <b>{analisis.adaData ? `${analisis.rataRataDetik} dtk/soal` : '24 dtk/soal'}</b>
+                  </span>
+                  <span>✓ Tersimpan</span>
+                </div>
+              </div>
+
+              {/* ===== Kartu Ringkasan & Statistik Detail (Desktop Only) ===== */}
+              <div className="hidden md:block border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold">📊 Ringkasan Pengerjaan</h3>
+                  <span className="bg-[#FAFAF7] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
+                    {mode === 'simulasi' ? 'Simulasi' : 'Latihan'}
+                  </span>
+                </div>
+                <div className="space-y-2.5 text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold mb-1">
+                      <span>✓ Jawaban Benar</span>
+                      <span>{benar} dari {total} soal ({pctBenar}%)</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-neutral-200 rounded-full overflow-hidden border border-[#111]">
+                      <div className="h-full bg-[#B6FF00]" style={{ width: `${pctBenar}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold mb-1">
+                      <span>✕ Jawaban Salah</span>
+                      <span>{salah} dari {total} soal ({pctSalah}%)</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-neutral-200 rounded-full overflow-hidden border border-[#111]">
+                      <div className="h-full bg-red-300" style={{ width: `${pctSalah}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold mb-1">
+                      <span>○ Tidak Dijawab</span>
+                      <span>{kosong} dari {total} soal ({pctKosong}%)</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-neutral-200 rounded-full overflow-hidden border border-[#111]">
+                      <div className="h-full bg-neutral-400" style={{ width: `${pctKosong}%` }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-neutral-200 flex gap-2">
+                  <NeoBtn
+                    onClick={() => router.push(`/arena?mapel=${mapelKey}&paket=${paket}&mode=${mode}`)}
+                    className="flex-1 bg-[#B6FF00] py-2.5 px-3 rounded-xl text-xs"
+                  >
+                    🔄 Ulangi Paket Ini
+                  </NeoBtn>
+                  <NeoBtn
+                    onClick={() => router.push('/ruang')}
+                    className="flex-1 bg-[#E0E7FF] py-2.5 px-3 rounded-xl text-xs"
+                  >
+                    🧠 Buka Ruang AI
+                  </NeoBtn>
+                </div>
+              </div>
             </div>
 
-            {/* Daftar bedah soal */}
-            <div>
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-500 mb-2">
-                Bedah Soal per Nomor
-              </h4>
-              <div className="space-y-2 lg:grid-cols-3">
-                {questions.map((q, i) => {
-                  const st = statusPerSoal[i];
-                  const badge =
-                    st === 'benar' ? (
-                      <span className="bg-green-100 text-green-800 border border-green-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                        ✓ Benar
-                      </span>
-                    ) : st === 'salah' ? (
-                      <span className="bg-red-100 text-red-800 border border-red-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                        ✕ Salah
-                      </span>
-                    ) : (
-                      <span className="bg-neutral-100 text-neutral-700 border border-neutral-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                        ○ Kosong
-                      </span>
-                    );
-                  return (
-                    <button
-                      key={q.nomor}
-                      type="button"
-                      onClick={() => {
-                        setBedahIdx(i);
-                        logEvent('autopsi_jump_to_review', { soal_no: q.nomor });
-                      }}
-                      className="w-full text-left border-2 border-[#111] rounded-xl p-2.5 flex items-center justify-between bg-white hover:bg-[#FAFAF7]"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`w-7 h-7 rounded-lg border border-[#111] flex items-center justify-center font-extrabold text-xs ${
-                            st === 'benar' ? 'bg-[#B6FF00]' : 'bg-red-200'
-                          }`}
-                        >
-                          {q.nomor}
+            {/* ===== KOLOM KANAN (60% di desktop): Guru Autopsi AI + Bedah Soal Grid ===== */}
+            <div className="w-full md:w-[60%] md:min-w-0">
+              {/* ===== Guru Autopsi AI ===== */}
+              <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 md:p-6 bg-white space-y-3 md:space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔍</span>
+                    <div>
+                      <h3 className="text-sm md:text-base font-extrabold">Guru Autopsi AI</h3>
+                      <p className="text-[11px] md:text-xs text-neutral-500">
+                        Dari ritme waktu, klik opsi & pergantian jawabanmu
+                      </p>
+                    </div>
+                  </div>
+                  <span className="bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0">
+                    ✨ Analisis AI
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                {/* Observasi — DATA BENERAN dari attempt terakhir */}
+                <div className="bg-[#FAFAF7] border-2 border-[#111] rounded-xl p-3 md:p-4 text-xs space-y-1">
+                  <p className="font-extrabold text-[#111]">👀 Yang Saya Lihat:</p>
+                  {analisis.adaData && analisis.observasi.length > 0 ? (
+                    <ul className="list-disc list-inside text-neutral-700 space-y-1 mt-1">
+                      {analisis.observasi.map((o, i) => (
+                        <li key={i} dangerouslySetInnerHTML={{ __html: o.html }} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-neutral-500 mt-1">
+                      Belum ada data pengerjaan. Kerjakan soal dulu, nanti aku analisis polamu di sini!
+                    </p>
+                  )}
+                </div>
+
+                {/* Pola terdeteksi — DATA BENERAN dari aturan analisis */}
+                {analisis.adaData && analisis.pola.length > 0 ? (
+                  analisis.pola.map((p, i) => (
+                    <div key={i} className="bg-[#FFFBEB] border-2 border-[#111] rounded-xl p-3.5 md:p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase bg-amber-300 border border-[#111] px-2 py-0.5 rounded">
+                          {i === 0 ? 'Kebocoran Utama' : `Pola #${i + 1}`}
                         </span>
-                        <div>
-                          <p className="text-xs font-extrabold">
-                            {q.topik} · {q.tipe}
-                          </p>
-                          <p className="text-[11px] text-neutral-500">Klik untuk buka pembahasan →</p>
-                        </div>
+                        <span className="text-[11px] font-bold text-red-700">Pola: {p.nama}</span>
                       </div>
-                      {badge}
-                    </button>
-                  );
-                })}
+                      <h4 className="text-sm font-extrabold mt-1.5">{p.judul}</h4>
+                      <p className="text-xs text-neutral-700 mt-1">
+                        <b>Bukti:</b> {p.bukti}
+                      </p>
+                      {p.rekomendasi && (
+                        <p className="text-xs text-neutral-800 mt-1.5">
+                          <b>💡 Rekomendasi Aksi:</b> {p.rekomendasi}
+                        </p>
+                      )}
+                      <div className="mt-3 flex gap-2">
+                        <NeoBtn onClick={openStrategi} className="flex-1 bg-white py-2 px-3 rounded-xl text-xs">
+                          📚 Pelajari 5 Strategi
+                        </NeoBtn>
+                        {p.soalContoh !== undefined && (
+                          <NeoBtn
+                            onClick={() => {
+                              // Cari index soal berdasarkan nomor
+                              const idx = questions.findIndex((qq) => qq.nomor === p.soalContoh);
+                              setBedahIdx(idx >= 0 ? idx : 0);
+                              logEvent('autopsi_bedah_soal', { soal_no: p.soalContoh });
+                            }}
+                            className="flex-1 bg-[#B6FF00] py-2 px-3 rounded-xl text-xs"
+                          >
+                            🎯 Bedah Soal #{p.soalContoh}
+                          </NeoBtn>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : analisis.adaData ? (
+                  <div className="bg-[#F0FDF4] border-2 border-[#111] rounded-xl p-3.5">
+                    <p className="text-xs font-bold text-green-800">
+                      ✅ Tidak ada pola bermasalah yang terdeteksi. Ritme belajarmu stabil — pertahankan!
+                    </p>
+                  </div>
+                ) : null}
+
+                </div>
+
+                {/* Daftar bedah soal */}
+                <div>
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-500 mb-2">
+                    Bedah Soal per Nomor
+                  </h4>
+                  <div className="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-2.5">
+                    {questions.map((q, i) => {
+                      const st = statusPerSoal[i];
+                      const badge =
+                        st === 'benar' ? (
+                          <span className="bg-green-100 text-green-800 border border-green-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
+                            ✓ Benar
+                          </span>
+                        ) : st === 'salah' ? (
+                          <span className="bg-red-100 text-red-800 border border-red-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
+                            ✕ Salah
+                          </span>
+                        ) : (
+                          <span className="bg-neutral-100 text-neutral-700 border border-neutral-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
+                            ○ Kosong
+                          </span>
+                        );
+                      return (
+                        <button
+                          key={q.nomor}
+                          type="button"
+                          onClick={() => {
+                            setBedahIdx(i);
+                            logEvent('autopsi_jump_to_review', { soal_no: q.nomor });
+                          }}
+                          className="w-full text-left border-2 border-[#111] rounded-xl p-2.5 flex items-center justify-between gap-2 bg-white hover:bg-[#FAFAF7]"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span
+                              className={`w-7 h-7 rounded-lg border border-[#111] flex items-center justify-center font-extrabold text-xs shrink-0 ${
+                                st === 'benar' ? 'bg-[#B6FF00]' : 'bg-red-200'
+                              }`}
+                            >
+                              {q.nomor}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-xs font-extrabold truncate">
+                                {q.topik} · {q.tipe}
+                              </p>
+                              <p className="text-[11px] text-neutral-500 truncate">Klik untuk buka pembahasan →</p>
+                            </div>
+                          </div>
+                          {badge}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -664,7 +780,7 @@ function HasilContent() {
         {/* ===== Modal strategi ===== */}
         {strategiOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full space-y-3">
+            <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-5 bg-white w-full md:max-w-lg space-y-3">
               <div className="flex items-center justify-between">
                 <span className="bg-amber-300 border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
                   Panduan Anti-Bocor
@@ -732,7 +848,7 @@ export default function HasilPage() {
     <Suspense
       fallback={
         <div className="min-h-dvh bg-[#18181B] flex justify-center">
-          <div className="w-full max-w-[430px] min-h-dvh bg-[#FAFAF7] flex items-center justify-center">
+          <div className="w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex items-center justify-center">
             <p className="text-sm font-bold">Memuat hasil…</p>
           </div>
         </div>
