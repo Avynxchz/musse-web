@@ -398,7 +398,7 @@ function ArenaPetaBody({
       <div
         className={
           isDesktop
-            ? 'grid grid-cols-5 lg:grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-0.5'
+            ? 'grid grid-cols-5 lg:grid-cols-6 gap-2 p-1.5'
             : 'grid grid-cols-5 gap-2 max-h-[52dvh] overflow-y-auto p-0.5'
         }
       >
@@ -1364,7 +1364,7 @@ function ArenaClient() {
   if (soalLoading || !q) {
     return (
       <div className="min-h-dvh bg-[#18181B] flex justify-center">
-        <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
+        <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1800px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl px-6 py-4 text-sm font-extrabold bg-white text-center">
             <div className="text-2xl mb-2">📚</div>
             Memuat soal…
@@ -1390,7 +1390,7 @@ function ArenaClient() {
 
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
+      <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1800px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
         {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
         {soalError && soalSource === 'dummy' && (
           <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
@@ -1476,7 +1476,7 @@ function ArenaClient() {
         {/* ===== DESKTOP 2-COLUMN WRAPPER (Mobile: flex-col utuh, Desktop: 60% kiri + 40% kanan sticky) ===== */}
         <div className="flex-1 flex flex-col md:flex-row md:items-start md:gap-6 md:p-6">
           {/* ===== KOLOM KIRI (60% di desktop): Navigasi Prev/Next Kiri-Kanan + Area Soal + Action Bar ===== */}
-          <div className="flex-1 flex flex-col w-full md:w-[60%] md:min-w-0">
+          <div className={`flex-1 flex flex-col w-full ${sidebarHidden ? 'md:w-full' : 'md:w-[60%]'} md:min-w-0`}>
             <div className="flex-1 flex flex-col md:flex-row md:items-start md:gap-3">
               {/* Tombol Navigasi Soal Sebelumnya (Besar di Kiri Area Soal - Desktop Only) */}
               <NeoBtn
@@ -1869,18 +1869,31 @@ function ArenaClient() {
             </footer>
           </div>
 
-          {/* Tombol hide/show sidebar */}
-          <button
-            type="button"
-            onClick={() => setSidebarHidden((v) => !v)}
-            className="hidden md:flex fixed top-1/2 -translate-y-1/2 z-40 w-10 h-20 bg-[#B6FF00] border-2 border-[#111] rounded-l-xl items-center justify-center text-lg font-extrabold shadow-[-3px_0_0_#111] hover:bg-[#c8ff2e] transition-all"
-            style={{ right: sidebarHidden ? '0px' : 'calc(40% - 2px)' }}
-            title={sidebarHidden ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'}
-          >
-            {sidebarHidden ? '◀' : '▶'}
-          </button>
+          {/* Tombol tampilkan sidebar (saat sidebar tersembunyi) */}
+          {sidebarHidden && (
+            <div className="hidden md:flex md:sticky md:top-1/2 md:-translate-y-1/2 z-40 self-start -mr-2">
+              <button
+                type="button"
+                onClick={() => setSidebarHidden(false)}
+                className="w-8 h-16 bg-[#B6FF00] border-2 border-[#111] rounded-xl flex items-center justify-center text-sm font-extrabold shadow-[-2px_0_0_#111] hover:bg-[#c8ff2e] transition-all cursor-pointer"
+                title="Tampilkan sidebar"
+              >
+                ◀
+              </button>
+            </div>
+          )}
           {/* ===== KOLOM KANAN (40% di desktop): Tab Peta / AI Tutor / 5 Pilar ===== */}
-          {!sidebarHidden && <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)]">
+          {!sidebarHidden && (
+            <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)] relative">
+              {/* Tombol sembunyikan sidebar (saat sidebar terbuka) */}
+              <button
+                type="button"
+                onClick={() => setSidebarHidden(true)}
+                className="hidden md:flex absolute -left-10 top-1/2 -translate-y-1/2 z-40 w-8 h-16 bg-[#B6FF00] border-2 border-[#111] rounded-xl items-center justify-center text-sm font-extrabold shadow-[-2px_0_0_#111] hover:bg-[#c8ff2e] transition-all cursor-pointer"
+                title="Sembunyikan sidebar"
+              >
+                ▶
+              </button>
             {/* Tab buttons */}
             <div className="flex border-2 border-[#111] rounded-t-2xl overflow-hidden shrink-0 bg-white shadow-[0_4px_0_#111]">
               <button
@@ -1965,7 +1978,8 @@ function ArenaClient() {
                 </div>
               )}
             </div>
-          </aside>}
+          </aside>
+        )}
         </div>
 
         {/* ===== MODAL LEBAR PEMBAHASAN 5 PILAR (Desktop Only) ===== */}
