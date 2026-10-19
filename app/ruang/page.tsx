@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { analyzeRuangAI, getAI1Insight } from '../../lib/analisis';
 import { MAPEL_CATALOG } from '../arena/data';
+import { DesktopSidebar } from '../components/DesktopSidebar';
 import {
   BottomNav,
   ChatInput,
@@ -387,9 +388,14 @@ export default function RuangPage() {
 
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
-        {/* ===== Header ===== */}
-        <header className="bg-white border-b-2 border-[#111] px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shrink-0 md:sticky md:top-0 md:z-30">
+      <div className="relative w-full max-w-[430px] md:max-w-none min-h-dvh bg-[#FAFAF7] flex flex-col md:flex-row sm:border-x-2 md:border-x-0 sm:border-[#111] overflow-hidden md:overflow-visible">
+        {/* ===== Sidebar Kiri Desktop (md:+) ===== */}
+        <DesktopSidebar active="ruang" />
+
+        {/* ===== Kolom Utama Konten ===== */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* ===== Header ===== */}
+          <header className="bg-white border-b-2 border-[#111] px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shrink-0 md:sticky md:top-0 md:z-20">
           <div>
             <h2 className="text-base md:text-lg font-extrabold">Ruang AI & Progres Belajar</h2>
             <p className="text-[11px] md:text-xs text-neutral-500">Analisis kumulatif & konsultasi AI Coach per mapel</p>
@@ -553,10 +559,11 @@ export default function RuangPage() {
           </div>
         </div>
 
-        {/* ===== Bottom nav ===== */}
-        {/* Spacer agar konten tidak tertutup navbar fixed */}
-        <div className="h-20 shrink-0" />
-        <BottomNav active="ruang" />
+        {/* ===== Bottom nav (Hanya tampil di Mobile) ===== */}
+        <div className="h-20 shrink-0 md:hidden" />
+        <div className="md:hidden">
+          <BottomNav active="ruang" />
+        </div>
 
         {/* ===== COACH CHAT SHEET (Mobile Only) ===== */}
         {showCoach && (
@@ -617,6 +624,7 @@ export default function RuangPage() {
             title="Behavior Log"
           />
         )}
+        </div>
       </div>
     </div>
   );
