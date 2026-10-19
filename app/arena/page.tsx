@@ -28,7 +28,6 @@ import {
 } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { saveAttempt } from '../../lib/analisis';
-import { DesktopSidebar } from '../components/DesktopSidebar';
 
 /* ================= Konstanta & Helper Kecil ================= */
 
@@ -1387,10 +1386,8 @@ function ArenaClient() {
     chatMsgs.length > 0 ? chatMsgs : [{ from: 'ai' as const, html: buildTutorGreeting(mode, q) }];
 
   return (
-    <div className="min-h-dvh bg-[#18181B] md:bg-[#FAFAF7] flex justify-center md:justify-start">
-      {/* Sidebar desktop */}
-      <DesktopSidebar active="beranda" />
-      <div className="relative w-full max-w-[430px] md:max-w-none md:flex-1 min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] md:border-x-0 overflow-hidden md:overflow-visible">
+    <div className="min-h-dvh bg-[#18181B] flex justify-center">
+      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
         {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
         {soalError && soalSource === 'dummy' && (
           <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
