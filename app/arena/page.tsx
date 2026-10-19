@@ -558,6 +558,7 @@ function ArenaClient() {
   const [simSoalOpen, setSimSoalOpen] = useState(false);
   const [simFeedback, setSimFeedback] = useState<string | null>(null);
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'peta' | 'ai' | 'pilar'>('peta');
   const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
 
   // --- soal dari Supabase (fallback ke dummy jika gagal) ---
@@ -1866,73 +1867,92 @@ function ArenaClient() {
             </footer>
           </div>
 
-          {/* ===== KOLOM KANAN (40% di desktop, sticky): Peta Soal Permanen + AI Tutor Permanen (Bisa Minimize/Collapse) ===== */}
-          <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:gap-4 md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)] md:overflow-y-auto">
-            {/* Panel 1: Peta Nomor Soal Permanen */}
-            <div className="bg-white border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 space-y-3 shrink-0">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold flex items-center gap-1.5">
-                  <span>▦</span>
-                  <span>Peta Nomor Soal</span>
-                </h3>
-                <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-2 py-0.5 rounded">
-                  Soal #{q.nomor}/{questions.length}
-                </span>
-              </div>
-              <ArenaPetaBody
-                variant="desktop"
-                questions={questions}
-                answers={answers}
-                answersRef={answersRef}
-                ragu={ragu}
-                qIndex={qIndex}
-                petaDijawabCount={petaDijawabCount}
-                petaRaguCount={petaRaguCount}
-                petaBelumCount={petaBelumCount}
-                onSelectSoal={goSoal}
-                onFinish={() => finishQuiz('user')}
-              />
+          {/* ===== KOLOM KANAN (40% di desktop): Tab Peta / AI Tutor / 5 Pilar ===== */}
+          <aside className="hidden md:flex md:w-[40%] md:shrink-0 md:flex-col md:sticky md:top-16 md:max-h-[calc(100dvh-5rem)]">
+            {/* Tab buttons */}
+            <div className="flex border-2 border-[#111] rounded-t-2xl overflow-hidden shrink-0 bg-white shadow-[0_4px_0_#111]">
+              <button
+                type="button"
+                onClick={() => setSidebarTab('peta')}
+                className={`flex-1 px-3 py-3 text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${sidebarTab === 'peta' ? 'bg-[#B6FF00]' : 'bg-white hover:bg-[#FAFAF7]'}`}
+              >
+                <span>🗺️</span><span>Peta</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarTab('ai')}
+                className={`flex-1 px-3 py-3 text-xs font-extrabold flex items-center justify-center gap-1.5 border-l-2 border-[#111] transition-all ${sidebarTab === 'ai' ? 'bg-[#B6FF00]' : 'bg-white hover:bg-[#FAFAF7]'}`}
+              >
+                <span>✨</span><span>AI Tutor</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarTab('pilar')}
+                className={`flex-1 px-3 py-3 text-xs font-extrabold flex items-center justify-center gap-1.5 border-l-2 border-[#111] transition-all ${sidebarTab === 'pilar' ? 'bg-[#B6FF00]' : 'bg-white hover:bg-[#FAFAF7]'}`}
+              >
+                <span>📖</span><span>5 Pilar</span>
+              </button>
             </div>
-
-            {/* Panel 2: AI Tutor Permanen (Bisa Minimize/Collapse) */}
-            <details
-              open
-              className="group bg-[#FAFAF7] border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl overflow-hidden flex flex-col"
-            >
-              <summary className="list-none cursor-pointer bg-white border-b-2 border-[#111] px-4 py-3 flex items-center justify-between select-none">
-                <div className="flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-full bg-[#B6FF00] border border-[#111] flex items-center justify-center text-xs font-extrabold">
-                    ✨
-                  </span>
-                  <div>
-                    <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
-                    <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+            {/* Tab content */}
+            <div className="flex-1 overflow-y-auto border-2 border-t-0 border-[#111] rounded-b-2xl bg-white shadow-[0_4px_0_#111] p-4">
+              {sidebarTab === 'peta' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-extrabold flex items-center gap-1.5">
+                      <span>▦</span><span>Peta Nomor Soal</span>
+                    </h3>
+                    <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-2 py-0.5 rounded">
+                      Soal #{q.nomor}/{questions.length}
+                    </span>
                   </div>
+                  <ArenaPetaBody
+                    variant="desktop"
+                    questions={questions}
+                    answers={answers}
+                    answersRef={answersRef}
+                    ragu={ragu}
+                    qIndex={qIndex}
+                    petaDijawabCount={petaDijawabCount}
+                    petaRaguCount={petaRaguCount}
+                    petaBelumCount={petaBelumCount}
+                    onSelectSoal={goSoal}
+                    onFinish={() => finishQuiz('user')}
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold">
-                    {tutorQuota}/25 Tanya
-                  </span>
-                  <span className="px-2 py-0.5 rounded-lg border-2 border-[#111] bg-[#FAFAF7] text-[10px] font-extrabold hidden group-open:inline">
-                    − Minimize
-                  </span>
-                  <span className="px-2 py-0.5 rounded-lg border-2 border-[#111] bg-[#B6FF00] text-[10px] font-extrabold inline group-open:hidden">
-                    + Buka
-                  </span>
+              )}
+              {sidebarTab === 'ai' && (
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-7 h-7 rounded-full bg-[#B6FF00] border border-[#111] flex items-center justify-center text-xs font-extrabold">✨</span>
+                    <div>
+                      <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
+                      <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                    </div>
+                    <span className="ml-auto bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold">{tutorQuota}/25</span>
+                  </div>
+                  <ArenaTutorChatBody
+                    variant="desktop"
+                    q={q}
+                    previewSoalOpen={previewSoalOpen}
+                    onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
+                    messages={desktopChatMsgs}
+                    onSendChat={sendChat}
+                  />
                 </div>
-              </summary>
-
-              <div className="flex flex-col">
-                <ArenaTutorChatBody
-                  variant="desktop"
-                  q={q}
-                  previewSoalOpen={previewSoalOpen}
-                  onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
-                  messages={desktopChatMsgs}
-                  onSendChat={sendChat}
-                />
-              </div>
-            </details>
+              )}
+              {sidebarTab === 'pilar' && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold">📖 Pembahasan 5 Pilar</h3>
+                  {showEval ? (
+                    <ArenaPilarCards q={q} />
+                  ) : (
+                    <p className="text-xs text-neutral-500 text-center py-8">
+                      Klik "Cek Jawaban" untuk melihat pembahasan 5 pilar di sini.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </aside>
         </div>
 
