@@ -229,6 +229,7 @@ export default function BerandaPage() {
   /* ---------- state ---------- */
   const [activeCategory, setActiveCategory] = useState<Category>('pilihanmu');
   const [searchQuery, setSearchQuery] = useState('');
+  const [akunPopupOpen, setAkunPopupOpen] = useState(false);
   const [favOverrides, setFavOverrides] = useState<Record<string, boolean>>({});
   const [modeSheet, setModeSheet] = useState<ModeSheetConfig | null>(null);
   const [quizMode, setQuizMode] = useState<QuizMode>('latihan');
@@ -489,20 +490,17 @@ export default function BerandaPage() {
                 <span className="text-sm">🧠</span>
                 <span>Ruang AI</span>
               </button>
-              <button
-                type="button"
-                onClick={() => router.push('/akun')}
-                className="w-full border-2 border-transparent hover:border-[#111] hover:bg-[#FAFAF7] text-neutral-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 text-left transition-all"
-              >
-                <span className="text-sm">👤</span>
-                <span>Akun</span>
-              </button>
+
             </nav>
           </div>
 
-          {/* Profil User di Bawah Sidebar */}
-          <div className="p-4 border-t-2 border-[#111] bg-[#FAFAF7] space-y-3">
-            <div className="flex items-center gap-2.5">
+          {/* Profil User di Bawah Sidebar - klik untuk popup akun */}
+          <div className="p-4 border-t-2 border-[#111] bg-[#FAFAF7] space-y-3 relative">
+            <button
+              type="button"
+              onClick={() => setAkunPopupOpen((v) => !v)}
+              className="w-full flex items-center gap-2.5 rounded-xl border-2 border-transparent hover:border-[#111] hover:bg-white px-2 py-1.5 -mx-2 text-left transition-all"
+            >
               <div className="w-9 h-9 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs shrink-0">
                 AG
               </div>
@@ -512,7 +510,46 @@ export default function BerandaPage() {
                   Siap tempur hari ini
                 </p>
               </div>
-            </div>
+              <span className="text-neutral-400 text-xs">▲</span>
+            </button>
+            {/* Popup akun ala Vercel */}
+            {akunPopupOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setAkunPopupOpen(false)} />
+                <div className="absolute bottom-full left-2 right-2 mb-2 z-50 border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl bg-white overflow-hidden">
+                  <div className="p-4 border-b-2 border-[#111] bg-[#FAFAF7]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-sm shrink-0">
+                        AG
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-extrabold truncate">Agus Alfiansyah Putra</p>
+                        <p className="text-xs text-neutral-500 truncate">agus@gmail.com</p>
+                        <span className="inline-block mt-1 bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold">
+                          Kuota AI: 24/25
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-2">
+                    <button
+                      type="button"
+                      onClick={() => { setAkunPopupOpen(false); router.push('/akun'); }}
+                      className="w-full px-3 py-2.5 rounded-xl text-xs font-bold text-left hover:bg-[#FAFAF7] flex items-center gap-2.5"
+                    >
+                      <span>⚙️</span> Pengaturan Akun
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAkunPopupOpen(false); }}
+                      className="w-full px-3 py-2.5 rounded-xl text-xs font-extrabold text-left text-red-700 hover:bg-red-50 flex items-center gap-2.5"
+                    >
+                      <span>🚪</span> Keluar
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="flex items-center gap-1.5">
               <div className="border-2 border-[#111] shadow-[0_2px_0_#111] px-2.5 py-1 rounded-full flex items-center gap-1 text-[11px] font-extrabold bg-[#FFEDD5]">
                 <span>🔥</span>
