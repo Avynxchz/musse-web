@@ -57,11 +57,12 @@ export default function LoginPage() {
           </div>
 
           {/* Hero */}
-          <div className="my-auto py-6 md:grid md:grid-cols-2 md:gap-10 md:items-center">
+          <div className="my-auto py-6 md:grid md:grid-cols-2 md:gap-12 md:items-center">
+            <div>
             <div className="inline-block bg-[#E0E7FF] border-2 border-[#111] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4">
               Persiapan TKA SMA/SMK 2026
             </div>
-            <h1 className="font-[var(--font-heading)] text-4xl font-extrabold leading-[1.1] text-[#111] tracking-tight">
+            <h1 className="font-[var(--font-heading)] text-4xl md:text-5xl font-extrabold leading-[1.1] text-[#111] tracking-tight">
               Tahu Jawabannya.
               <br />
               <span className="underline decoration-[#B6FF00] decoration-[8px] underline-offset-4">
@@ -73,6 +74,8 @@ export default function LoginPage() {
               langkah, AI Tutor kontekstual, dan Guru Autopsi pendeteksi
               kebocoran skor.
             </p>
+            </div>
+            <div>
 
             {/* Kartu info */}
             <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 mt-6 bg-white">
@@ -118,6 +121,7 @@ export default function LoginPage() {
             <p className="text-center text-[11px] text-neutral-500 mt-2.5">
               10 detik • Tanpa password • Semua fitur terbuka
             </p>
+            </div>
           </div>
 
           {/* Footer */}
