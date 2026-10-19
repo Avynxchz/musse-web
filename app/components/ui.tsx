@@ -184,7 +184,7 @@ export const NeoBtn = memo(function NeoBtn({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-all font-extrabold disabled:opacity-40 ${className}`}
+      className={`border-2 border-[#111] shadow-[0_3px_0_#111] active:translate-y-[2px] active:shadow-[0_1px_0_#111] transition-[transform,box-shadow,background-color,color,border-color] duration-75 font-extrabold disabled:opacity-40 ${className}`}
     >
       {children}
     </button>
@@ -566,34 +566,51 @@ function preprocessAiHtml(text: string): string {
   return unmaskMath(t, segs);
 }
 
-/** Render teks dengan LaTeX menjadi HTML string (untuk dangerouslySetInnerHTML) */
+const latexHtmlCache = new Map<string, string>();
+const MAX_LATEX_CACHE = 400;
+
+/** Render teks dengan LaTeX menjadi HTML string (untuk dangerouslySetInnerHTML), dengan LRU cache untuk performa 60fps */
 export function renderLatexToHtml(text: string): string {
   if (!text) return text;
+  const cached = latexHtmlCache.get(text);
+  if (cached !== undefined) return cached;
+
   const clean = preprocessAiHtml(text);
   const src = autoWrapBareLatex(formatListNotation(clean));
-  if (!src.includes("$")) return richEsc(src);
-  const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  let out = "";
-  while ((match = regex.exec(src)) !== null) {
-    if (match.index > lastIndex) out += richEsc(src.slice(lastIndex, match.index));
-    const displayMode = match[1] !== undefined;
-    const code = displayMode ? match[1] : match[2];
-    try {
-      const html = katex.renderToString(normalizeLatex(code), {
-        throwOnError: true, displayMode, strict: false, trust: false,
-      });
-      out += displayMode
-        ? `<span class="katex-block my-1 block overflow-x-auto">${html}</span>`
-        : `<span class="katex-inline">${html}</span>`;
-    } catch {
-      out += `<span class="italic bg-[#F0FFB8] px-1 rounded font-serif">${escapeHtml(code)}</span>`;
+  let result: string;
+  if (!src.includes("$")) {
+    result = richEsc(src);
+  } else {
+    const regex = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let out = "";
+    while ((match = regex.exec(src)) !== null) {
+      if (match.index > lastIndex) out += richEsc(src.slice(lastIndex, match.index));
+      const displayMode = match[1] !== undefined;
+      const code = displayMode ? match[1] : match[2];
+      try {
+        const html = katex.renderToString(normalizeLatex(code), {
+          throwOnError: true, displayMode, strict: false, trust: false,
+        });
+        out += displayMode
+          ? `<span class="katex-block my-1 block overflow-x-auto">${html}</span>`
+          : `<span class="katex-inline">${html}</span>`;
+      } catch {
+        out += `<span class="italic bg-[#F0FFB8] px-1 rounded font-serif">${escapeHtml(code)}</span>`;
+      }
+      lastIndex = match.index + match[0].length;
     }
-    lastIndex = match.index + match[0].length;
+    if (lastIndex < src.length) out += richEsc(src.slice(lastIndex));
+    result = out;
   }
-  if (lastIndex < src.length) out += richEsc(src.slice(lastIndex));
-  return out;
+
+  if (latexHtmlCache.size >= MAX_LATEX_CACHE) {
+    const firstKey = latexHtmlCache.keys().next().value;
+    if (firstKey !== undefined) latexHtmlCache.delete(firstKey);
+  }
+  latexHtmlCache.set(text, result);
+  return result;
 }
 
 /** Escape HTML lalu konversi **bold** / ***bold*** di segmen teks biasa menjadi <strong>.

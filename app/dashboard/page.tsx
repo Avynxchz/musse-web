@@ -33,14 +33,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white">
+      <main className="flex min-h-dvh items-center justify-center bg-white">
         <p className="text-neutral-500">Memuat...</p>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-dvh bg-white">
       {/* Header minimal */}
       <header className="border-b border-[#EAEAEA]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">

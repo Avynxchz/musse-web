@@ -2,10 +2,15 @@
 
 import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { QUESTIONS, STMT_IMG_FIRST_RE, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
-import { Latex, LogCounterLive, LogPanelLive, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
+import { Latex, LogCounterLive, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { analyzeLearningPattern, getLastAttempt } from '../../lib/analisis';
+
+const LogPanelLive = dynamic(() => import('../components/ui').then((m) => m.LogPanelLive), {
+  ssr: false,
+});
 
 /* ================= Sheet Bedah Soal ================= */
 
@@ -24,6 +29,7 @@ const StatementBodyHasil = memo(function StatementBodyHasil({ st }: { st: Statem
       alt={`Pernyataan ${st.key}`}
       className="bs-stmt-img"
       loading="lazy"
+      decoding="async"
     />
   ) : null;
   if (!txt) return <>{imgEl}</>;
@@ -35,7 +41,7 @@ const StatementBodyHasil = memo(function StatementBodyHasil({ st }: { st: Statem
   );
 });
 
-function BedahSoalSheet({
+const BedahSoalSheet = memo(function BedahSoalSheet({
   q,
   onClose,
   logEvent,
@@ -59,6 +65,8 @@ function BedahSoalSheet({
       if (!container) return;
       Array.from(container.querySelectorAll('.opsi-html img')).forEach((img) => {
         const el = img as HTMLImageElement;
+        el.decoding = 'async';
+        if (!el.loading) el.loading = 'lazy';
         const classify = () => {
           const isFormula = el.hasAttribute('data-latex') || (el.naturalHeight > 0 && el.naturalHeight <= 65);
           el.classList.add(isFormula ? 'opt-math-img' : 'opt-diagram-img');
@@ -328,7 +336,7 @@ function BedahSoalSheet({
       </div>
     </div>
   );
-}
+});
 
 /* ================= Isi halaman ================= */
 
@@ -723,7 +731,7 @@ function HasilContent() {
                 </div>
 
                 {/* Daftar bedah soal */}
-                <div>
+                <div className="cv-auto">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-500 mb-2">
                     Bedah Soal per Nomor
                   </h4>

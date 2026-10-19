@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { analyzeRuangAI, getAI1Insight } from '../../lib/analisis';
 import { MAPEL_CATALOG } from '../arena/data';
@@ -8,13 +9,17 @@ import {
   BottomNav,
   ChatInput,
   LogCounterLive,
-  LogPanelLive,
   NeoBtn,
   Toast,
   renderLatexToHtml,
   useBehaviorLog,
   useToast,
 } from '../components/ui';
+
+// Lazy-load LogPanelLive agar panel telemetry tidak menambah ukuran bundle awal halaman
+const LogPanelLive = dynamic(() => import('../components/ui').then((m) => m.LogPanelLive), {
+  ssr: false,
+});
 
 const MAPEL_OPTIONS = MAPEL_CATALOG.map((m) => ({
   value: m.key,
@@ -39,7 +44,7 @@ function buildCoachGreeting(
 }
 
 /** Isi percakapan Coach (daftar balon chat + quick prompts + input) untuk Desktop & Mobile. */
-function RuangCoachChatBody({
+const RuangCoachChatBody = memo(function RuangCoachChatBody({
   variant,
   chatBoxRef,
   messages,
@@ -129,7 +134,7 @@ function RuangCoachChatBody({
       />
     </>
   );
-}
+});
 
 /* ================= Halaman ================= */
 
@@ -199,25 +204,25 @@ export default function RuangPage() {
     };
   }, [logEvent]);
 
-  const gantiMapel = (v: string) => {
+  const gantiMapel = useCallback((v: string) => {
     if (coachAbortRef.current) coachAbortRef.current.abort();
     setCoachLoading(false);
     setMapelCoach(v);
     setChatMsgs([]);
     greetedKeyRef.current = '';
     logEvent('switch_ai_room', { mapel: v, paket: paketCoach });
-  };
+  }, [logEvent, paketCoach]);
 
-  const gantiPaket = (p: 1 | 2) => {
+  const gantiPaket = useCallback((p: 1 | 2) => {
     if (coachAbortRef.current) coachAbortRef.current.abort();
     setCoachLoading(false);
     setPaketCoach(p);
     setChatMsgs([]);
     greetedKeyRef.current = '';
     logEvent('switch_ai_room_paket', { mapel: mapelCoach, paket: p });
-  };
+  }, [logEvent, mapelCoach]);
 
-  const openCoach = () => {
+  const openCoach = useCallback(() => {
     setShowCoach(true);
     logEvent('coach_chat_open', { mapel: mapelCoach, paket: paketCoach });
     const sessionKey = `${mapelCoach}_p${paketCoach}_${statRuang.adaData ? statRuang.totalSoal : 0}`;
@@ -230,9 +235,9 @@ export default function RuangPage() {
         },
       ]);
     }
-  };
+  }, [ai1Insight?.pola, coachPesan, logEvent, mapelCoach, mapelLabel, paketCoach, statRuang.adaData, statRuang.totalSoal]);
 
-  const buildFallbackReply = (userQuestion: string): string => {
+  const buildFallbackReply = useCallback((userQuestion: string): string => {
     if (!statRuang.adaData) {
       return `Belum ada data untuk <b>${mapelLabel} Paket ${paketCoach}</b>! Yuk kerjakan soal <b>${mapelLabel} Paket ${paketCoach}</b> terlebih dahulu supaya aku bisa membedah topik lemah dan pola belajarmu secara spesifik.`;
     }
@@ -251,9 +256,9 @@ export default function RuangPage() {
       `• <b>Langkah Aksi:</b> ${rekTxt}<br/><br/>` +
       `Terkait pertanyaanmu (<i>"${userQuestion}"</i>): pastikan kamu memetakan konsep dasar di Pilar 1 & alasan penggunaan rumus di Pilar 3 sebelum menghitung cepat.`
     );
-  };
+  }, [mapelLabel, paketCoach, statRuang]);
 
-  const sendCoachMsg = async (text: string) => {
+  const sendCoachMsg = useCallback(async (text: string) => {
     const msg = text.trim();
     if (!msg) return;
     // Guard: cegah pesan duplikat dari double-click (<500ms, pesan sama)
@@ -363,7 +368,7 @@ export default function RuangPage() {
     } finally {
       setCoachLoading(false);
     }
-  };
+  }, [buildFallbackReply, coachQuota, logEvent, mapelCoach, mapelLabel, paketCoach, showToastMsg, statRuang]);
 
   useEffect(() => {
     const el = chatBoxRef.current;
