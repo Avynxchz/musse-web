@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { QUESTIONS, STMT_IMG_FIRST_RE, formatKunci, getMapel, type Question, type Statement } from '../arena/data';
 import { Latex, LogCounterLive, NeoBtn, PilarText, useBehaviorLog } from '../components/ui';
+import { DesktopSidebar } from '../components/DesktopSidebar';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { analyzeLearningPattern, getLastAttempt } from '../../lib/analisis';
 
@@ -467,8 +468,9 @@ function HasilContent() {
   const pctKosong = Math.max(0, 100 - pctBenar - pctSalah);
 
   return (
-    <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] md:max-w-[1280px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
+    <div className="min-h-dvh bg-[#18181B] md:bg-[#FAFAF7] flex justify-center md:justify-start">
+      <DesktopSidebar active="beranda" />
+      <div className="relative w-full max-w-[430px] md:max-w-none md:flex-1 min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] md:border-x-0 overflow-hidden md:overflow-visible">
         {/* ===== Header + Toolbar Horizontal Aksi (Desktop) ===== */}
         <header className="bg-white border-b-2 border-[#111] px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3 shrink-0 md:sticky md:top-0 md:z-30">
           <div className="min-w-0">
