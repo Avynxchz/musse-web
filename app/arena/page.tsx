@@ -15,10 +15,10 @@ import {
   type Question,
   type Statement,
 } from './data';
-import dynamic from 'next/dynamic';
 import {
   ChatInput,
   Latex,
+  LogPanelLive,
   NeoBtn,
   PilarText,
   Toast,
@@ -28,10 +28,6 @@ import {
 } from '../components/ui';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { saveAttempt } from '../../lib/analisis';
-
-const LogPanelLive = dynamic(() => import('../components/ui').then((m) => m.LogPanelLive), {
-  ssr: false,
-});
 
 /* ================= Konstanta & Helper Kecil ================= */
 
@@ -174,7 +170,7 @@ const ArenaTimer = memo(function ArenaTimer({
   return (
     <div
       className={`border-2 border-[#111] shadow-[0_3px_0_#111] px-2 py-1 rounded-lg font-mono text-xs font-extrabold flex items-center gap-1 shrink-0 ${
-        timerDanger ? 'bg-red-100 text-red-900 animate-pulse motion-reduce:animate-none' : 'bg-[#FAFAF7]'
+        timerDanger ? 'bg-red-100 text-red-900 animate-pulse' : 'bg-[#FAFAF7]'
       }`}
     >
       <span>⏱</span>
@@ -216,7 +212,6 @@ const ArenaStatementBody = memo(function ArenaStatementBody({
       }}
       className="bs-stmt-img"
       loading="lazy"
-      decoding="async"
     />
   ) : null;
   if (!txt) return <>{imgEl}</>;
@@ -361,7 +356,7 @@ const ArenaPilarCards = memo(function ArenaPilarCards({ q }: { q: Question }) {
 });
 
 /** Isi Peta Nomor Soal (legenda + grid tombol nomor + tombol selesai) untuk Desktop & Mobile. */
-const ArenaPetaBody = memo(function ArenaPetaBody({
+function ArenaPetaBody({
   variant,
   questions,
   answers,
@@ -437,16 +432,15 @@ const ArenaPetaBody = memo(function ArenaPetaBody({
       </NeoBtn>
     </>
   );
-});
+}
 
 /** Isi ruang percakapan AI Tutor (intip soal + daftar chat + quick prompts + input) untuk Desktop & Mobile. */
-const ArenaTutorChatBody = memo(function ArenaTutorChatBody({
+function ArenaTutorChatBody({
   variant,
   q,
   previewSoalOpen,
   onTogglePreviewSoal,
   messages,
-  disabled,
   onSendChat,
 }: {
   variant: 'desktop' | 'mobile';
@@ -454,7 +448,6 @@ const ArenaTutorChatBody = memo(function ArenaTutorChatBody({
   previewSoalOpen: boolean;
   onTogglePreviewSoal: () => void;
   messages: { from: 'user' | 'ai'; html: string }[];
-  disabled?: boolean;
   onSendChat: (text: string) => void;
 }) {
   const isDesktop = variant === 'desktop';
@@ -496,10 +489,8 @@ const ArenaTutorChatBody = memo(function ArenaTutorChatBody({
         {TUTOR_QUICK_PROMPTS.map((qp) => (
           <button
             key={qp}
-            type="button"
-            disabled={disabled}
             onClick={() => onSendChat(qp === 'Petunjuk konsep' ? 'Beri petunjuk konsep tanpa bocorin kunci' : qp)}
-            className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold disabled:opacity-50"
+            className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold"
           >
             {qp}
           </button>
@@ -508,12 +499,11 @@ const ArenaTutorChatBody = memo(function ArenaTutorChatBody({
 
       <ChatInput
         placeholder="Tanya langkah atau konsep soal ini..."
-        disabled={disabled}
         onSend={onSendChat}
       />
     </>
   );
-});
+}
 
 /* ================= Komponen utama ================= */
 
@@ -569,7 +559,6 @@ function ArenaClient() {
   const [simFeedback, setSimFeedback] = useState<string | null>(null);
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
-  const [chatLoading, setChatLoading] = useState(false);
 
   // --- soal dari Supabase (fallback ke dummy jika gagal) ---
   const [questions, setQuestions] = useState<Question[]>(QUESTIONS);
@@ -743,7 +732,6 @@ function ArenaClient() {
   const pembahasanScrolledRef = useRef<Record<number, boolean>>({});
   // Guard anti double-submit / double-finish (race condition)
   const finishingRef = useRef(false);
-  const primaryLockRef = useRef(false);
   const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
   const chatAbortRef = useRef<AbortController | null>(null);
 
@@ -781,8 +769,6 @@ function ArenaClient() {
       const imgs = Array.from(container.querySelectorAll(selector));
       imgs.forEach((img) => {
         const el = img as HTMLImageElement;
-        el.decoding = 'async';
-        if (!el.loading) el.loading = 'lazy';
         if (allowZoom) {
           const openZoom = (e: Event) => {
             e.stopPropagation();
@@ -869,7 +855,7 @@ function ArenaClient() {
   }, []);
 
   // Simpan snapshot pengerjaan secara real-time setiap jawaban dipilih
-  const syncAttemptProgress = useCallback((answerMap: Record<number, Answer>) => {
+  const syncAttemptProgress = (answerMap: Record<number, Answer>) => {
     const hasil = questions.map((qq, i) => evaluateQuestion(qq, answerMap[i]));
     const benar = hasil.filter((h) => h === 'benar').length;
     const totalPindahTanpaJawab = Object.values(pindahTanpaJawabRef.current).reduce(
@@ -896,10 +882,10 @@ function ArenaClient() {
         durasiPilarDetik: durasiPilarRef.current[i],
       })),
     });
-  }, [questions, mapelKey, mapel?.name, paket, mode]);
+  };
 
   // --- timer ---
-  const finishQuiz = useCallback((endedBy: 'user' | 'timer') => {
+  const finishQuiz = (endedBy: 'user' | 'timer') => {
     // Guard: cegah double-finish (double-click / timer + klik manual bersamaan)
     // Reset otomatis setelah 3 detik sebagai pengaman kalau navigasi gagal
     if (finishingRef.current) return;
@@ -947,9 +933,7 @@ function ArenaClient() {
     router.push(
       `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
     );
-  }, [answers, questions, qIndex, mode, mapel.key, paket, router, logEvent]);
-
-  const handleFinishUser = useCallback(() => finishQuiz('user'), [finishQuiz]);
+  };
 
   // --- timer: state countdown hidup di <ArenaTimer> (terisolasi).
   // Callback kedaluwarsa stabil via ref agar tanpa stale closure.
@@ -970,7 +954,7 @@ function ArenaClient() {
   }, [logEvent, showToastMsg]);
 
   // --- dialog lanjut / mulai baru ---
-  const handleResumeContinue = useCallback(() => {
+  const handleResumeContinue = () => {
     if (!resumeDialog) return;
     answersRef.current = resumeDialog.answers;
     setAnswers(resumeDialog.answers);
@@ -984,9 +968,9 @@ function ArenaClient() {
       timestamp: Date.now(),
     });
     setResumeDialog(null);
-  }, [resumeDialog, mapelKey, paket, mode]);
+  };
 
-  const handleResumeReset = useCallback(() => {
+  const handleResumeReset = () => {
     clearArenaProgress();
     answersRef.current = {};
     setAnswers({});
@@ -994,10 +978,10 @@ function ArenaClient() {
     setChecked({});
     setQIndex(0);
     setResumeDialog(null);
-  }, []);
+  };
 
   // --- navigasi soal ---
-  const goSoal = useCallback((idx: number) => {
+  const goSoal = (idx: number) => {
     if (idx < 0 || idx >= questions.length) return;
     try {
       // Log durasi soal sebelumnya
@@ -1024,10 +1008,6 @@ function ArenaClient() {
         }
       }
     } catch (e) { /* abaikan error logging */ }
-    if (chatAbortRef.current) chatAbortRef.current.abort();
-    setChatLoading(false);
-    setChatMsgs([]);
-    if (evalScrollTimerRef.current) clearTimeout(evalScrollTimerRef.current);
     // Reset timer untuk soal baru
     soalStartTimeRef.current = Date.now();
     // Reset flag scroll pembahasan untuk soal baru
@@ -1045,18 +1025,13 @@ function ArenaClient() {
     setSimSoalOpen(false);
     setSimFeedback(null);
     try {
-      logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
+    logEvent('soal_view', { soal_no: questions[idx].nomor, tipe: questions[idx].tipe, mode });
     } catch (e) { /* abaikan */ }
     scrollBodyRef.current?.scrollTo({ top: 0 });
-  }, [questions, qIndex, mode, mapelKey, paket, answers, logEvent]);
-
-  const handleSelectSoalMobile = useCallback((i: number) => {
-    goSoal(i);
-    setShowPeta(false);
-  }, [goSoal]);
+  };
 
   // --- pilih opsi ---
-  const pickOption = useCallback((key: string) => {
+  const pickOption = (key: string) => {
     const isComplex = q.tipe === 'Pilihan Ganda Kompleks';
     // Track ganti jawaban untuk analisis AI
     const prevAns = answersRef.current[qIndex] ?? answers[qIndex];
@@ -1089,9 +1064,9 @@ function ArenaClient() {
     });
     syncAttemptProgress(updated);
     logEvent('option_click', { soal_no: q.nomor, opsi: key, mode });
-  }, [q?.tipe, q?.nomor, qIndex, answers, mapelKey, paket, mode, syncAttemptProgress, logEvent]);
+  };
 
-  const pickBs = useCallback((stmtKey: string, val: string) => {
+  const pickBs = (stmtKey: string, val: string) => {
     // Track ganti jawaban untuk analisis AI
     const prevAns = (answersRef.current[qIndex] ?? answers[qIndex]) as Record<string, string> | undefined;
     if (prevAns && prevAns[stmtKey] && prevAns[stmtKey] !== val) {
@@ -1116,21 +1091,15 @@ function ArenaClient() {
     });
     syncAttemptProgress(updated);
     logEvent('option_click_bs', { soal_no: q.nomor, statement: stmtKey, val, mode });
-  }, [q?.nomor, qIndex, answers, mapelKey, paket, mode, syncAttemptProgress, logEvent]);
+  };
 
-  const toggleRagu = useCallback(() => {
+  const toggleRagu = () => {
     setRagu((prev) => ({ ...prev, [qIndex]: !prev[qIndex] }));
     logEvent('flag_ragu', { soal_no: q.nomor, ragu: !ragu[qIndex] });
-  }, [q?.nomor, qIndex, ragu, logEvent]);
+  };
 
   // --- aksi utama ---
-  const handlePrimary = useCallback(() => {
-    if (primaryLockRef.current) return;
-    primaryLockRef.current = true;
-    setTimeout(() => {
-      primaryLockRef.current = false;
-    }, 350);
-
+  const handlePrimary = () => {
     if (mode === 'simulasi') {
       if (isLast) finishQuiz('user');
       else goSoal(qIndex + 1);
@@ -1168,7 +1137,7 @@ function ArenaClient() {
       if (isLast) finishQuiz('user');
       else goSoal(qIndex + 1);
     }
-  }, [mode, isLast, finishQuiz, goSoal, qIndex, checked, answers, q, showToastMsg, logEvent]);
+  };
 
   const cycleFontScale = () => {
     const next = (fontScaleIdx + 1) % FONT_SCALES.length;
@@ -1178,26 +1147,21 @@ function ArenaClient() {
   };
 
   // --- AI tutor ---
-  const openTutor = useCallback(() => {
+  const openTutor = () => {
     setShowTutor(true);
     setChatMsgs([{ from: 'ai', html: buildTutorGreeting(mode, q) }]);
     setPreviewSoalOpen(false);
     logEvent('ai_tutor_open', { soal_no: q.nomor, mode });
-  }, [mode, q, logEvent]);
+  };
 
-  const sendChat = useCallback(async (text: string) => {
+  const sendChat = async (text: string) => {
     const msg = text.trim();
     if (!msg) return;
-    if (chatLoading) return;
     // Guard: cegah pesan duplikat dari double-click submit (<500ms, pesan sama)
     // eslint-disable-next-line react-hooks/purity -- Date.now() di event handler (bukan render), aman
     const now = Date.now();
     if (lastChatRef.current.msg === msg && now - lastChatRef.current.ts < 500) return;
     lastChatRef.current = { msg, ts: now };
-    if (tutorQuota <= 0) {
-      showToastMsg('⚠️ Kuota tanya AI Tutor habis hari ini');
-      return;
-    }
     setTutorQuota((qt) => Math.max(0, qt - 1));
 
     // Ambil 2-3 chat terakhir di soal ini (sebelum pesan baru ditambahkan) agar tanya lanjutan nyambung
@@ -1301,7 +1265,6 @@ function ArenaClient() {
     if (chatAbortRef.current) chatAbortRef.current.abort();
     const aborter = new AbortController();
     chatAbortRef.current = aborter;
-    setChatLoading(true);
 
     try {
       const res = await fetch('/api/tutor', {
@@ -1356,10 +1319,8 @@ function ArenaClient() {
         };
         return next;
       });
-    } finally {
-      setChatLoading(false);
     }
-  }, [chatLoading, tutorQuota, chatMsgs, q, mode, checked, qIndex, answers, mapel.name, mapelKey, paket, showToastMsg, logEvent]);
+  };
 
   // --- soal serupa ---
   const checkSimilar = (idx: number) => {
@@ -1410,19 +1371,16 @@ function ArenaClient() {
     );
   }
 
-  const { petaDijawabCount, petaRaguCount, petaBelumCount } = useMemo(() => {
-    let dijawab = 0;
-    let raguCount = 0;
-    let belum = 0;
-    questions.forEach((qq, i) => {
-      const ans = answers[i] ?? answersRef.current[i];
-      const isFilled = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
-      if (ragu[i]) raguCount++;
-      if (isFilled) dijawab++;
-      else belum++;
-    });
-    return { petaDijawabCount: dijawab, petaRaguCount: raguCount, petaBelumCount: belum };
-  }, [questions, answers, ragu]);
+  let petaDijawabCount = 0;
+  let petaRaguCount = 0;
+  let petaBelumCount = 0;
+  questions.forEach((qq, i) => {
+    const ans = answers[i] ?? answersRef.current[i];
+    const dijawab = isAnswerFilled(ans) && evaluateQuestion(qq, ans) !== 'kosong';
+    if (ragu[i]) petaRaguCount++;
+    if (dijawab) petaDijawabCount++;
+    else petaBelumCount++;
+  });
 
   const desktopChatMsgs =
     chatMsgs.length > 0 ? chatMsgs : [{ from: 'ai' as const, html: buildTutorGreeting(mode, q) }];
@@ -1634,7 +1592,6 @@ function ArenaClient() {
                                   alt={`Gambar opsi ${opt.key}`}
                                   className="h-10 w-auto object-contain"
                                   loading="lazy"
-                                  decoding="async"
                                 />
                               </span>
                             )}
@@ -1933,7 +1890,7 @@ function ArenaClient() {
                 petaRaguCount={petaRaguCount}
                 petaBelumCount={petaBelumCount}
                 onSelectSoal={goSoal}
-                onFinish={handleFinishUser}
+                onFinish={() => finishQuiz('user')}
               />
             </div>
 
@@ -1972,7 +1929,6 @@ function ArenaClient() {
                   previewSoalOpen={previewSoalOpen}
                   onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
                   messages={desktopChatMsgs}
-                  disabled={chatLoading}
                   onSendChat={sendChat}
                 />
               </div>
@@ -2060,7 +2016,6 @@ function ArenaClient() {
                 src={zoomImg}
                 alt="Gambar soal diperbesar"
                 className="h-auto mx-auto transition-transform"
-                decoding="async"
                 style={{ maxWidth: `${zoomLevel * 100}%`, width: zoomLevel > 1 ? `${zoomLevel * 100}%` : undefined }}
               />
               <div className="text-center text-xs font-bold py-2">Tap di luar untuk tutup</div>
@@ -2091,8 +2046,11 @@ function ArenaClient() {
                 petaDijawabCount={petaDijawabCount}
                 petaRaguCount={petaRaguCount}
                 petaBelumCount={petaBelumCount}
-                onSelectSoal={handleSelectSoalMobile}
-                onFinish={handleFinishUser}
+                onSelectSoal={(i) => {
+                  goSoal(i);
+                  setShowPeta(false);
+                }}
+                onFinish={() => finishQuiz('user')}
               />
             </div>
           </div>
@@ -2132,7 +2090,6 @@ function ArenaClient() {
                 previewSoalOpen={previewSoalOpen}
                 onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
                 messages={chatMsgs}
-                disabled={chatLoading}
                 onSendChat={sendChat}
               />
             </div>
