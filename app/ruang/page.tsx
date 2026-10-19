@@ -21,6 +21,112 @@ const MAPEL_OPTIONS = MAPEL_CATALOG.map((m) => ({
   label: m.name,
 }));
 
+const COACH_QUICK_PROMPTS = ['Jelasin topik lemahku', 'Bahas pola AI #1-ku', 'Tips ujian paket ini'] as const;
+
+function buildCoachGreeting(
+  mapelLabel: string,
+  paketCoach: 1 | 2,
+  coachPesan: string,
+  pola: { nama: string; bukti: string }[] | undefined
+): string {
+  const detailAI1 =
+    pola && pola.length > 0
+      ? `<br/><br/>🔍 <b>Temuan AI #1 (Guru Autopsi):</b><br/>• ${pola
+          .map((p) => `<b>${p.nama}</b>: ${p.bukti}`)
+          .join('<br/>• ')}`
+      : '';
+  return `<b>Coach ${mapelLabel} · Paket ${paketCoach}</b><br/>${coachPesan}${detailAI1}`;
+}
+
+/** Isi percakapan Coach (daftar balon chat + quick prompts + input) untuk Desktop & Mobile. */
+function RuangCoachChatBody({
+  variant,
+  chatBoxRef,
+  messages,
+  mapelLabel,
+  paketCoach,
+  onSend,
+}: {
+  variant: 'desktop' | 'mobile';
+  chatBoxRef?: React.RefObject<HTMLDivElement | null>;
+  messages: { from: 'user' | 'ai'; html: string }[];
+  mapelLabel: string;
+  paketCoach: 1 | 2;
+  onSend: (text: string) => void;
+}) {
+  const isDesktop = variant === 'desktop';
+  return (
+    <>
+      <div
+        ref={chatBoxRef}
+        className={
+          isDesktop
+            ? 'flex-1 overflow-y-auto p-6 space-y-3.5 text-xs md:text-sm'
+            : 'flex-1 overflow-y-auto p-4 space-y-3 text-xs'
+        }
+      >
+        {messages.map((m, i) =>
+          m.from === 'user' ? (
+            <div key={i} className="flex justify-end">
+              <div
+                className={
+                  isDesktop
+                    ? 'bg-[#111] text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] font-semibold'
+                    : 'bg-[#111] text-white rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] font-semibold'
+                }
+              >
+                {m.html}
+              </div>
+            </div>
+          ) : (
+            <div
+              key={i}
+              className={
+                isDesktop
+                  ? 'bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-4 max-w-[88%]'
+                  : 'bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-3 max-w-[92%]'
+              }
+            >
+              <p
+                className={isDesktop ? 'font-medium leading-relaxed' : 'font-medium'}
+                dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }}
+              />
+            </div>
+          )
+        )}
+      </div>
+
+      <div
+        className={
+          isDesktop
+            ? 'px-5 py-2.5 bg-white border-t border-neutral-200 flex gap-2 overflow-x-auto shrink-0'
+            : 'px-3 py-2 bg-white border-t border-neutral-200 flex gap-1.5 overflow-x-auto shrink-0'
+        }
+      >
+        {COACH_QUICK_PROMPTS.map((qp) => (
+          <button
+            key={qp}
+            type="button"
+            onClick={() => onSend(qp)}
+            className={
+              isDesktop
+                ? 'shrink-0 bg-[#FAFAF7] hover:bg-[#B6FF00] transition-colors border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1.5 rounded-full text-xs font-bold'
+                : 'shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold'
+            }
+          >
+            {qp}
+          </button>
+        ))}
+      </div>
+
+      <ChatInput
+        placeholder={`Tanya Coach ${mapelLabel} Paket ${paketCoach}...`}
+        onSend={onSend}
+      />
+    </>
+  );
+}
+
 /* ================= Halaman ================= */
 
 export default function RuangPage() {
@@ -108,16 +214,10 @@ export default function RuangPage() {
     const sessionKey = `${mapelCoach}_p${paketCoach}_${statRuang.adaData ? statRuang.totalSoal : 0}`;
     if (greetedKeyRef.current !== sessionKey) {
       greetedKeyRef.current = sessionKey;
-      const detailAI1 =
-        ai1Insight && ai1Insight.pola.length > 0
-          ? `<br/><br/>🔍 <b>Temuan AI #1 (Guru Autopsi):</b><br/>• ${ai1Insight.pola
-              .map((p) => `<b>${p.nama}</b>: ${p.bukti}`)
-              .join('<br/>• ')}`
-          : '';
       setChatMsgs([
         {
           from: 'ai',
-          html: `<b>Coach ${mapelLabel} · Paket ${paketCoach}</b><br/>${coachPesan}${detailAI1}`,
+          html: buildCoachGreeting(mapelLabel, paketCoach, coachPesan, ai1Insight?.pola),
         },
       ]);
     }
@@ -258,19 +358,13 @@ export default function RuangPage() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [chatMsgs, showCoach]);
 
-  const detailAI1Greeting =
-    ai1Insight && ai1Insight.pola.length > 0
-      ? `<br/><br/>🔍 <b>Temuan AI #1 (Guru Autopsi):</b><br/>• ${ai1Insight.pola
-          .map((p) => `<b>${p.nama}</b>: ${p.bukti}`)
-          .join('<br/>• ')}`
-      : '';
   const desktopCoachMsgs =
     chatMsgs.length > 0
       ? chatMsgs
       : [
           {
             from: 'ai' as const,
-            html: `<b>Coach ${mapelLabel} · Paket ${paketCoach}</b><br/>${coachPesan}${detailAI1Greeting}`,
+            html: buildCoachGreeting(mapelLabel, paketCoach, coachPesan, ai1Insight?.pola),
           },
         ];
 
@@ -429,43 +523,12 @@ export default function RuangPage() {
                 </div>
               </div>
 
-              <div
-                ref={showCoach ? undefined : chatBoxRef}
-                className="flex-1 overflow-y-auto p-6 space-y-3.5 text-xs md:text-sm"
-              >
-                {desktopCoachMsgs.map((m, i) =>
-                  m.from === 'user' ? (
-                    <div key={i} className="flex justify-end">
-                      <div className="bg-[#111] text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] font-semibold">
-                        {m.html}
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      key={i}
-                      className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-4 max-w-[88%]"
-                    >
-                      <p className="font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
-                    </div>
-                  ),
-                )}
-              </div>
-
-              <div className="px-5 py-2.5 bg-white border-t border-neutral-200 flex gap-2 overflow-x-auto shrink-0">
-                {['Jelasin topik lemahku', 'Bahas pola AI #1-ku', 'Tips ujian paket ini'].map((qp) => (
-                  <button
-                    key={qp}
-                    type="button"
-                    onClick={() => sendCoachMsg(qp)}
-                    className="shrink-0 bg-[#FAFAF7] hover:bg-[#B6FF00] transition-colors border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1.5 rounded-full text-xs font-bold"
-                  >
-                    {qp}
-                  </button>
-                ))}
-              </div>
-
-              <ChatInput
-                placeholder={`Tanya Coach ${mapelLabel} Paket ${paketCoach}...`}
+              <RuangCoachChatBody
+                variant="desktop"
+                chatBoxRef={showCoach ? undefined : chatBoxRef}
+                messages={desktopCoachMsgs}
+                mapelLabel={mapelLabel}
+                paketCoach={paketCoach}
                 onSend={sendCoachMsg}
               />
             </div>
@@ -511,40 +574,12 @@ export default function RuangPage() {
                 </div>
               </div>
 
-              <div ref={chatBoxRef} className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
-                {chatMsgs.map((m, i) =>
-                  m.from === 'user' ? (
-                    <div key={i} className="flex justify-end">
-                      <div className="bg-[#111] text-white rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] font-semibold">
-                        {m.html}
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      key={i}
-                      className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-3 max-w-[92%]"
-                    >
-                      <p className="font-medium" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
-                    </div>
-                  ),
-                )}
-              </div>
-
-              <div className="px-3 py-2 bg-white border-t border-neutral-200 flex gap-1.5 overflow-x-auto shrink-0">
-                {['Jelasin topik lemahku', 'Bahas pola AI #1-ku', 'Tips ujian paket ini'].map((qp) => (
-                  <button
-                    key={qp}
-                    type="button"
-                    onClick={() => sendCoachMsg(qp)}
-                    className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold"
-                  >
-                    {qp}
-                  </button>
-                ))}
-              </div>
-
-              <ChatInput
-                placeholder={`Tanya Coach ${mapelLabel} Paket ${paketCoach}...`}
+              <RuangCoachChatBody
+                variant="mobile"
+                chatBoxRef={chatBoxRef}
+                messages={chatMsgs}
+                mapelLabel={mapelLabel}
+                paketCoach={paketCoach}
                 onSend={sendCoachMsg}
               />
             </div>

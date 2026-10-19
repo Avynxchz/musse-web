@@ -236,10 +236,14 @@ export function getDurasiDetik(mapel: Mapel, paket: 1 | 2): number {
   return Math.round(jumlahSoal * mapel.jatahMenitPerSoal * 60);
 }
 
+/** Tipe jawaban siswa untuk seluruh variasi tipe soal */
+export type Answer = string | string[] | Record<string, string> | undefined;
+
+/** Pola kata kerja awal kalimat pernyataan yang menandakan gambar ditampilkan sebelum teks */
+export const STMT_IMG_FIRST_RE = /^(merupakan|adalah|sama dengan|lebih|kurang|termasuk)\b/i;
+
 /** Cek apakah jawaban sudah diisi (tidak kosong) untuk tipe soal apa pun */
-export function isAnswerFilled(
-  answer: string | string[] | Record<string, string> | undefined
-): boolean {
+export function isAnswerFilled(answer: Answer): boolean {
   if (answer === undefined || answer === null) return false;
   if (typeof answer === 'string') return answer.trim() !== '';
   if (Array.isArray(answer)) return answer.some((x) => String(x ?? '').trim() !== '');
@@ -252,7 +256,7 @@ export function isAnswerFilled(
 /** Cek jawaban user untuk satu soal: 'benar' | 'salah' | 'kosong' */
 export function evaluateQuestion(
   q: Question,
-  answer: string | string[] | Record<string, string> | undefined
+  answer: Answer
 ): 'benar' | 'salah' | 'kosong' {
   if (!isAnswerFilled(answer)) return 'kosong';
   if (q.tipe === 'Pilihan Ganda') {
