@@ -547,21 +547,21 @@ export const PilarText = memo(function PilarText({ text, className = "text-sm fo
 });
 
 /** Bersihkan output mentah AI sebelum di-render:
- *  <br/> → newline, <b>teks</b> → **teks** (jadi bold), tag lain di-strip,
- *  entities (&amp; &lt; &gt; &quot;) di-decode. Segmen math $...$ di-mask dulu. */
+ *  entities (&amp; &lt; &gt; &quot;) di-decode dulu, lalu <br/> → newline,
+ *  <b>teks</b> → **teks** (jadi bold), tag lain di-strip. Segmen math $...$ di-mask dulu. */
 function preprocessAiHtml(text: string): string {
   if (!text) return text;
   const { text: masked, segs } = maskMath(text);
   let t = masked;
-  t = t.replace(/<br\s*\/?>/gi, '\n');
-  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
-  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
   t = t
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'");
+  t = t.replace(/<br\s*\/?>/gi, '\n');
+  t = t.replace(/<b>([\s\S]*?)<\/b>/gi, '**$1**');
+  t = t.replace(/<\/?[a-zA-Z][^>]*>/g, '');
   return unmaskMath(t, segs);
 }
 
