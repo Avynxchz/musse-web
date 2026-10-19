@@ -896,13 +896,14 @@ function ArenaClient() {
     finishTimerRef.current = setTimeout(() => {
       finishingRef.current = false;
     }, 3000);
+    let benar = 0, salah = 0, kosong = 0;
     try {
     const mergedAnswers: Record<number, Answer> = { ...answers, ...answersRef.current };
     answersRef.current = mergedAnswers;
     const hasil = questions.map((qq, i) => evaluateQuestion(qq, mergedAnswers[i]));
-    const benar = hasil.filter((h) => h === 'benar').length;
-    const salah = hasil.filter((h) => h === 'salah').length;
-    const kosong = hasil.filter((h) => h === 'kosong').length;
+    benar = hasil.filter((h) => h === 'benar').length;
+    salah = hasil.filter((h) => h === 'salah').length;
+    kosong = hasil.filter((h) => h === 'kosong').length;
     // Log durasi soal terakhir
     const now = Date.now();
     const durasiMs = now - soalStartTimeRef.current;
