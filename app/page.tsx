@@ -4,6 +4,7 @@ import LoginReasons from '@/components/LoginReasons'
 import Steps from '@/components/sections/Steps'
 import Testimonials from '@/components/sections/Testimonials'
 import { FinalCta, Footer } from '@/components/Closing'
+import AuthRedirect from '@/components/AuthRedirect'
 
 /* Komponen berat di bawah layar: code-split via next/dynamic.
    Placeholder min-height mencegah layout shift saat chunk dimuat. */
@@ -29,6 +30,7 @@ export const metadata = {
 export default function Home() {
   return (
     <main className="min-h-dvh bg-[var(--musse-bg)] font-sans text-[var(--musse-text)] antialiased">
+      <AuthRedirect />
       <Hero />
       <LoginReasons />
       <div className="cv-auto">
