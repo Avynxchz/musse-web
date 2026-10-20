@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>musse — Redesign Interactive Prototype (Neo-Brutalism)</title>
+  <!-- tailwind CDN diganti CSS inline -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Press+Start+2P&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FAFAF7;
+      --ink: #111111;
+      --lime: #B6FF00;
+      --indigo: #4F46E5;
+      --orange: #F97316;
+    }
+    body {
+      background-color: #18181B;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1, h2, h3, .font-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.02em;
+    }
+    .font-pixel {
+      font-family: 'Press Start 2P', monospace;
+    }
+    .neo-card {
+      background: #FFFFFF;
+      border: 2px solid #111111;
+      box-shadow: 0 4px 0 #111111;
+    }
+    .neo-card-lime {
+      background: #B6FF00;
+      border: 2px solid #111111;
+      box-shadow: 0 4px 0 #111111;
+    }
+    .neo-card-indigo {
+      background: #E0E7FF;
+      border: 2px solid #111111;
+      box-shadow: 0 4px 0 #111111;
+    }
+    .neo-btn {
+      border: 2px solid #111111;
+      box-shadow: 0 3px 0 #111111;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .neo-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #111111;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Scale text support */
+    [data-scale="90"] .soal-text-area { font-size: 0.875rem; }
+    [data-scale="100"] .soal-text-area { font-size: 0.95rem; }
+    [data-scale="115"] .soal-text-area { font-size: 1.075rem; }
+    [data-scale="130"] .soal-text-area { font-size: 1.2rem; }
+  
+/* === Auto-generated dari Tailwind (biar jalan tanpa CDN) === */
+.absolute{position:absolute}
+.bg-\[\#111111\]{background-color:#111111}
+.bg-\[\#111111\]\/95{background-color:rgba(17,17,17,0.95)}
+.bg-\[\#B6FF00\]{background-color:#B6FF00}
+.bg-\[\#E0E7FF\]{background-color:#E0E7FF}
+.bg-\[\#F0FFB8\]{background-color:#F0FFB8}
+.bg-\[\#FAFAF7\]{background-color:#FAFAF7}
+.bg-\[\#FFEDD5\]{background-color:#FFEDD5}
+.bg-\[\#FFFBEB\]{background-color:#FFFBEB}
+.bg-amber-200{background-color:#fde68a}
+.bg-amber-300{background-color:#fcd34a}
+.bg-black\/50{background-color:#000}
+.bg-green-100{background-color:#dcfce7}
+/* TODO: .bg-green-50 */
+/* TODO: .bg-neutral-100 */
+.bg-neutral-200{background-color:#e5e5e5}
+.bg-red-100{background-color:#fee2e2}
+.bg-red-200{background-color:#fecaca}
+/* TODO: .bg-red-50 */
+/* TODO: .bg-red-50\/60 */
+.bg-white{background-color:#fff}
+.bg-white\/10{background-color:#fff}
+.bg-white\/15{background-color:#fff}
+.bg-white\/5{background-color:#fff}
+.block{display:block}
+.border{border-width:1px;border-style:solid}
+.border-2{border-width:2px;border-style:solid}
+.border-\[\#111111\]{border-color:#111111}
+.border-amber-300{border-color:#fcd34a}
+.border-b{border-bottom-width:1px;border-bottom-style:solid}
+.border-b-2{border-bottom-width:2px;border-bottom-style:solid}
+.border-dashed{border-style:dashed}
+.border-green-700{border-color:#15803d}
+.border-neutral-200{border-color:#e5e5e5}
+.border-neutral-300{border-color:#d4d4d4}
+.border-red-700{border-color:#b91c1c}
+.border-t{border-top-width:1px;border-top-style:solid}
+.border-t-2{border-top-width:2px;border-top-style:solid}
+.border-white\/15{border-color:#fff}
+.border-white\/20{border-color:#fff}
+.border-white\/30{border-color:#fff}
+.break-all{word-break:break-all}
+/* TODO: .cat-chip */
+/* TODO: .currentQIndex */
+.cursor-pointer{cursor:pointer}
+.decoration-8{text-decoration-thickness:8px}
+/* TODO: .decoration-\[\#B6FF00\] */
+/* TODO: .duration-300 */
+.flex{display:flex}
+.flex-1{flex:1 1 0%}
+.flex-col{flex-direction:column}
+.flex-wrap{flex-wrap:wrap}
+.font-bold{font-weight:700}
+.font-extrabold{font-weight:800}
+.font-medium{font-weight:500}
+.font-mono{font-family:monospace}
+.font-semibold{font-weight:600}
+.gap-0\.5{gap:0.125rem}
+.gap-1{gap:0.25rem}
+.gap-1\.5{gap:0.375rem}
+.gap-2{gap:0.5rem}
+.gap-2\.5{gap:0.625rem}
+.gap-3{gap:0.75rem}
+.grid{display:grid}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.h-1\.5{height:0.375rem}
+.h-11{height:2.75rem}
+.h-12{height:3.0rem}
+.h-2\.5{height:0.625rem}
+.h-3{height:0.75rem}
+.h-5{height:1.25rem}
+.h-6{height:1.5rem}
+.h-7{height:1.75rem}
+.h-8{height:2.0rem}
+.h-\[82\%\]{height:82%}
+.h-\[840px\]{height:840px}
+.h-full{height:100%}
+.hidden{display:none}
+.inline-block{display:inline-block}
+.inset-0{inset:0}
+.items-center{align-items:center}
+.items-start{align-items:flex-start}
+/* TODO: .justify-around */
+.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}
+.justify-end{justify-content:flex-end}
+/* TODO: .justify-start */
+.leading-\[1\.1\]{line-height:1.1}
+.leading-none{line-height:1}
+.leading-relaxed{line-height:1.625}
+.leading-tight{line-height:1.25}
+.list-decimal{list-style-type:decimal}
+.list-disc{list-style-type:disc}
+.list-inside{list-style-position:inside}
+.max-h-\[92vh\]{max-height:92vh}
+.max-w-\[430px\]{max-width:430px}
+.max-w-\[85\%\]{max-width:85%}
+.max-w-\[92\%\]{max-width:92%}
+.mb-2{margin-bottom:0.5rem}
+.mb-2\.5{margin-bottom:0.625rem}
+.mb-3{margin-bottom:0.75rem}
+.mb-4{margin-bottom:1.0rem}
+.min-h-screen{min-height:100vh}
+.min-w-0{min-width:0}
+.ml-2{margin-left:0.5rem}
+.mr-1{margin-right:0.25rem}
+.mt-0\.5{margin-top:0.125rem}
+.mt-1{margin-top:0.25rem}
+.mt-1\.5{margin-top:0.375rem}
+.mt-2{margin-top:0.5rem}
+.mt-2\.5{margin-top:0.625rem}
+.mt-3{margin-top:0.75rem}
+.mt-3\.5{margin-top:0.875rem}
+.mt-4{margin-top:1.0rem}
+.mt-6{margin-top:1.5rem}
+/* TODO: .my-auto */
+.overflow-hidden{overflow:hidden}
+.overflow-x-auto{overflow-x:auto}
+.overflow-y-auto{overflow-y:auto}
+.p-2\.5{padding:0.625rem}
+.p-3{padding:0.75rem}
+.p-3\.5{padding:0.875rem}
+.p-4{padding:1.0rem}
+.p-5{padding:1.25rem}
+.p-6{padding:1.5rem}
+.pb-1{padding-bottom:0.25rem}
+.pb-2\.5{padding-bottom:0.625rem}
+.pb-20{padding-bottom:5.0rem}
+.pb-24{padding-bottom:6.0rem}
+.pb-3{padding-bottom:0.75rem}
+.pt-1{padding-top:0.25rem}
+.pt-2{padding-top:0.5rem}
+.pt-2\.5{padding-top:0.625rem}
+.pt-3{padding-top:0.75rem}
+.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}
+.px-2{padding-left:0.5rem;padding-right:0.5rem}
+.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}
+.px-3{padding-left:0.75rem;padding-right:0.75rem}
+.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}
+.px-4{padding-left:1.0rem;padding-right:1.0rem}
+.px-5{padding-left:1.25rem;padding-right:1.25rem}
+.px-6{padding-left:1.5rem;padding-right:1.5rem}
+.py-0{padding-top:0.0rem;padding-bottom:0.0rem}
+.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}
+.py-1{padding-top:0.25rem;padding-bottom:0.25rem}
+.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}
+.py-2{padding-top:0.5rem;padding-bottom:0.5rem}
+.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}
+.py-3{padding-top:0.75rem;padding-bottom:0.75rem}
+.py-4{padding-top:1.0rem;padding-bottom:1.0rem}
+.py-6{padding-top:1.5rem;padding-bottom:1.5rem}
+.relative{position:relative}
+.rounded{border-radius:0.25rem}
+.rounded-2xl{border-radius:1rem}
+.rounded-bl-sm{border-bottom-left-radius:0.125rem}
+.rounded-br-sm{border-bottom-right-radius:0.125rem}
+.rounded-full{border-radius:9999px}
+.rounded-lg{border-radius:0.5rem}
+.rounded-md{border-radius:0.375rem}
+.rounded-t-3xl{border-top-left-radius:1.5rem;border-top-right-radius:1.5rem}
+.rounded-xl{border-radius:0.75rem}
+.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+.shrink-0{flex-shrink:0}
+.space-y-1>*+*{margin-top:0.25rem}
+.space-y-1\.5>*+*{margin-top:0.375rem}
+.space-y-2>*+*{margin-top:0.5rem}
+.space-y-3>*+*{margin-top:0.75rem}
+.space-y-4>*+*{margin-top:1.0rem}
+.space-y-5>*+*{margin-top:1.25rem}
+.text-2xl{font-size:1.5rem}
+.text-3xl{font-size:1.875rem}
+.text-4xl{font-size:2.25rem}
+.text-\[\#111111\]{font-size:#111111}
+.text-\[\#4F46E5\]{font-size:#4F46E5}
+.text-\[\#B6FF00\]{font-size:#B6FF00}
+.text-\[10px\]{font-size:10px}
+.text-\[11px\]{font-size:11px}
+.text-amber-800{color:#92400e}
+.text-amber-900{color:#78350f}
+.text-base{font-size:1rem}
+.text-center{text-align:center}
+.text-green-700{color:#15803d}
+.text-green-800{color:#166534}
+.text-left{text-align:left}
+.text-lg{font-size:1.125rem}
+.text-neutral-400{color:#a3a3a3}
+.text-neutral-500{color:#737373}
+.text-neutral-600{color:#525252}
+.text-neutral-700{color:#404040}
+.text-neutral-800{color:#262626}
+.text-red-400{color:#f87171}
+.text-red-700{color:#b91c1c}
+.text-red-800{color:#991b1b}
+.text-red-900{color:#7f1d1d}
+.text-sm{font-size:0.875rem}
+.text-white{color:#fff}
+.text-white\/50{color:#fff}
+.text-white\/70{color:#fff}
+.text-white\/75{color:#fff}
+.text-white\/80{color:#fff}
+.text-xs{font-size:0.75rem}
+.tracking-wider{letter-spacing:0.05em}
+/* TODO: .transition-all */
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.underline{text-decoration:underline}
+.underline-offset-4{text-underline-offset:4px}
+.uppercase{text-transform:uppercase}
+.w-12{width:3.0rem}
+.w-28{width:7.0rem}
+.w-3{width:0.75rem}
+.w-5{width:1.25rem}
+.w-6{width:1.5rem}
+.w-7{width:1.75rem}
+.w-8{width:2.0rem}
+.w-\[26\%\]{width:26%}
+.w-full{width:100%}
+.z-40{z-index:40}
+.z-50{z-index:50}
+
+.bg-green-50{background-color:#f0fdf4}
+.bg-neutral-100{background-color:#f5f5f5}
+.bg-red-50{background-color:#fef2f2}
+.bg-red-50\/60{background-color:rgba(254,242,242,.6)}
+.decoration-\[\#B6FF00\]{text-decoration-color:#B6FF00}
+.duration-300{transition-duration:.3s}
+.justify-around{justify-content:space-around}
+.justify-start{justify-content:flex-start}
+.my-auto{margin-top:auto;margin-bottom:auto}
+.transition-all{transition:all .15s ease}
+
+@media(min-width:640px){
+.sm\:py-6{padding-top:1.5rem;padding-bottom:1.5rem}
+.sm\:rounded-t-2xl{border-top-left-radius:1rem;border-top-right-radius:1rem}
+.sm\:rounded-b-3xl{border-bottom-left-radius:1.5rem;border-bottom-right-radius:1.5rem}
+.sm\:border-x-2{border-left-width:2px;border-right-width:2px;border-left-style:solid;border-right-style:solid}
+.sm\:border-b-2{border-bottom-width:2px;border-bottom-style:solid}
+}
+
+.focus\:outline-none:focus{outline:none}
+.focus\:ring-2:focus{box-shadow:0 0 0 2px #B6FF00}
+.disabled\:opacity-40:disabled{opacity:.4}
+.hover\:bg-white\/20:hover{background-color:rgba(255,255,255,.2)}
+.hover\:bg-neutral-50:hover{background-color:#fafafa}
+.hover\:bg-\[\#FAFAF7\]:hover{background-color:#FAFAF7}
+.hover\:bg-\[\#B6FF00\]:hover{background-color:#B6FF00}
+.hover\:bg-red-50:hover{background-color:#fef2f2}
+.hover\:text-\[\#111111\]:hover{color:#111111}
+
+.z-\[60\]{z-index:60}
+</style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start py-0 sm:py-6">
+
+  <!-- TOP DEV SWITCHER BAR (Hanya untuk navigasi cepat prototype & inspeksi Behavior Log) -->
+  <div class="w-full max-w-[430px] bg-[#111111] text-white px-3 py-2 flex items-center justify-between text-xs border-b border-white/15 sm:rounded-t-2xl">
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <span class="text-[#B6FF00] font-bold mr-1">LAYAR:</span>
+      <button onclick="switchScreen('auth')" id="dev-btn-auth" class="px-2 py-1 rounded bg-white/10 hover:bg-white/20 font-semibold">1. Login</button>
+      <button onclick="switchScreen('home')" id="dev-btn-home" class="px-2 py-1 rounded bg-white/10 hover:bg-white/20 font-semibold">2. Beranda</button>
+      <button onclick="switchScreen('arena')" id="dev-btn-arena" class="px-2 py-1 rounded bg-white/10 hover:bg-white/20 font-semibold">3. Arena Soal</button>
+      <button onclick="switchScreen('result')" id="dev-btn-result" class="px-2 py-1 rounded bg-white/10 hover:bg-white/20 font-semibold">4. Autopsi</button>
+      <button onclick="switchScreen('progres')" id="dev-btn-progres" class="px-2 py-1 rounded bg-white/10 hover:bg-white/20 font-semibold">5. Ruang AI</button>
+    </div>
+    <button onclick="toggleLogInspector()" class="ml-2 shrink-0 bg-[#B6FF00] text-[#111111] font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1">
+      📡 Log (<span id="logCountBadge">0</span>)
+    </button>
+  </div>
+
+  <!-- MOBILE VIEWPORT CONTAINER (430px Mobile-First) -->
+  <div id="appViewport" data-scale="100" class="relative w-full max-w-[430px] h-[840px] max-h-[92vh] bg-[#FAFAF7] overflow-hidden flex flex-col sm:border-x-2 sm:border-b-2 sm:border-[#111111] sm:rounded-b-3xl shadow-2xl">
+
+    <!-- ================================================================= -->
+    <!-- LAYAR 1: LOGIN GOOGLE WAJIB (Tanpa Mode Tamu)                     -->
+    <!-- ================================================================= -->
+    <section id="screen-auth" class="hidden flex-1 flex flex-col justify-between p-6 bg-[#FAFAF7] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <span class="font-heading text-2xl font-extrabold">musse<span class="text-[#4F46E5]">.</span></span>
+        <span class="neo-card-lime px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider">Beta Gratis 100%</span>
+      </div>
+
+      <div class="my-auto py-6">
+        <div class="inline-block bg-[#E0E7FF] border-2 border-[#111111] px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-4">
+          Persiapan TKA SMA/SMK 2026
+        </div>
+        <h1 class="text-4xl font-extrabold leading-[1.1] text-[#111111]">
+          Tahu Jawabannya.<br/>
+          <span class="underline decoration-[#B6FF00] decoration-8 underline-offset-4">Paham Polanya.</span>
+        </h1>
+        <p class="mt-3 text-sm text-neutral-600 leading-relaxed">
+          990+ soal resmi 27 mapel Pusmendik, pembahasan 5 pilar langkah demi langkah, AI Tutor kontekstual, dan Guru Autopsi pendeteksi kebocoran skor.
+        </p>
+
+        <!-- Preview Mini Neo-Brutalist Card -->
+        <div class="neo-card rounded-2xl p-4 mt-6 bg-white">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="bg-[#B6FF00] border border-[#111111] px-2 py-0.5 rounded-md">🔥 Streak Otomatis</span>
+            <span class="text-[#4F46E5]">✨ 25 Tanya AI / Hari</span>
+          </div>
+          <p class="mt-2.5 text-xs text-neutral-600 font-medium">
+            Semua progres latihan, riwayat waktu per soal, dan diagnosis kelemahanmu langsung tersimpan aman di akun Google-mu.
+          </p>
+        </div>
+
+        <button onclick="doGoogleLogin()" class="neo-btn w-full mt-6 bg-[#B6FF00] hover:bg-[#c6ff33] text-[#111111] font-extrabold py-4 px-5 rounded-2xl flex items-center justify-center gap-3 text-sm">
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.3h6.5c-.1 1.1-.8 2.7-2.4 3.8l3.6 2.8c2.3-2.1 3.8-5.2 3.8-8.6z"/>
+            <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5l-3.6 2.8C3.5 21.3 7.4 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4L1.6 6.8C.6 8.6 0 10.2 0 12s.6 3.4 1.6 4.9l3.6-2.5z"/>
+            <path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.3-3.2C17.9 1.1 15.2 0 12 0 7.4 0 3.5 2.7 1.6 6.8l3.6 2.8c1-2.9 3.7-4.9 6.8-4.9z"/>
+          </svg>
+          Masuk dengan Google — Gratis
+        </button>
+        <p class="text-center text-[11px] text-neutral-500 mt-2.5">10 detik • Tanpa password • Semua fitur terbuka</p>
+      </div>
+
+      <div class="text-center text-[11px] text-neutral-400">
+        © 2026 musse • Sesuai Kisi-Kisi TKA Kemendikdasmen
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- LAYAR 2: BERANDA LATIHAN (Gabungan Beranda + Katalog Modul)       -->
+    <!-- ================================================================= -->
+    <section id="screen-home" class="flex-1 flex flex-col overflow-hidden">
+      <!-- Sticky Top Header -->
+      <header class="bg-white border-b-2 border-[#111111] px-4 py-3 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-[#B6FF00] border-2 border-[#111111] flex items-center justify-center font-extrabold text-xs">
+            AG
+          </div>
+          <div>
+            <p class="text-[11px] text-neutral-500 font-semibold leading-none">Siap tempur hari ini,</p>
+            <p class="text-sm font-extrabold text-[#111111] leading-tight">Agus Putra 👋</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Streak Pill -->
+          <div class="neo-card px-2.5 py-1 rounded-full flex items-center gap-1 text-xs font-extrabold bg-[#FFEDD5]">
+            <span>🔥</span><span>14</span>
+          </div>
+          <!-- Countdown Pill (Tap to edit date) -->
+          <button onclick="openDateModal()" class="neo-btn px-2.5 py-1 rounded-full flex items-center gap-1 text-xs font-extrabold bg-[#E0E7FF] text-[#111111]" title="Ubah Tanggal TKA">
+            <span>🎯</span><span id="headerCountdownText">H-12 TKA</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Content -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5 pb-24">
+        <!-- Kartu 1: Lanjutkan Terakhir (1-Tap Resume) -->
+        <div class="neo-card rounded-2xl p-4 bg-[#111111] text-white relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="bg-[#B6FF00] text-[#111111] text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">Lanjutkan Terakhir</span>
+            <span class="text-xs text-white/70 font-semibold">Soal 12 / 46</span>
+          </div>
+          <h2 class="text-lg font-extrabold mt-2">Matematika (Wajib) · Paket 1</h2>
+          <p class="text-xs text-white/75 mt-0.5">Terakhir dikerjakan: Sistem Persamaan & Pertidaksamaan</p>
+          <div class="mt-3 flex items-center gap-3">
+            <div class="flex-1 h-2.5 bg-white/15 rounded-full overflow-hidden border border-white/30">
+              <div class="h-full bg-[#B6FF00] w-[26%]"></div>
+            </div>
+            <span class="text-xs font-extrabold text-[#B6FF00]">26%</span>
+          </div>
+          <button onclick="startQuiz('Matematika', 1)" class="neo-btn mt-3.5 w-full bg-[#B6FF00] text-[#111111] font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
+            Lanjutkan Soal Nomor 12 →
+          </button>
+        </div>
+
+        <!-- Kartu 2: Sorotan Kebocoran Terakhir (Jembatan dari Autopsi) -->
+        <div class="neo-card rounded-2xl p-3.5 bg-[#FFFBEB] flex items-center justify-between gap-3">
+          <div class="flex items-start gap-2.5">
+            <span class="text-lg">🔍</span>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-200 px-1.5 py-0.5 rounded">Catatan Guru Autopsi</span>
+              <p class="text-xs font-bold text-[#111111] mt-1">Waspada pola "Terburu-buru" (&lt;15 dtk/soal)</p>
+              <p class="text-[11px] text-neutral-600">Terdeteksi di 3 soal tryout terakhir. Baca kembali kalimat tanya sebelum klik.</p>
+            </div>
+          </div>
+          <button onclick="openStrategyModal('terburu')" class="neo-btn shrink-0 bg-white px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold">
+            Strategi
+          </button>
+        </div>
+
+        <!-- Katalog Mapel (Gabungan Beranda & Modul) -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <h3 class="text-base font-extrabold text-[#111111]">Pilih Mapel & Paket Soal</h3>
+            <span class="text-[11px] font-bold text-[#4F46E5]">27 Mapel Pusmendik</span>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="relative mb-3">
+            <input id="searchMapelInput" oninput="renderMapelList()" type="text" placeholder="Cari Matematika, TKJ, Fisika, Bahasa Jepang..." class="w-full bg-white border-2 border-[#111111] rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#B6FF00]" />
+          </div>
+
+          <!-- Filter Kategori Chips -->
+          <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 mb-3" id="categoryTabs">
+            <button onclick="setCategory('pilihanmu')" data-cat="pilihanmu" class="cat-chip neo-btn px-3 py-1 rounded-full text-xs font-extrabold bg-[#B6FF00] shrink-0">⭐ Pilihanmu (4)</button>
+            <button onclick="setCategory('Wajib')" data-cat="Wajib" class="cat-chip neo-btn px-3 py-1 rounded-full text-xs font-bold bg-white shrink-0">Wajib</button>
+            <button onclick="setCategory('Saintek')" data-cat="Saintek" class="cat-chip neo-btn px-3 py-1 rounded-full text-xs font-bold bg-white shrink-0">Saintek</button>
+            <button onclick="setCategory('Soshum')" data-cat="Soshum" class="cat-chip neo-btn px-3 py-1 rounded-full text-xs font-bold bg-white shrink-0">Soshum</button>
+            <button onclick="setCategory('SMK')" data-cat="SMK" class="cat-chip neo-btn px-3 py-1 rounded-full text-xs font-bold bg-white shrink-0">Kejuruan SMK</button>
+            <button onclick="setCategory('Bahasa')" data-cat="Bahasa" class="cat-chip neo-btn px-3 py-1 rounded-full text-xs font-bold bg-white shrink-0">Bahasa Asing</button>
+          </div>
+
+          <!-- Daftar Kartu Mapel -->
+          <div id="mapelListContainer" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation (3 Item Bersih) -->
+      <nav class="bg-white border-t-2 border-[#111111] px-6 py-2 flex items-center justify-around shrink-0">
+        <button onclick="switchScreen('home')" class="flex flex-col items-center gap-0.5 text-[#111111] font-extrabold">
+          <span class="bg-[#B6FF00] border-2 border-[#111111] px-3 py-0.5 rounded-full text-xs">📝</span>
+          <span class="text-[11px]">Latihan</span>
+        </button>
+        <button onclick="switchScreen('progres')" class="flex flex-col items-center gap-0.5 text-neutral-500 font-bold hover:text-[#111111]">
+          <span class="px-3 py-0.5 text-xs">🧠</span>
+          <span class="text-[11px]">Ruang & Progres</span>
+        </button>
+        <button onclick="switchScreen('akun')" class="flex flex-col items-center gap-0.5 text-neutral-500 font-bold hover:text-[#111111]">
+          <span class="px-3 py-0.5 text-xs">👤</span>
+          <span class="text-[11px]">Akun</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- LAYAR 3: ARENA SOAL (PRIORITAS 80% — MEDAN PERANG UTAMA)          -->
+    <!-- ================================================================= -->
+    <section id="screen-arena" class="hidden flex-1 flex flex-col overflow-hidden bg-[#FAFAF7]">
+      <!-- Sticky Top Bar: Semua kontrol dijangkau 1 tap -->
+      <header class="bg-white border-b-2 border-[#111111] px-3 py-2.5 flex items-center justify-between gap-2 shrink-0">
+        <button onclick="confirmExitArena()" class="neo-btn w-8 h-8 rounded-lg bg-white flex items-center justify-center font-extrabold text-xs" title="Keluar ke Beranda">
+          ✕
+        </button>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <span id="arenaMapelLabel" class="text-xs font-extrabold truncate">Matematika · P1</span>
+            <span id="arenaSoalCounter" class="bg-[#111111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded">1/3</span>
+          </div>
+        </div>
+        <!-- Timer Resmi -->
+        <div id="arenaTimerPill" class="neo-card px-2.5 py-1 rounded-lg bg-[#FAFAF7] font-mono text-xs font-extrabold flex items-center gap-1">
+          <span>⏱</span><span id="arenaTimerText">01:14:52</span>
+        </div>
+        <!-- Font Size Stepper -->
+        <button onclick="cycleFontScale()" id="btnFontScale" class="neo-btn px-2 py-1 rounded-lg bg-white text-[11px] font-extrabold" title="Ukuran Teks">
+          Aa 100%
+        </button>
+        <!-- Peta Soal Button -->
+        <button onclick="togglePetaDrawer(true)" class="neo-btn px-2.5 py-1 rounded-lg bg-[#E0E7FF] text-xs font-extrabold flex items-center gap-1">
+          <span>▦</span><span>Peta</span>
+        </button>
+      </header>
+
+      <!-- Progress Bar Tipis -->
+      <div class="w-full h-1.5 bg-neutral-200 border-b border-[#111111] shrink-0">
+        <div id="arenaProgressBar" class="h-full bg-[#B6FF00] transition-all duration-300" style="width: 33%"></div>
+      </div>
+
+      <!-- Area Soal + Opsi + Pembahasan Inline (Scrollable) -->
+      <div id="arenaScrollBody" class="flex-1 overflow-y-auto p-4 space-y-4 soal-text-area pb-24">
+        <!-- Bar Info Tipe Soal & Lapor Bug -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span id="soalTipeBadge" class="bg-[#E0E7FF] border border-[#111111] px-2.5 py-0.5 rounded-full text-[11px] font-extrabold">
+              Pilihan Ganda
+            </span>
+            <span id="soalTopikBadge" class="bg-white border border-[#111111] px-2 py-0.5 rounded-full text-[10px] font-bold text-neutral-600">
+              SPLDV
+            </span>
+          </div>
+          <button onclick="logEvent('bug_report_click', { soal_no: currentQIndex + 1 }); showModal('Laporan kendala untuk Soal #' + (currentQIndex+1) + ' dicatat! Terima kasih 🙏', '✅', false)" class="text-[11px] font-bold text-neutral-400 hover:text-[#111111]">
+            ⚑ Lapor Soal
+          </button>
+        </div>
+
+        <!-- Kartu Soal Utama -->
+        <div class="neo-card rounded-2xl p-4 bg-white space-y-3">
+          <!-- Stimulus Box (Conditional) -->
+          <div id="soalStimulusBox" class="hidden bg-[#FAFAF7] border-2 border-dashed border-neutral-300 rounded-xl p-3 text-xs leading-relaxed"></div>
+
+          <!-- Prompt Pertanyaan -->
+          <div id="soalPromptText" class="font-semibold text-[#111111] leading-relaxed"></div>
+
+          <!-- Notice untuk PG Kompleks -->
+          <div id="complexNoticePill" class="hidden bg-[#E0E7FF] border-2 border-[#111111] rounded-xl px-3 py-2 text-xs font-extrabold text-[#111111]">
+            ☑️ Pilihan Ganda Kompleks · Pilih lebih dari satu jawaban yang benar!
+          </div>
+
+          <!-- Container Opsi / Tabel Pernyataan -->
+          <div id="soalOptionsContainer" class="space-y-2 pt-1"></div>
+        </div>
+
+        <!-- BANNER EVALUASI CEK JAWABAN & PEMBAHASAN 5 PILAR INLINE -->
+        <div id="inlineEvaluationSection" class="hidden space-y-3">
+          <!-- Feedback Benar/Salah -->
+          <div id="evalFeedbackBanner" class="neo-card rounded-2xl p-3.5"></div>
+
+          <!-- Kartu Pembahasan (Default: Mode Ringkas, Bisa Expand 5 Pilar) -->
+          <div class="neo-card rounded-2xl p-4 bg-white">
+            <div class="flex items-center justify-between border-b-2 border-[#111111] pb-2.5">
+              <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider bg-[#B6FF00] border border-[#111111] px-2 py-0.5 rounded">Kunci Resmi Pusmendik</span>
+                <h3 class="text-sm font-extrabold mt-1" id="pembKeyTitle">Kunci Jawaban: B</h3>
+              </div>
+              <button onclick="togglePembahasanModeUI()" id="btnTogglePilarMode" class="neo-btn bg-[#E0E7FF] px-3 py-1 rounded-full text-[11px] font-extrabold">
+                📖 Buka 5 Pilar Lengkap
+              </button>
+            </div>
+
+            <!-- Inti Mengapa (Selalu tampil di Mode Ringkas) -->
+            <div class="mt-3 text-xs leading-relaxed text-neutral-800" id="pembRingkasBody"></div>
+
+            <!-- 5 Pilar Lengkap (Muncul saat di-expand) -->
+            <div id="pembLengkapBody" class="hidden mt-4 space-y-3 border-t-2 border-dashed border-neutral-300 pt-3 text-xs">
+              <!-- Pilar 1 -->
+              <div class="bg-[#FAFAF7] border border-[#111111] rounded-xl p-3">
+                <div class="font-extrabold text-[#4F46E5] uppercase text-[10px]">Pilar 1 · Diketahui & Konsep Kunci</div>
+                <p id="pilar1Text" class="mt-1 font-medium"></p>
+              </div>
+              <!-- Pilar 2 & 3 -->
+              <div class="bg-[#FAFAF7] border border-[#111111] rounded-xl p-3">
+                <div class="font-extrabold text-[#4F46E5] uppercase text-[10px]">Pilar 2 & 3 · Glosarium & Alasan Logis</div>
+                <p id="pilar3Text" class="mt-1 font-medium"></p>
+              </div>
+              <!-- Pilar 4 -->
+              <div class="bg-[#F0FFB8] border border-[#111111] rounded-xl p-3">
+                <div class="font-extrabold text-[#111111] uppercase text-[10px]">Pilar 4 · Langkah Penyelesaian Rinci</div>
+                <ol id="pilar4List" class="mt-1.5 space-y-1.5 list-decimal list-inside font-semibold"></ol>
+              </div>
+              <!-- Pilar 5 -->
+              <div class="bg-[#FFEDD5] border border-[#111111] rounded-xl p-3">
+                <div class="font-extrabold text-amber-900 uppercase text-[10px]">Pilar 5 · Trik Cepat & Jebakan Umum</div>
+                <p id="pilar5Text" class="mt-1 font-medium"></p>
+              </div>
+            </div>
+
+            <!-- Tombol Aksi Tujuan #2: Tanya AI & Latih Soal Serupa -->
+            <div class="mt-4 pt-3 border-t border-neutral-200 flex gap-2">
+              <button onclick="openAiTutorSheet()" class="neo-btn flex-1 bg-[#111111] text-white py-2 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5">
+                <span>✨</span><span>Tanya AI Bagian Bingung</span>
+              </button>
+              <button onclick="toggleSimilarSoalBox()" class="neo-btn bg-[#B6FF00] text-[#111111] py-2 px-3 rounded-xl text-xs font-extrabold">
+                🔄 Soal Serupa
+              </button>
+            </div>
+          </div>
+
+          <!-- Kartu Latihan Soal Serupa (Tujuan #2: Tes Pemahaman Konsep) -->
+          <div id="similarSoalBox" class="hidden neo-card rounded-2xl p-4 bg-[#E0E7FF]">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider bg-white border border-[#111111] px-2 py-0.5 rounded">Uji Paham · Soal Serupa</span>
+              <button onclick="toggleSimilarSoalBox()" class="text-xs font-bold">Tutup ✕</button>
+            </div>
+            <p id="simQuestionText" class="text-xs font-bold mt-2"></p>
+            <div id="simOptionsList" class="mt-2.5 space-y-1.5"></div>
+            <div id="simFeedbackText" class="hidden mt-2.5 p-2.5 rounded-xl border border-[#111111] bg-white text-xs font-bold"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky Bottom Action Bar (Semua di Jempol) -->
+      <footer class="bg-white border-t-2 border-[#111111] px-3 py-2.5 flex items-center gap-2 shrink-0">
+        <button onclick="navSoal(-1)" id="btnArenaPrev" class="neo-btn px-3 py-2.5 rounded-xl bg-white text-xs font-extrabold disabled:opacity-40">
+          ←
+        </button>
+        <button onclick="toggleFlagRagu()" id="btnArenaRagu" class="neo-btn px-3 py-2.5 rounded-xl bg-white text-xs font-extrabold flex items-center gap-1">
+          <span>⚑</span><span>Ragu</span>
+        </button>
+        <button onclick="openAiTutorSheet()" class="neo-btn px-3 py-2.5 rounded-xl bg-[#E0E7FF] text-[#111111] text-xs font-extrabold flex items-center gap-1">
+          <span>✨</span><span>AI (24)</span>
+        </button>
+        <button onclick="handlePrimaryArenaAction()" id="btnArenaPrimary" class="neo-btn flex-1 py-2.5 px-4 rounded-xl bg-[#B6FF00] text-[#111111] text-xs font-extrabold text-center">
+          Cek Jawaban ✓
+        </button>
+      </footer>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- LAYAR 4: HASIL & GURU AUTOPSI AI TERPADU                          -->
+    <!-- ================================================================= -->
+    <section id="screen-result" class="hidden flex-1 flex flex-col overflow-hidden bg-[#FAFAF7]">
+      <header class="bg-white border-b-2 border-[#111111] px-4 py-3 flex items-center justify-between shrink-0">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase bg-[#B6FF00] border border-[#111111] px-2 py-0.5 rounded">Hasil & Evaluasi</span>
+          <h2 class="text-base font-extrabold mt-0.5">Matematika (Wajib) · Paket 1</h2>
+        </div>
+        <button onclick="switchScreen('home')" class="neo-btn bg-white px-3 py-1.5 rounded-xl text-xs font-extrabold">
+          Ke Beranda →
+        </button>
+      </header>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
+        <!-- Ringkasan Skor & Metrik Kecepatan -->
+        <div class="neo-card rounded-2xl p-4 bg-[#111111] text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs text-white/70 font-semibold">Skor Akhir Kamu</p>
+              <p class="font-pixel text-3xl text-[#B6FF00] mt-1" id="resScoreBig">67%</p>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/20">
+                <p class="text-sm font-extrabold text-[#B6FF00]" id="resCountBenar">2</p>
+                <p class="text-[10px] text-white/70">Benar</p>
+              </div>
+              <div class="bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/20">
+                <p class="text-sm font-extrabold text-red-400" id="resCountSalah">1</p>
+                <p class="text-[10px] text-white/70">Salah</p>
+              </div>
+              <div class="bg-white/10 px-2.5 py-1.5 rounded-xl border border-white/20">
+                <p class="text-sm font-extrabold text-white" id="resCountKosong">0</p>
+                <p class="text-[10px] text-white/70">Kosong</p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-[11px] text-white/80">
+            <span>⏱ Total Waktu: <b>4m 12s</b></span>
+            <span>⚡ Rata-rata: <b>28 dtk/soal</b></span>
+            <span>✓ Tersimpan di Akun</span>
+          </div>
+        </div>
+
+        <!-- GURU AUTOPSI AI (Langsung Terbuka Tanpa Paywall/Blur) -->
+        <div class="neo-card rounded-2xl p-4 bg-white space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🔍</span>
+              <div>
+                <h3 class="text-sm font-extrabold">Guru Autopsi AI</h3>
+                <p class="text-[11px] text-neutral-500">Dianalisis dari ritme waktu, klik opsi, dan pergantian jawabanmu</p>
+              </div>
+            </div>
+            <span class="bg-[#B6FF00] border border-[#111111] px-2 py-0.5 rounded-full text-[10px] font-extrabold">✨ Analisis AI</span>
+          </div>
+
+          <!-- Yang Saya Lihat (Pengamatan Telemetry) -->
+          <div class="bg-[#FAFAF7] border-2 border-[#111111] rounded-xl p-3 text-xs space-y-1">
+            <p class="font-extrabold text-[#111111]">👀 Yang Saya Lihat dari Rekaman Pengerjaanmu:</p>
+            <ul class="list-disc list-inside text-neutral-700 space-y-1 mt-1">
+              <li>Di <b>Soal #1 (SPLDV)</b>, kamu menjawab mantap dalam 18 detik tanpa ganti opsi (Benar).</li>
+              <li>Di <b>Soal #2 (PG Kompleks Fungsi)</b>, kamu sempat mengganti pilihan 2 kali dan hanya memilih 1 dari 2 kunci benar.</li>
+              <li>Di <b>Soal #3 (Tabel Benar/Salah)</b>, kamu klik terlalu cepat (&lt;12 detik) pada pernyataan C.</li>
+            </ul>
+          </div>
+
+          <!-- Kebocoran Pola Terdeteksi -->
+          <div class="bg-[#FFFBEB] border-2 border-[#111111] rounded-xl p-3.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase bg-amber-300 border border-[#111111] px-2 py-0.5 rounded">Kebocoran Utama #1</span>
+              <span class="text-[11px] font-bold text-red-700">-33% Potensi Skor</span>
+            </div>
+            <h4 class="text-sm font-extrabold mt-1.5">Terburu-buru di Soal Multi-Pernyataan</h4>
+            <p class="text-xs text-neutral-700 mt-1">
+              <b>Bukti:</b> Waktu baca rata-rata di bawah 15 detik pada soal yang membutuhkan pengecekan lebih dari satu kondisi.
+            </p>
+            <div class="mt-3 flex gap-2">
+              <button onclick="openStrategyModal('terburu')" class="neo-btn flex-1 bg-white py-2 px-3 rounded-xl text-xs font-extrabold">
+                📚 Pelajari 5 Strategi
+              </button>
+              <button onclick="jumpToReviewQuestion(1)" class="neo-btn flex-1 bg-[#B6FF00] py-2 px-3 rounded-xl text-xs font-extrabold">
+                🎯 Bedah Soal #2
+              </button>
+            </div>
+          </div>
+
+          <!-- Daftar Soal & Reviu Cepat (Klik langsung buka soal + pembahasan) -->
+          <div>
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-neutral-500 mb-2">Bedah Soal Satu per Satu (Klik untuk Reviu)</h4>
+            <div class="space-y-2">
+              <div onclick="jumpToReviewQuestion(0)" class="cursor-pointer border-2 border-[#111111] rounded-xl p-2.5 flex items-center justify-between bg-white hover:bg-[#FAFAF7]">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-lg bg-[#B6FF00] border border-[#111111] flex items-center justify-center font-extrabold text-xs">1</span>
+                  <div>
+                    <p class="text-xs font-extrabold">SPLDV · Harga Buku & Penggaris</p>
+                    <p class="text-[11px] text-neutral-500">Jawabanmu: B · Kunci: B (18 dtk)</p>
+                  </div>
+                </div>
+                <span class="bg-green-100 text-green-800 border border-green-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">✓ Benar</span>
+              </div>
+
+              <div onclick="jumpToReviewQuestion(1)" class="cursor-pointer border-2 border-[#111111] rounded-xl p-2.5 flex items-center justify-between bg-red-50/60 hover:bg-red-50">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-lg bg-red-200 border border-[#111111] flex items-center justify-center font-extrabold text-xs">2</span>
+                  <div>
+                    <p class="text-xs font-extrabold">PG Kompleks · Sifat Fungsi Kuadrat</p>
+                    <p class="text-[11px] text-red-700 font-semibold">Penyebab: Kurang teliti pilih semua kunci → Klik buat bahas</p>
+                  </div>
+                </div>
+                <span class="bg-red-100 text-red-800 border border-red-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">✕ Kurang</span>
+              </div>
+
+              <div onclick="jumpToReviewQuestion(2)" class="cursor-pointer border-2 border-[#111111] rounded-xl p-2.5 flex items-center justify-between bg-white hover:bg-[#FAFAF7]">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-lg bg-[#B6FF00] border border-[#111111] flex items-center justify-center font-extrabold text-xs">3</span>
+                  <div>
+                    <p class="text-xs font-extrabold">Benar/Salah · Peluang & Statistika</p>
+                    <p class="text-[11px] text-neutral-500">3/3 Pernyataan Tepat</p>
+                  </div>
+                </div>
+                <span class="bg-green-100 text-green-800 border border-green-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">✓ Benar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- LAYAR 5: RUANG AI MAPEL & PROGRES (Gabungan Progres + Ruang AI)   -->
+    <!-- ================================================================= -->
+    <section id="screen-progres" class="hidden flex-1 flex flex-col overflow-hidden bg-[#FAFAF7]">
+      <header class="bg-white border-b-2 border-[#111111] px-4 py-3 flex items-center justify-between shrink-0">
+        <div>
+          <h2 class="text-base font-extrabold">Ruang AI & Progres Belajar</h2>
+          <p class="text-[11px] text-neutral-500">Analisis kumulatif & konsultasi AI Coach per mapel</p>
+        </div>
+        <span class="neo-card-lime px-2.5 py-1 rounded-full text-[11px] font-extrabold">Akurasi 74%</span>
+      </header>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+        <!-- 3 Kotak Metrik Kumulatif -->
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="neo-card rounded-xl p-3 text-center">
+            <p class="font-pixel text-lg text-[#111111]">142</p>
+            <p class="text-[10px] font-bold text-neutral-500 uppercase mt-1">Soal Selesai</p>
+          </div>
+          <div class="neo-card rounded-xl p-3 text-center bg-[#B6FF00]">
+            <p class="font-pixel text-lg text-[#111111]">74%</p>
+            <p class="text-[10px] font-extrabold text-[#111111] uppercase mt-1">Akurasi</p>
+          </div>
+          <div class="neo-card rounded-xl p-3 text-center">
+            <p class="font-pixel text-lg text-[#4F46E5]">6.4j</p>
+            <p class="text-[10px] font-bold text-neutral-500 uppercase mt-1">Jam Fokus</p>
+          </div>
+        </div>
+
+        <!-- Pemilih Ruang Mapel -->
+        <div class="neo-card rounded-2xl p-4 bg-white space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-[#4F46E5]">🧠 Ruang AI Coach Mapel</span>
+            <select onchange="logEvent('switch_ai_room', { mapel: this.value })" class="border-2 border-[#111111] rounded-lg px-2 py-1 text-xs font-extrabold bg-[#FAFAF7]">
+              <option value="matematika">Matematika (Wajib)</option>
+              <option value="fisika">Fisika (Saintek)</option>
+              <option value="tkj">SMK - Teknik Jaringan (TKJ)</option>
+              <option value="inggris">Bahasa Inggris</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-green-50 border border-[#111111] rounded-xl p-2.5">
+              <span class="text-[10px] font-extrabold text-green-800 uppercase">💪 Topik Terkuat</span>
+              <p class="font-extrabold mt-0.5">SPLDV & Matriks (88%)</p>
+            </div>
+            <div class="bg-red-50 border border-[#111111] rounded-xl p-2.5">
+              <span class="text-[10px] font-extrabold text-red-800 uppercase">⚠️ Perlu Dikejar</span>
+              <p class="font-extrabold mt-0.5">Fungsi Kuadrat (52%)</p>
+            </div>
+          </div>
+
+          <!-- Mini Chat AI Coach Mapel -->
+          <div class="bg-[#FAFAF7] border-2 border-[#111111] rounded-xl p-3 space-y-2">
+            <div class="text-xs bg-white border border-[#111111] rounded-xl p-2.5">
+              <span class="font-extrabold text-[#4F46E5]">Coach Matematika:</span> Halo Agus! Dari 2 paket terakhir, aljabar linear kamu udah mantap. Tapi di <b>Fungsi Kuadrat</b> kamu sering lupa syarat diskriminan $D > 0$. Mau kita bahas 3 menit?
+            </div>
+            <div class="flex gap-2">
+              <button onclick="startQuiz('Matematika', 1)" class="neo-btn flex-1 bg-[#B6FF00] py-2 rounded-xl text-xs font-extrabold">
+                🎯 Latih Topik Lemah
+              </button>
+              <button onclick="openAiTutorSheet()" class="neo-btn flex-1 bg-white py-2 rounded-xl text-xs font-extrabold">
+                💬 Diskusi sama Coach
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Nav -->
+      <nav class="bg-white border-t-2 border-[#111111] px-6 py-2 flex items-center justify-around shrink-0">
+        <button onclick="switchScreen('home')" class="flex flex-col items-center gap-0.5 text-neutral-500 font-bold">
+          <span class="px-3 py-0.5 text-xs">📝</span><span class="text-[11px]">Latihan</span>
+        </button>
+        <button onclick="switchScreen('progres')" class="flex flex-col items-center gap-0.5 text-[#111111] font-extrabold">
+          <span class="bg-[#B6FF00] border-2 border-[#111111] px-3 py-0.5 rounded-full text-xs">🧠</span><span class="text-[11px]">Ruang & Progres</span>
+        </button>
+        <button onclick="switchScreen('akun')" class="flex flex-col items-center gap-0.5 text-neutral-500 font-bold">
+          <span class="px-3 py-0.5 text-xs">👤</span><span class="text-[11px]">Akun</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- LAYAR 6: AKUN & PENGATURAN                                        -->
+    <!-- ================================================================= -->
+    <section id="screen-akun" class="hidden flex-1 flex flex-col overflow-hidden bg-[#FAFAF7]">
+      <header class="bg-white border-b-2 border-[#111111] px-4 py-3 shrink-0">
+        <h2 class="text-base font-extrabold">Akun & Pengaturan</h2>
+      </header>
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+        <div class="neo-card rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-[#B6FF00] border-2 border-[#111111] flex items-center justify-center font-extrabold text-base">AG</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-extrabold">Agus Alfiansyah Putra</h3>
+            <p class="text-xs text-neutral-500">agus@gmail.com · Terhubung Google</p>
+            <span class="inline-block mt-1 bg-[#E0E7FF] border border-[#111111] px-2 py-0.5 rounded text-[10px] font-extrabold">Kuota AI: 24 / 25 Tersisa Hari Ini</span>
+          </div>
+        </div>
+
+        <div class="neo-card rounded-2xl p-4 space-y-3 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold">Tanggal Target Ujian TKA</span>
+            <button onclick="openDateModal()" class="neo-btn bg-[#B6FF00] px-2.5 py-1 rounded-lg font-extrabold">26 Okt 2026</button>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-neutral-200">
+            <span class="font-bold">Ukuran Teks Soal Default</span>
+            <button onclick="cycleFontScale()" class="neo-btn bg-white px-2.5 py-1 rounded-lg font-extrabold">100% (Normal)</button>
+          </div>
+        </div>
+
+        <button onclick="switchScreen('auth')" class="neo-btn w-full bg-red-100 text-red-900 font-extrabold py-3 rounded-xl text-xs">
+          Keluar dari Akun Google
+        </button>
+      </div>
+      <nav class="bg-white border-t-2 border-[#111111] px-6 py-2 flex items-center justify-around shrink-0">
+        <button onclick="switchScreen('home')" class="flex flex-col items-center gap-0.5 text-neutral-500 font-bold"><span class="px-3 py-0.5 text-xs">📝</span><span class="text-[11px]">Latihan</span></button>
+        <button onclick="switchScreen('progres')" class="flex flex-col items-center gap-0.5 text-neutral-500 font-bold"><span class="px-3 py-0.5 text-xs">🧠</span><span class="text-[11px]">Ruang & Progres</span></button>
+        <button onclick="switchScreen('akun')" class="flex flex-col items-center gap-0.5 text-[#111111] font-extrabold"><span class="bg-[#B6FF00] border-2 border-[#111111] px-3 py-0.5 rounded-full text-xs">👤</span><span class="text-[11px]">Akun</span></button>
+      </nav>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- OVERLAY 1: DRAWER PETA SOAL (Di dalam Arena)                      -->
+    <!-- ================================================================= -->
+    <div id="drawerPetaSoal" class="hidden absolute inset-0 z-40 bg-black/50 flex flex-col justify-end">
+      <div class="bg-[#FAFAF7] border-t-2 border-[#111111] rounded-t-3xl p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-extrabold">Peta Nomor Soal</h3>
+          <button onclick="togglePetaDrawer(false)" class="neo-btn w-7 h-7 rounded-lg bg-white font-extrabold text-xs">✕</button>
+        </div>
+        <div class="flex gap-3 text-[11px] font-bold">
+          <span class="flex items-center gap-1"><i class="w-3 h-3 inline-block bg-[#B6FF00] border border-[#111111] rounded"></i> Dijawab</span>
+          <span class="flex items-center gap-1"><i class="w-3 h-3 inline-block bg-amber-300 border border-[#111111] rounded"></i> Ragu-ragu</span>
+          <span class="flex items-center gap-1"><i class="w-3 h-3 inline-block bg-white border border-[#111111] rounded"></i> Belum</span>
+        </div>
+        <div id="petaGridContainer" class="grid grid-cols-5 gap-2"></div>
+        <button onclick="finishQuizNow()" class="neo-btn w-full bg-[#111111] text-[#B6FF00] py-3 rounded-xl text-xs font-extrabold">
+          🏁 Selesai & Lihat Autopsi Hasil
+        </button>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- OVERLAY 2: BOTTOM-SHEET AI TUTOR (Dengan Pratinjau Soal)          -->
+    <!-- ================================================================= -->
+    <div id="sheetAiTutor" class="hidden absolute inset-0 z-50 bg-black/50 flex flex-col justify-end">
+      <div class="bg-[#FAFAF7] border-t-2 border-[#111111] rounded-t-3xl h-[82%] flex flex-col overflow-hidden">
+        <!-- Sheet Header -->
+        <div class="bg-white border-b-2 border-[#111111] px-4 py-3 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full bg-[#B6FF00] border border-[#111111] flex items-center justify-center text-xs font-extrabold">✨</span>
+            <div>
+              <h3 class="text-xs font-extrabold">AI Tutor Matematika</h3>
+              <p class="text-[10px] text-green-700 font-bold" id="tutorContextLabel">✓ Paham konteks Soal #1</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="bg-[#E0E7FF] border border-[#111111] px-2 py-0.5 rounded-full text-[10px] font-extrabold" id="tutorQuotaPill">24/25 Tanya</span>
+            <button onclick="closeAiTutorSheet()" class="neo-btn w-7 h-7 rounded-lg bg-white font-extrabold text-xs">✕</button>
+          </div>
+        </div>
+
+        <!-- Collapsible Question Preview Card (Fitur Emas dari App Lama) -->
+        <div class="bg-[#FFFBEB] border-b-2 border-[#111111] px-4 py-2 shrink-0">
+          <button onclick="toggleTutorQuestionPreview()" class="w-full flex items-center justify-between text-left text-xs font-extrabold">
+            <span id="tutorPreviewTitle">📌 Intip Soal #1 (Klik untuk buka/tutup)</span>
+            <span id="tutorPreviewCaret">▼</span>
+          </button>
+          <div id="tutorPreviewBody" class="hidden mt-2 pt-2 border-t border-amber-300 text-xs text-neutral-800"></div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="tutorMessagesList" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs"></div>
+
+        <!-- Quick Prompts -->
+        <div class="px-3 py-2 bg-white border-t border-neutral-200 flex gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+          <button onclick="sendTutorPrompt('Kenapa jawabannya itu?')" class="neo-btn shrink-0 bg-[#FAFAF7] px-2.5 py-1 rounded-full text-[11px] font-bold">Kenapa jawabannya itu?</button>
+          <button onclick="sendTutorPrompt('Ada cara cepatnya nggak?')" class="neo-btn shrink-0 bg-[#FAFAF7] px-2.5 py-1 rounded-full text-[11px] font-bold">Ada cara cepatnya?</button>
+          <button onclick="sendTutorPrompt('Jelasin pakai analogi gampang')" class="neo-btn shrink-0 bg-[#FAFAF7] px-2.5 py-1 rounded-full text-[11px] font-bold">Analogi gampang</button>
+        </div>
+
+        <!-- Input Bar -->
+        <form onsubmit="handleTutorSubmit(event)" class="p-3 bg-white border-t-2 border-[#111111] flex gap-2 shrink-0">
+          <input id="tutorChatInput" type="text" placeholder="Tanya langkah atau konsep soal ini..." class="flex-1 border-2 border-[#111111] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none" />
+          <button type="submit" class="neo-btn bg-[#B6FF00] px-4 py-2 rounded-xl text-xs font-extrabold">Kirim</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- OVERLAY 3: MODAL KARTU STRATEGI AUTOPSI                           -->
+    <!-- ================================================================= -->
+    <div id="modalStrategi" class="hidden absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div class="neo-card rounded-2xl p-5 bg-white w-full space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="bg-amber-300 border border-[#111111] px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">Panduan Anti-Bocor</span>
+          <button onclick="closeStrategyModal()" class="font-extrabold text-sm">✕</button>
+        </div>
+        <h3 class="text-base font-extrabold">Strategi Anti-Ceroboh & Cek Ulang</h3>
+        <ul class="space-y-2 text-xs text-neutral-700 leading-relaxed">
+          <li><b>1. Tunjuk kalimat tanya terakhir:</b> Pastikan apakah soal meminta nilai $x$, pernyataan yang <i>salah</i>, atau kesimpulan.</li>
+          <li><b>2. Cek tanda (+/-) & satuan:</b> Luangkan 5 detik sebelum klik tombol Selanjutnya.</li>
+          <li><b>3. Pada PG Kompleks:</b> Uji satu per satu opsi dari atas ke bawah, jangan menebak hanya 1 opsi.</li>
+        </ul>
+        <button onclick="closeStrategyModal()" class="neo-btn w-full bg-[#B6FF00] py-2.5 rounded-xl text-xs font-extrabold">
+          Siap Dipraktikkan!
+        </button>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- OVERLAY 4: LIVE BEHAVIOR LOG INSPECTOR (Bukti Telemetry Real-time) -->
+    <!-- ================================================================= -->
+    <div id="panelLogInspector" class="hidden absolute inset-0 z-50 bg-[#111111]/95 text-white flex flex-col p-4">
+      <div class="flex items-center justify-between border-b border-white/20 pb-3">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase bg-[#B6FF00] text-[#111111] px-2 py-0.5 rounded">Real-Time Telemetry</span>
+          <h3 class="text-sm font-extrabold mt-1">Behavior Log Inspector (DetailTracker + AttemptRecorder)</h3>
+        </div>
+        <button onclick="toggleLogInspector()" class="bg-white/10 px-2.5 py-1 rounded-lg text-xs font-bold">Tutup ✕</button>
+      </div>
+      <p class="text-[11px] text-white/70 mt-2">
+        Setiap aksi user (buka layar, waktu baca soal, klik opsi, ganti jawaban, buka 5 pilar, tanya AI) otomatis direkam untuk diumpankan ke <b>Guru Autopsi</b> & database analitik.
+      </p>
+      <div id="logListContainer" class="flex-1 overflow-y-auto mt-3 space-y-2 font-mono text-[11px]"></div>
+    </div>
+
+
+    <!-- MODAL CUSTOM (pengganti alert/confirm browser) -->
+    <div id="customModal" class="hidden absolute inset-0 z-[60] bg-black/50 flex items-center justify-center p-6">
+      <div class="neo-card rounded-2xl p-5 bg-white w-full max-w-[300px] text-center">
+        <div id="customModalIcon" class="text-3xl mb-2">⚠️</div>
+        <p id="customModalText" class="text-sm font-bold text-[#111111] mb-4"></p>
+        <div id="customModalButtons" class="flex gap-2">
+          <button id="customModalOk" class="neo-btn flex-1 bg-[#B6FF00] py-2.5 rounded-xl text-xs font-extrabold">OK</button>
+          <button id="customModalCancel" class="neo-btn flex-1 bg-white py-2.5 rounded-xl text-xs font-extrabold hidden">Batal</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. BEHAVIOR LOG ENGINE (Gabungan DetailTracker & AttemptRecorder)
+    // =========================================================================
+    const behaviorLogs = [];
+    let questionStartTimeMs = Date.now();
+
+    function logEvent(eventType, payload = {}) {
+      const entry = {
+        id: 'ev_' + (behaviorLogs.length + 1),
+        event: eventType,
+        ts: new Date().toLocaleTimeString('id-ID'),
+        elapsed_ms: Date.now() - questionStartTimeMs,
+        ...payload
+      };
+      behaviorLogs.unshift(entry);
+      const badge = document.getElementById('logCountBadge');
+      if (badge) badge.textContent = behaviorLogs.length;
+      renderLogInspector();
+    }
+
+    function renderLogInspector() {
+      const cont = document.getElementById('logListContainer');
+      if (!cont) return;
+      cont.innerHTML = behaviorLogs.map(l => `
+        <div class="bg-white/5 border border-white/15 rounded-lg p-2.5">
+          <div class="flex justify-between text-[#B6FF00] font-bold">
+            <span>[${l.event}]</span>
+            <span class="text-white/50">${l.ts} (+${l.elapsed_ms}ms)</span>
+          </div>
+          <div class="text-white/80 mt-1 break-all">${JSON.stringify(l)}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleLogInspector() {
+      const el = document.getElementById('panelLogInspector');
+      el.classList.toggle('hidden');
+      renderLogInspector();
+    }
+
+    // =========================================================================
+    // 2. DATA KATALOG MAPEL & SOAL (3 Tipe Soal Resmi Pusmendik)
+    // =========================================================================
+    const MAPEL_CATALOG = [
+      { key: 'matematika', name: 'Matematika (Wajib)', cat: 'Wajib', fav: true, p1: 46, p2: 25, prog: 26 },
+      { key: 'indonesia', name: 'Bahasa Indonesia (Wajib)', cat: 'Wajib', fav: true, p1: 20, p2: 25, prog: 60 },
+      { key: 'inggris', name: 'Bahasa Inggris (Wajib)', cat: 'Wajib', fav: true, p1: 20, p2: 25, prog: 0 },
+      { key: 'fisika', name: 'Fisika (Peminatan)', cat: 'Saintek', fav: true, p1: 20, p2: 24, prog: 15 },
+      { key: 'kimia', name: 'Kimia (Peminatan)', cat: 'Saintek', fav: false, p1: 20, p2: 24, prog: 0 },
+      { key: 'biologi', name: 'Biologi (Peminatan)', cat: 'Saintek', fav: false, p1: 20, p2: 29, prog: 0 },
+      { key: 'ekonomi', name: 'Ekonomi (Peminatan)', cat: 'Soshum', fav: false, p1: 20, p2: 29, prog: 0 },
+      { key: 'sosiologi', name: 'Sosiologi (Peminatan)', cat: 'Soshum', fav: false, p1: 20, p2: 30, prog: 0 },
+      { key: 'tkj', name: 'SMK - Teknik Jaringan & Telekomunikasi (TKJ)', cat: 'SMK', fav: false, p1: 25, p2: 0, prog: 0 },
+      { key: 'tkr', name: 'SMK - Teknik Otomotif (TKR)', cat: 'SMK', fav: false, p1: 25, p2: 0, prog: 0 },
+      { key: 'jepang', name: 'Bahasa Jepang', cat: 'Bahasa', fav: false, p1: 10, p2: 29, prog: 0 }
+    ];
+
+    const QUESTIONS = [
+      {
+        nomor: 1,
+        tipe: 'Pilihan Ganda',
+        topik: 'SPLDV',
+        stimulus: '',
+        prompt: 'Harga 3 buku tulis dan 2 penggaris adalah Rp21.000. Jika harga 2 buku tulis dan 3 penggaris adalah Rp19.000, maka harga 1 buku tulis adalah …',
+        options: [
+          { key: 'A', text: 'Rp4.000' },
+          { key: 'B', text: 'Rp5.000' },
+          { key: 'C', text: 'Rp5.500' },
+          { key: 'D', text: 'Rp6.000' },
+          { key: 'E', text: 'Rp7.000' }
+        ],
+        kunci: 'B',
+        ringkas: 'Substitusi atau eliminasi variabel penggaris (p) dari kedua persamaan linear menghasilkan 5b = 25.000, sehingga harga 1 buku tulis (b) = Rp5.000.',
+        pilar1: 'Diketahui: 3b + 2p = 21.000 dan 2b + 3p = 19.000. Ditanyakan: Nilai b (harga 1 buku tulis).',
+        pilar3: 'Karena kita hanya butuh variabel b, kita kalikan persamaan (1) dengan 3 dan persamaan (2) dengan 2 agar koefisien p sama-sama 6 dan langsung habis dikurangkan.',
+        pilar4: [
+          'Kalikan persamaan (1) × 3 → 9b + 6p = 63.000',
+          'Kalikan persamaan (2) × 2 → 4b + 6p = 38.000',
+          'Kurangkan kedua persamaan → 5b = 25.000 → b = Rp5.000'
+        ],
+        pilar5: 'Trik Cepat: Jumlahkan lalu kurangkan kedua persamaan (5b+5p = 40.000 → b+p = 8.000, dan b-p = 2.000). Maka 2b = 10.000 → b = 5.000 dalam 5 detik!',
+        similar: {
+          q: 'Jika 4 pensil dan 1 penghapus harganya Rp14.000, sedangkan 2 pensil dan 1 penghapus harganya Rp8.000, berapa harga 1 pensil?',
+          opts: ['A. Rp2.000', 'B. Rp3.000', 'C. Rp4.000'],
+          ans: 1,
+          exp: 'Benar! Kurangkan langsung: (4p + h) - (2p + h) = 14.000 - 8.000 → 2p = 6.000 → p = Rp3.000.'
+        }
+      },
+      {
+        nomor: 2,
+        tipe: 'Pilihan Ganda Kompleks',
+        topik: 'FUNGSI KUADRAT',
+        stimulus: 'Perhatikan fungsi kuadrat f(x) = x² - 4x + 3 pada bidang koordinat Cartesius.',
+        prompt: 'Manakah di antara pernyataan berikut yang BENAR mengenai grafik fungsi f(x) tersebut? (Pilih 2 jawaban benar)',
+        options: [
+          { key: 'A', text: 'Grafik membuka ke atas karena koefisien a > 0' },
+          { key: 'B', text: 'Titik puncak berada di koordinat (2, -1)' },
+          { key: 'C', text: 'Grafik memotong sumbu-Y di titik (0, -3)' },
+          { key: 'D', text: 'Grafik tidak memotong sumbu-X' }
+        ],
+        kunci: ['A', 'B'],
+        ringkas: 'Koefisien a = 1 (> 0) membuat kurva membuka ke atas (A benar), dan sumbu simetri xp = -b/2a = 4/2 = 2 dengan yp = 2² - 4(2) + 3 = -1 (B benar).',
+        pilar1: 'Diketahui: f(x) = x² - 4x + 3 (a=1, b=-4, c=3). Ditanyakan: Seluruh pernyataan sifat grafik yang bernilai benar.',
+        pilar3: 'Soal Pilihan Ganda Kompleks menguji kemampuan memverifikasi beberapa sifat fungsi sekaligus tanpa terburu-buru berhenti di opsi pertama.',
+        pilar4: [
+          'Cek arah bukaan: a = 1 > 0 → membuka ke atas (Opsi A Benar)',
+          'Cek titik puncak: xp = -(-4)/(2·1) = 2, yp = 4 - 8 + 3 = -1 → (2, -1) (Opsi B Benar)',
+          'Cek potong sumbu-Y (x=0): y = 3 → (0, 3), bukan (0, -3) (Opsi C Salah)'
+        ],
+        pilar5: 'Jebakan Umum: Siswa sering hanya mencentang opsi A karena sudah yakin benar, padahal PG Kompleks menuntut semua kunci (A dan B) dicentang.',
+        similar: {
+          q: 'Untuk f(x) = x² - 2x - 3, manakah titik potong sumbu-Y yang benar?',
+          opts: ['A. (0, 3)', 'B. (0, -3)', 'C. (1, -4)'],
+          ans: 1,
+          exp: 'Tepat! Substitusi x = 0 menghasilkan f(0) = -3, jadi memotong sumbu-Y di (0, -3).'
+        }
+      },
+      {
+        nomor: 3,
+        tipe: 'Benar-Salah',
+        topik: 'STATISTIKA DATA',
+        stimulus: 'Data nilai ujian 5 siswa adalah: 60, 70, 70, 80, 95.',
+        prompt: 'Tentukan apakah setiap pernyataan statistik di bawah ini Benar atau Salah!',
+        statements: [
+          { key: 'A', text: 'Modus dari data nilai tersebut adalah 70.' },
+          { key: 'B', text: 'Median (nilai tengah) data tersebut adalah 70.' },
+          { key: 'C', text: 'Rata-rata (mean) data tersebut adalah 80.' }
+        ],
+        kunci: { A: 'Benar', B: 'Benar', C: 'Salah' },
+        ringkas: 'Modus = 70 (muncul 2x), Median data terurut ke-3 = 70, sedangkan Rata-rata = (60+70+70+80+95)/5 = 375/5 = 75 (bukan 80).',
+        pilar1: 'Data terurut (n=5): 60, 70, 70, 80, 95. Evaluasi kebenaran Modus, Median, dan Mean.',
+        pilar3: 'Tabel Benar/Salah menuntut kita menghitung nilai eksak rata-rata dan tidak menebak dari angka yang tampak di tengah.',
+        pilar4: [
+          'Pernyataan A: Nilai 70 muncul 2 kali (paling sering) → Benar',
+          'Pernyataan B: Data ke-3 dari 5 data terurut adalah 70 → Benar',
+          'Pernyataan C: Jumlah = 375, dibagi 5 = 75 ≠ 80 → Salah'
+        ],
+        pilar5: 'Trik Cepat: Jangan terkecoh angka 95 yang menarik rata-rata naik, tetap jumlahkan satuan terakhirnya (0+0+0+0+5 = 5, dibagi 5 pasti berakhiran 5, bukan 80).',
+        similar: {
+          q: 'Berapakah jangkauan (range) dari data 60, 70, 70, 80, 95 di atas?',
+          opts: ['A. 25', 'B. 35', 'C. 45'],
+          ans: 1,
+          exp: 'Mantap! Jangkauan = Nilai terbesar - Nilai terkecil = 95 - 60 = 35.'
+        }
+      }
+    ];
+
+    // =========================================================================
+    // 3. STATE & CONTROLLER
+    // =========================================================================
+    let activeCategory = 'pilihanmu';
+    let currentQIndex = 0;
+    let userAnswers = {};      // { 0: 'B', 1: ['A','B'], 2: {A:'Benar', B:'Benar', C:'Salah'} }
+    let raguFlags = {};        // { 0: true }
+    let checkedFlags = {};     // { 0: true }
+    let changeCounts = {};     // { 0: 0 }
+    let pilarExpanded = false;
+    let fontScaleIdx = 1;
+    const FONT_SCALES = [90, 100, 115, 130];
+    let tutorQuota = 24;
+
+    function switchScreen(name) {
+      ['auth', 'home', 'arena', 'result', 'progres', 'akun'].forEach(s => {
+        document.getElementById('screen-' + s).classList.add('hidden');
+        const devBtn = document.getElementById('dev-btn-' + s);
+        if (devBtn) {
+          devBtn.className = (s === name)
+            ? 'px-2 py-1 rounded bg-[#B6FF00] text-[#111111] font-extrabold'
+            : 'px-2 py-1 rounded bg-white/10 hover:bg-white/20 font-semibold';
+        }
+      });
+      document.getElementById('screen-' + name).classList.remove('hidden');
+      logEvent('screen_view', { screen: name });
+      if (name === 'home') renderMapelList();
+      if (name === 'arena') renderArenaQuestion();
+    }
+
+    function doGoogleLogin() {
+      logEvent('auth_login_google', { status: 'authenticated', quota_granted: 25 });
+      switchScreen('home');
+    }
+
+    function setCategory(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('.cat-chip').forEach(btn => {
+        const isOn = btn.getAttribute('data-cat') === cat;
+        btn.className = `cat-chip neo-btn px-3 py-1 rounded-full text-xs shrink-0 ${isOn ? 'font-extrabold bg-[#B6FF00]' : 'font-bold bg-white'}`;
+      });
+      logEvent('filter_category', { category: cat });
+      renderMapelList();
+    }
+
+    function renderMapelList() {
+      const q = (document.getElementById('searchMapelInput')?.value || '').toLowerCase();
+      const filtered = MAPEL_CATALOG.filter(m => {
+        const matchSearch = m.name.toLowerCase().includes(q) || m.cat.toLowerCase().includes(q);
+        const matchCat = activeCategory === 'pilihanmu' ? m.fav : m.cat === activeCategory;
+        return q ? matchSearch : matchCat;
+      });
+
+      const cont = document.getElementById('mapelListContainer');
+      cont.innerHTML = filtered.map(m => `
+        <div class="neo-card rounded-2xl p-3.5 bg-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-neutral-500">${m.cat} · Resmi Pusmendik</span>
+              <h4 class="text-sm font-extrabold text-[#111111]">${m.name}</h4>
+            </div>
+            ${m.prog > 0 ? `<span class="bg-[#B6FF00] border border-[#111111] px-2 py-0.5 rounded-md text-[10px] font-extrabold">${m.prog}% Selesai</span>` : `<span class="bg-neutral-100 border border-[#111111] px-2 py-0.5 rounded-md text-[10px] font-bold">Baru</span>`}
+          </div>
+          <div class="mt-3 grid ${m.p2 ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
+            <button onclick="startQuiz('${m.name}', 1)" class="neo-btn bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between">
+              <div>
+                <p class="text-xs font-extrabold">Paket 1</p>
+                <p class="text-[10px] text-neutral-500 font-semibold">${m.p1} Soal • Timer Resmi</p>
+              </div>
+              <span class="text-xs font-extrabold">→</span>
+            </button>
+            ${m.p2 ? `
+            <button onclick="startQuiz('${m.name}', 2)" class="neo-btn bg-[#FAFAF7] hover:bg-[#B6FF00] py-2 px-3 rounded-xl text-left flex items-center justify-between">
+              <div>
+                <p class="text-xs font-extrabold">Paket 2</p>
+                <p class="text-[10px] text-neutral-500 font-semibold">${m.p2} Soal • Lanjutan</p>
+              </div>
+              <span class="text-xs font-extrabold">→</span>
+            </button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startQuiz(mapelName, pkgNum) {
+      document.getElementById('arenaMapelLabel').textContent = `${mapelName.split(' ')[0]} · Paket ${pkgNum}`;
+      currentQIndex = 0;
+      logEvent('quiz_start', { mapel: mapelName, paket: pkgNum });
+      switchScreen('arena');
+    }
+
+    // =========================================================================
+    // 4. ARENA SOAL LOGIC (3 Tipe Soal + Inline 5 Pilar + AI Tutor)
+    // =========================================================================
+    function renderArenaQuestion() {
+      const q = QUESTIONS[currentQIndex];
+      questionStartTimeMs = Date.now();
+      pilarExpanded = false;
+
+      logEvent('soal_view', { soal_no: q.nomor, tipe: q.tipe, topik: q.topik });
+
+      document.getElementById('arenaSoalCounter').textContent = `${q.nomor}/${QUESTIONS.length}`;
+      document.getElementById('arenaProgressBar').style.width = `${Math.round(((currentQIndex + 1) / QUESTIONS.length) * 100)}%`;
+      document.getElementById('soalTipeBadge').textContent = q.tipe;
+      document.getElementById('soalTopikBadge').textContent = q.topik;
+
+      // Stimulus
+      const stimBox = document.getElementById('soalStimulusBox');
+      if (q.stimulus) {
+        stimBox.classList.remove('hidden');
+        stimBox.textContent = q.stimulus;
+      } else {
+        stimBox.classList.add('hidden');
+      }
+
+      // Prompt
+      document.getElementById('soalPromptText').textContent = q.prompt;
+
+      // Complex Notice
+      const isComplex = q.tipe === 'Pilihan Ganda Kompleks';
+      document.getElementById('complexNoticePill').classList.toggle('hidden', !isComplex);
+
+      // Render Options / Statements
+      const optsCont = document.getElementById('soalOptionsContainer');
+      optsCont.innerHTML = '';
+      const savedAns = userAnswers[currentQIndex];
+
+      if (q.tipe === 'Benar-Salah') {
+        const curBS = savedAns || {};
+        optsCont.innerHTML = `
+          <div class="border-2 border-[#111111] rounded-xl overflow-hidden text-xs">
+            <div class="bg-[#111111] text-white font-extrabold px-3 py-2 flex justify-between">
+              <span>Pernyataan</span>
+              <span class="w-28 text-center">Pilihanmu</span>
+            </div>
+            ${q.statements.map(st => `
+              <div class="p-3 border-t border-neutral-200 flex items-center justify-between gap-2 bg-white">
+                <div class="flex-1"><b class="mr-1">${st.key}.</b>${st.text}</div>
+                <div class="flex gap-1 shrink-0">
+                  <button onclick="pickBsOption('${st.key}', 'Benar')" class="neo-btn px-2.5 py-1 rounded-lg font-extrabold text-[11px] ${curBS[st.key] === 'Benar' ? 'bg-[#B6FF00]' : 'bg-white'}">Benar</button>
+                  <button onclick="pickBsOption('${st.key}', 'Salah')" class="neo-btn px-2.5 py-1 rounded-lg font-extrabold text-[11px] ${curBS[st.key] === 'Salah' ? 'bg-red-200' : 'bg-white'}">Salah</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        q.options.forEach(opt => {
+          const isSelected = isComplex
+            ? (Array.isArray(savedAns) && savedAns.includes(opt.key))
+            : (savedAns === opt.key);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => pickOption(opt.key, isComplex);
+          btn.className = `neo-btn w-full p-3 rounded-xl text-left flex items-center gap-3 text-xs font-bold ${isSelected ? 'bg-[#B6FF00]' : 'bg-white hover:bg-neutral-50'}`;
+          btn.innerHTML = `
+            <span class="w-6 h-6 ${isComplex ? 'rounded-md' : 'rounded-full'} border-2 border-[#111111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0">
+              ${isComplex && isSelected ? '✓' : opt.key}
+            </span>
+            <span class="flex-1">${opt.text}</span>
+          `;
+          optsCont.appendChild(btn);
+        });
+      }
+
+      // Ragu Button State
+      const btnRagu = document.getElementById('btnArenaRagu');
+      const isRagu = !!raguFlags[currentQIndex];
+      btnRagu.className = `neo-btn px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1 ${isRagu ? 'bg-amber-300' : 'bg-white'}`;
+
+      // Prev Button
+      document.getElementById('btnArenaPrev').disabled = (currentQIndex === 0);
+
+      // Evaluation Section & Primary Button
+      const evalSec = document.getElementById('inlineEvaluationSection');
+      document.getElementById('similarSoalBox').classList.add('hidden');
+      if (checkedFlags[currentQIndex]) {
+        renderInlinePembahasan();
+        evalSec.classList.remove('hidden');
+        updatePrimaryButtonLabel(true);
+      } else {
+        evalSec.classList.add('hidden');
+        updatePrimaryButtonLabel(false);
+      }
+
+      // Sync AI Tutor context preview
+      document.getElementById('tutorContextLabel').textContent = `✓ Paham konteks Soal #${q.nomor} (${q.topik})`;
+      document.getElementById('tutorPreviewTitle').textContent = `📌 Intip Soal #${q.nomor} (Klik untuk buka/tutup)`;
+      document.getElementById('tutorPreviewBody').textContent = q.prompt;
+    }
+
+    function updatePrimaryButtonLabel(isChecked) {
+      const btn = document.getElementById('btnArenaPrimary');
+      const isLast = currentQIndex === QUESTIONS.length - 1;
+      if (!isChecked) {
+        btn.textContent = 'Cek Jawaban ✓';
+        btn.className = 'neo-btn flex-1 py-2.5 px-4 rounded-xl bg-[#B6FF00] text-[#111111] text-xs font-extrabold text-center';
+      } else if (isLast) {
+        btn.textContent = 'Selesai & Autopsi 🏁';
+        btn.className = 'neo-btn flex-1 py-2.5 px-4 rounded-xl bg-[#111111] text-[#B6FF00] text-xs font-extrabold text-center';
+      } else {
+        btn.textContent = 'Soal Selanjutnya →';
+        btn.className = 'neo-btn flex-1 py-2.5 px-4 rounded-xl bg-[#4F46E5] text-white text-xs font-extrabold text-center';
+      }
+    }
+
+    function pickOption(key, isComplex) {
+      const prev = userAnswers[currentQIndex];
+      if (prev !== undefined) {
+        changeCounts[currentQIndex] = (changeCounts[currentQIndex] || 0) + 1;
+      }
+      if (isComplex) {
+        let arr = Array.isArray(prev) ? [...prev] : [];
+        arr = arr.includes(key) ? arr.filter(k => k !== key) : [...arr, key];
+        userAnswers[currentQIndex] = arr;
+      } else {
+        userAnswers[currentQIndex] = key;
+      }
+      checkedFlags[currentQIndex] = false;
+      logEvent('option_click', {
+        soal_no: currentQIndex + 1,
+        opsi: userAnswers[currentQIndex],
+        change_count: changeCounts[currentQIndex] || 0
+      });
+      renderArenaQuestion();
+    }
+
+    function pickBsOption(stmtKey, val) {
+      const cur = userAnswers[currentQIndex] || {};
+      cur[stmtKey] = val;
+      userAnswers[currentQIndex] = cur;
+      checkedFlags[currentQIndex] = false;
+      logEvent('option_click_bs', { soal_no: currentQIndex + 1, statement: stmtKey, val });
+      renderArenaQuestion();
+    }
+
+    function handlePrimaryArenaAction() {
+      if (!checkedFlags[currentQIndex]) {
+        const ans = userAnswers[currentQIndex];
+        if (!ans || (Array.isArray(ans) && ans.length === 0)) {
+          showModal('Pilih jawabanmu dulu sebelum klik Cek Jawaban ya!', '☝️', false);
+          return;
+        }
+        checkedFlags[currentQIndex] = true;
+        logEvent('check_answer', { soal_no: currentQIndex + 1, user_answer: ans });
+        renderArenaQuestion();
+        setTimeout(() => {
+          document.getElementById('inlineEvaluationSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      } else {
+        if (currentQIndex < QUESTIONS.length - 1) {
+          navSoal(1);
+        } else {
+          finishQuizNow();
+        }
+      }
+    }
+
+    function renderInlinePembahasan() {
+      const q = QUESTIONS[currentQIndex];
+      const ans = userAnswers[currentQIndex];
+      const fb = document.getElementById('evalFeedbackBanner');
+
+      let isCorrect = false;
+      if (q.tipe === 'Pilihan Ganda') {
+        isCorrect = (ans === q.kunci);
+      } else if (q.tipe === 'Pilihan Ganda Kompleks') {
+        const u = Array.isArray(ans) ? [...ans].sort().join(',') : '';
+        const k = [...q.kunci].sort().join(',');
+        isCorrect = (u === k);
+      } else if (q.tipe === 'Benar-Salah') {
+        isCorrect = q.statements.every(s => ans && ans[s.key] === q.kunci[s.key]);
+      }
+
+      fb.className = `neo-card rounded-2xl p-3.5 ${isCorrect ? 'bg-[#B6FF00]' : 'bg-red-100'}`;
+      fb.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold">${isCorrect ? '✅ Mantap! Jawabanmu Tepat!' : '❌ Belum Tepat — Yuk Cek Pembahasannya!'}</span>
+          <span class="text-[11px] font-bold">Soal #${q.nomor}</span>
+        </div>
+      `;
+
+      const kunciStr = typeof q.kunci === 'object' && !Array.isArray(q.kunci)
+        ? Object.entries(q.kunci).map(([k,v]) => `${k}:${v}`).join(', ')
+        : (Array.isArray(q.kunci) ? q.kunci.join(', ') : q.kunci);
+
+      document.getElementById('pembKeyTitle').textContent = `Kunci Jawaban: ${kunciStr}`;
+      document.getElementById('pembRingkasBody').innerHTML = `<b>Inti Logika (Mode Ringkas):</b> ${q.ringkas}`;
+      document.getElementById('pilar1Text').textContent = q.pilar1;
+      document.getElementById('pilar3Text').textContent = q.pilar3;
+      document.getElementById('pilar4List').innerHTML = q.pilar4.map(s => `<li>${s}</li>`).join('');
+      document.getElementById('pilar5Text').textContent = q.pilar5;
+    }
+
+    function togglePembahasanModeUI() {
+      pilarExpanded = !pilarExpanded;
+      document.getElementById('pembLengkapBody').classList.toggle('hidden', !pilarExpanded);
+      document.getElementById('btnTogglePilarMode').textContent = pilarExpanded
+        ? '🔼 Ciutkan ke Ringkas'
+        : '📖 Buka 5 Pilar Lengkap';
+      logEvent('pembahasan_5pilar_toggle', { soal_no: currentQIndex + 1, mode: pilarExpanded ? 'lengkap' : 'ringkas' });
+    }
+
+    function toggleSimilarSoalBox() {
+      const box = document.getElementById('similarSoalBox');
+      const willShow = box.classList.contains('hidden');
+      box.classList.toggle('hidden');
+      if (willShow) {
+        const sim = QUESTIONS[currentQIndex].similar;
+        document.getElementById('simQuestionText').textContent = sim.q;
+        document.getElementById('simFeedbackText').classList.add('hidden');
+        document.getElementById('simOptionsList').innerHTML = sim.opts.map((o, idx) => `
+          <button onclick="checkSimilarSoal(${idx})" class="neo-btn w-full bg-white hover:bg-[#B6FF00] px-3 py-2 rounded-xl text-left text-xs font-bold block">
+            ${o}
+          </button>
+        `).join('');
+        logEvent('similar_question_open', { soal_no: currentQIndex + 1 });
+      }
+    }
+
+    function checkSimilarSoal(idx) {
+      const sim = QUESTIONS[currentQIndex].similar;
+      const fb = document.getElementById('simFeedbackText');
+      fb.classList.remove('hidden');
+      const ok = idx === sim.ans;
+      fb.textContent = (ok ? '✅ ' : '❌ ') + sim.exp;
+      logEvent('similar_question_answer', { soal_no: currentQIndex + 1, correct: ok });
+    }
+
+    function navSoal(delta) {
+      const next = currentQIndex + delta;
+      if (next >= 0 && next < QUESTIONS.length) {
+        currentQIndex = next;
+        renderArenaQuestion();
+      }
+    }
+
+    function toggleFlagRagu() {
+      raguFlags[currentQIndex] = !raguFlags[currentQIndex];
+      logEvent('flag_ragu', { soal_no: currentQIndex + 1, ragu: raguFlags[currentQIndex] });
+      renderArenaQuestion();
+    }
+
+    function cycleFontScale() {
+      fontScaleIdx = (fontScaleIdx + 1) % FONT_SCALES.length;
+      const sc = FONT_SCALES[fontScaleIdx];
+      document.getElementById('appViewport').setAttribute('data-scale', String(sc));
+      document.getElementById('btnFontScale').textContent = `Aa ${sc}%`;
+      logEvent('font_scale_change', { scale: sc });
+    }
+
+    function togglePetaDrawer(open) {
+      const dr = document.getElementById('drawerPetaSoal');
+      dr.classList.toggle('hidden', !open);
+      if (open) {
+        logEvent('peta_soal_open', { current_soal: currentQIndex + 1 });
+        const grid = document.getElementById('petaGridContainer');
+        grid.innerHTML = QUESTIONS.map((q, idx) => {
+          const ans = userAnswers[idx];
+          const isRagu = raguFlags[idx];
+          const bg = isRagu ? 'bg-amber-300' : (ans ? 'bg-[#B6FF00]' : 'bg-white');
+          return `
+            <button onclick="currentQIndex=${idx}; togglePetaDrawer(false); renderArenaQuestion();" class="neo-btn h-11 rounded-xl font-extrabold text-xs ${bg} ${idx === currentQIndex ? 'ring-2 ring-[#4F46E5]' : ''}">
+              ${q.nomor}
+            </button>
+          `;
+        }).join('');
+      }
+    }
+
+    function finishQuizNow() {
+      togglePetaDrawer(false);
+      logEvent('attempt_finish', { total_answered: Object.keys(userAnswers).length });
+      switchScreen('result');
+    }
+
+    function jumpToReviewQuestion(idx) {
+      currentQIndex = idx;
+      checkedFlags[idx] = true;
+      logEvent('autopsi_jump_to_review', { soal_no: idx + 1 });
+      switchScreen('arena');
+    }
+
+    function confirmExitArena() {
+      showModal('Keluar ke Beranda? Progres latihanmu tetap aman.', '🚪', true, () => switchScreen('home'));
+    }
+
+    // =========================================================================
+    // 5. AI TUTOR BOTTOM SHEET
+    // =========================================================================
+    function openAiTutorSheet() {
+      document.getElementById('sheetAiTutor').classList.remove('hidden');
+      const list = document.getElementById('tutorMessagesList');
+      if (!list.innerHTML.trim()) {
+        const q = QUESTIONS[currentQIndex];
+        list.innerHTML = `
+          <div class="neo-card rounded-2xl p-3 bg-white">
+            <span class="text-[10px] font-extrabold text-[#4F46E5] uppercase">AI Tutor Matematika</span>
+            <p class="mt-1 font-medium">Halo Agus! Aku udah baca <b>Soal #${q.nomor} (${q.topik})</b> beserta kunci resminya. Bagian mana yang bikin kamu ragu? Klik tombol cepat di bawah atau ketik langsung ya!</p>
+          </div>
+        `;
+      }
+      logEvent('ai_tutor_open', { soal_no: currentQIndex + 1 });
+    }
+
+    function closeAiTutorSheet() {
+      document.getElementById('sheetAiTutor').classList.add('hidden');
+    }
+
+    function toggleTutorQuestionPreview() {
+      const body = document.getElementById('tutorPreviewBody');
+      body.classList.toggle('hidden');
+    }
+
+    function sendTutorPrompt(text) {
+      document.getElementById('tutorChatInput').value = text;
+      handleTutorSubmit(new Event('submit'));
+    }
+
+    function handleTutorSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const inp = document.getElementById('tutorChatInput');
+      const msg = inp.value.trim();
+      if (!msg) return;
+      inp.value = '';
+      tutorQuota = Math.max(0, tutorQuota - 1);
+      document.getElementById('tutorQuotaPill').textContent = `${tutorQuota}/25 Tanya`;
+
+      const q = QUESTIONS[currentQIndex];
+      const list = document.getElementById('tutorMessagesList');
+      list.innerHTML += `
+        <div class="flex justify-end">
+          <div class="bg-[#111111] text-white rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] font-semibold">${msg}</div>
+        </div>
+        <div class="neo-card rounded-2xl rounded-bl-sm p-3 bg-[#F0FFB8] max-w-[92%]">
+          <span class="text-[10px] font-extrabold uppercase text-[#111111]">AI Tutor · Soal #${q.nomor}</span>
+          <p class="mt-1 font-medium text-[#111111]">${q.ringkas} <br><br>💡 <b>Trik Ujian:</b> ${q.pilar5}</p>
+        </div>
+      `;
+      list.scrollTop = list.scrollHeight;
+      logEvent('ai_tutor_ask', { soal_no: q.nomor, prompt: msg, quota_remaining: tutorQuota });
+    }
+
+    // =========================================================================
+    // 6. MODALS (Strategi & Tanggal TKA)
+    // =========================================================================
+    function openStrategyModal(label) {
+      document.getElementById('modalStrategi').classList.remove('hidden');
+      logEvent('strategy_modal_open', { label });
+    }
+    function closeStrategyModal() {
+      document.getElementById('modalStrategi').classList.add('hidden');
+    }
+    function openDateModal() {
+      const d = prompt('Masukkan target tanggal TKA kamu (YYYY-MM-DD):', '2026-10-26');
+      if (d) {
+        document.getElementById('headerCountdownText').textContent = '🎯 ' + d.slice(5);
+        logEvent('tka_date_update', { new_date: d });
+      }
+    }
+
+
+    // Modal custom pengganti alert()/confirm()
+    function showModal(text, icon, showCancel, onOk) {
+      document.getElementById('customModalText').textContent = text;
+      document.getElementById('customModalIcon').textContent = icon || '⚠️';
+      const btnCancel = document.getElementById('customModalCancel');
+      btnCancel.classList.toggle('hidden', !showCancel);
+      document.getElementById('customModal').classList.remove('hidden');
+      const btnOk = document.getElementById('customModalOk');
+      btnOk.onclick = () => {
+        document.getElementById('customModal').classList.add('hidden');
+        if (onOk) onOk();
+      };
+      btnCancel.onclick = () => document.getElementById('customModal').classList.add('hidden');
+      logEvent('modal_show', { text: text.substring(0, 40) });
+    }
+
+    // Init default screen = Beranda (atau klik "1. Login" di bar atas untuk lihat layar Auth)
+    switchScreen('home');
+  </script>
+</body>
+</html>

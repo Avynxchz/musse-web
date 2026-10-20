@@ -17,57 +17,57 @@ const OPTIONS = [
   { k: 'C', v: 'Rp25.000', sel: false },
 ]
 
-/* HP besar — desain dikembalikan seperti hero lama; kartu pembahasan slide-in loop 6 detik. */
+/* HP besar — Neo-Brutalism sesuai app asli: border #111 tebal, shadow keras, aksen lime. */
 const BigPhone = memo(function BigPhone() {
   return (
-    <div className="relative w-[230px] shrink-0 rounded-[2rem] border-[7px] border-[#252b3b] bg-[#f8fafc] p-1 shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:w-[280px]">
+    <div className="relative w-[230px] shrink-0 rounded-[2rem] border-[7px] border-[#111] bg-[#FAFAF7] p-1 shadow-[0_8px_0_#111] sm:w-[280px]">
       {/* notch */}
-      <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-xl bg-[#252b3b]" />
+      <div className="absolute left-1/2 top-0 z-10 h-5 w-20 -translate-x-1/2 rounded-b-xl bg-[#111]" />
       <div className="overflow-hidden rounded-[1.45rem]">
-        <div className="bg-[#f8fafc] text-slate-900">
-          <div className="flex justify-between px-4 pb-3 pt-6 text-[9px] font-bold">
+        <div className="bg-[#FAFAF7] text-[#111]">
+          <div className="flex justify-between px-4 pb-3 pt-6 text-[9px] font-extrabold">
             <span>09:41</span>
-            <span className="text-slate-400">musse</span>
+            <span className="rounded-full bg-[#B6FF00] border-[1.5px] border-[#111] px-2 py-0.5 text-[8px]">musse</span>
           </div>
-          <div className="border-b border-slate-200 px-4 pb-3">
-            <div className="flex justify-between text-[10px] font-bold">
+          <div className="border-b-[1.5px] border-[#111] px-4 pb-3">
+            <div className="flex justify-between text-[10px] font-extrabold">
               <span>Matematika</span>
-              <span className="text-indigo-600">12 / 46</span>
+              <span className="rounded-md bg-[#111] text-[#B6FF00] px-1.5 py-0.5 text-[9px]">12 / 46</span>
             </div>
-            <div className="mt-2 h-1 rounded bg-slate-200">
-              <div className="h-1 w-1/4 rounded bg-indigo-600" />
+            <div className="mt-2 h-2 rounded-full border-[1.5px] border-[#111] bg-white">
+              <div className="h-full w-1/4 rounded-full bg-[#B6FF00]" />
             </div>
           </div>
           <div className="px-4 py-4">
-            <p className="text-[9px] font-bold text-slate-400">SOAL 12</p>
-            <p className="mt-2 text-[11px] font-semibold leading-relaxed">
+            <p className="inline-block rounded-md bg-[#111] px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white">Soal 12</p>
+            <p className="mt-2 text-[11px] font-bold leading-relaxed">
               Harga 3 buku dan 2 penggaris Rp18.000. Harga 2 buku dan 5 penggaris adalah...
             </p>
             <div className="mt-4 flex flex-col gap-2">
               {OPTIONS.map((o) => (
                 <div
                   key={o.k}
-                  className={`rounded-lg border px-3 py-2 text-[10px] ${
-                    o.sel ? 'border-indigo-600 bg-indigo-50 font-bold' : 'border-slate-200'
+                  className={`rounded-xl border-[1.5px] border-[#111] px-3 py-2 text-[10px] font-bold shadow-[0_3px_0_#111] ${
+                    o.sel ? 'bg-[#B6FF00]' : 'bg-white'
                   }`}
                 >
-                  <span className="mr-2 text-slate-400">{o.k}</span>
+                  <span className={`mr-2 inline-flex size-5 items-center justify-center rounded-md border-[1.5px] border-[#111] text-[9px] ${o.sel ? 'bg-[#111] text-[#B6FF00]' : 'bg-[#FAFAF7]'}`}>{o.k}</span>
                   {o.v}
-                  {o.sel && <span className="float-right text-indigo-600">✓</span>}
+                  {o.sel && <span className="float-right text-[#111]">✓</span>}
                 </div>
               ))}
             </div>
             {/* Kartu pembahasan: selalu di layout (tanpa layout shift), animasi slide-in dari bawah */}
-            <div className="phone-card-loop mt-4 rounded-xl bg-indigo-50 p-3">
-              <p className="text-[9px] font-bold text-indigo-700">Pembahasan tersedia</p>
-              <p className="mt-1 text-[9px] leading-relaxed text-slate-500">
+            <div className="phone-card-loop mt-4 rounded-xl border-[1.5px] border-[#111] bg-white p-3 shadow-[0_3px_0_#111]">
+              <p className="text-[9px] font-extrabold">📖 Pembahasan tersedia</p>
+              <p className="mt-1 text-[9px] leading-relaxed text-slate-600">
                 Substitusi x = y + 1000 ke persamaan utama...
               </p>
             </div>
           </div>
-          <div className="flex justify-around border-t border-slate-200 px-4 py-3 text-[10px] text-slate-400">
+          <div className="flex justify-around border-t-[1.5px] border-[#111] bg-white px-4 py-3 text-[14px]">
             <span>⌂</span>
-            <span className="font-bold text-indigo-600">▦</span>
+            <span className="flex size-8 items-center justify-center rounded-xl border-[1.5px] border-[#111] bg-[#B6FF00] font-extrabold shadow-[0_2px_0_#111]">▦</span>
             <span>?</span>
             <span>◯</span>
           </div>
@@ -77,56 +77,56 @@ const BigPhone = memo(function BigPhone() {
   )
 })
 
-/* Jendela desktop kecil (HTML/CSS): browser 16:10 + sidebar mapel + panel AI Tutor. */
+/* Jendela desktop kecil — Neo-Brutalism: browser + sidebar mapel + panel AI Tutor. */
 const DesktopWindow = memo(function DesktopWindow() {
   return (
-    <div className="overflow-hidden rounded-xl border-[5px] border-[#252b3b] bg-white shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+    <div className="overflow-hidden rounded-2xl border-[3px] border-[#111] bg-[#FAFAF7] shadow-[0_8px_0_#111]">
       {/* bar browser */}
-      <div className="flex items-center gap-1.5 bg-[#252b3b] px-3 py-2">
-        <span className="size-2 rounded-full bg-[#FF5F57]" />
-        <span className="size-2 rounded-full bg-[#FEBC2E]" />
-        <span className="size-2 rounded-full bg-[#28C840]" />
-        <span className="ml-1 text-[9px] font-bold text-white/80">musse</span>
+      <div className="flex items-center gap-1.5 border-b-[1.5px] border-[#111] bg-[#111] px-3 py-2">
+        <span className="size-2.5 rounded-full bg-[#FF5F57] border border-white/30" />
+        <span className="size-2.5 rounded-full bg-[#FEBC2E] border border-white/30" />
+        <span className="size-2.5 rounded-full bg-[#28C840] border border-white/30" />
+        <span className="ml-1 rounded-full bg-[#B6FF00] px-2 py-0.5 text-[9px] font-extrabold text-[#111]">musse</span>
       </div>
       <div className="flex">
         {/* sidebar mapel */}
-        <div className="flex w-9 shrink-0 flex-col items-center gap-1.5 bg-slate-100 px-1 py-2">
-          {MAPEL.map((m) => (
+        <div className="flex w-10 shrink-0 flex-col items-center gap-1.5 border-r-[1.5px] border-[#111] bg-white px-1 py-2">
+          {MAPEL.map((m, i) => (
             <span
               key={m}
-              className="flex size-6 items-center justify-center rounded-md border border-slate-200 bg-white text-[6px] font-bold text-slate-600"
+              className={`flex size-7 items-center justify-center rounded-lg border-[1.5px] border-[#111] text-[7px] font-extrabold shadow-[0_2px_0_#111] ${i === 0 ? 'bg-[#B6FF00]' : 'bg-[#FAFAF7]'}`}
             >
               {m}
             </span>
           ))}
         </div>
         {/* area utama */}
-        <div className="flex flex-1 gap-1.5 p-1.5">
+        <div className="flex flex-1 gap-2 p-2">
           {/* kartu soal ringkas */}
-          <div className="w-[44%] rounded-lg border border-slate-200 p-1.5">
-            <p className="text-[6px] font-bold text-slate-400">SOAL 12</p>
-            <p className="mt-0.5 text-[7px] font-semibold leading-snug text-slate-800">
+          <div className="w-[44%] rounded-xl border-[1.5px] border-[#111] bg-white p-2 shadow-[0_3px_0_#111]">
+            <p className="inline-block rounded bg-[#111] px-1.5 py-0.5 text-[7px] font-extrabold uppercase text-white">Soal 12</p>
+            <p className="mt-1 text-[8px] font-bold leading-snug">
               Harga 3 buku dan 2 penggaris Rp18.000...
             </p>
-            <div className="mt-1 space-y-0.5">
-              <div className="rounded border border-indigo-200 bg-indigo-50 px-1 py-0.5 text-[6px] font-bold text-indigo-700">
+            <div className="mt-1.5 space-y-1">
+              <div className="rounded-lg border-[1.5px] border-[#111] bg-[#B6FF00] px-1.5 py-1 text-[7px] font-extrabold shadow-[0_2px_0_#111]">
                 B. Rp23.000 ✓
               </div>
-              <div className="rounded border border-slate-200 px-1 py-0.5 text-[6px] text-slate-400">
+              <div className="rounded-lg border-[1.5px] border-[#111] bg-[#FAFAF7] px-1.5 py-1 text-[7px] font-bold text-slate-500">
                 A. Rp19.000
               </div>
             </div>
           </div>
           {/* panel AI Tutor */}
-          <div className="flex flex-1 flex-col rounded-lg bg-indigo-50/60 p-1.5">
-            <p className="text-[7px] font-bold text-indigo-700">✨ AI Tutor</p>
-            <div className="win-chat-1 mt-1 self-end rounded-xl rounded-br-sm bg-purple-600 px-1.5 py-1 text-[7px] font-medium text-white">
+          <div className="flex flex-1 flex-col rounded-xl border-[1.5px] border-[#111] bg-white p-2 shadow-[0_3px_0_#111]">
+            <p className="text-[8px] font-extrabold"><span className="rounded bg-[#B6FF00] border border-[#111] px-1">✨</span> AI Tutor</p>
+            <div className="win-chat-1 mt-1.5 self-end rounded-xl rounded-br-sm border-[1.5px] border-[#111] bg-[#111] px-2 py-1 text-[7px] font-bold text-white">
               Kenapa jawabannya B?
             </div>
-            <div className="win-chat-2 mt-1 rounded-xl rounded-bl-sm bg-[#d9f99d] px-1.5 py-1 text-[7px] leading-snug text-slate-800">
+            <div className="win-chat-2 mt-1 rounded-xl rounded-bl-sm border-[1.5px] border-[#111] bg-[#B6FF00] px-2 py-1 text-[7px] font-bold leading-snug">
               Karena substitusi x = y + 1000...
             </div>
-            <div className="mt-auto rounded-full border border-slate-200 bg-white px-1.5 py-1 text-[6px] text-slate-400">
+            <div className="mt-auto rounded-full border-[1.5px] border-[#111] bg-[#FAFAF7] px-2 py-1 text-[7px] font-bold text-slate-400">
               Tanya apa saja tentang soal...
             </div>
           </div>
@@ -135,6 +135,7 @@ const DesktopWindow = memo(function DesktopWindow() {
     </div>
   )
 })
+
 
 /* Komposisi mockup hero: HP besar + jendela desktop kecil di depannya. */
 const HeroMockup = memo(function HeroMockup() {
