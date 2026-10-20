@@ -1376,7 +1376,7 @@ function ArenaClient() {
   if (soalLoading || !q) {
     return (
       <div className="min-h-dvh bg-[#18181B] flex justify-center">
-        <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1800px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
+        <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1840px] min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center sm:border-x-2 sm:border-[#111] p-6">
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl px-6 py-4 text-sm font-extrabold bg-white text-center">
             <div className="text-2xl mb-2">📚</div>
             Memuat soal…
@@ -1402,7 +1402,7 @@ function ArenaClient() {
 
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
-      <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1800px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
+      <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1840px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
         {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
         {soalError && soalSource === 'dummy' && (
           <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
