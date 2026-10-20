@@ -123,7 +123,10 @@ export const DesktopSidebar = memo(function DesktopSidebar({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAkunPopupOpen(false)}
+                  onClick={() => {
+                    setAkunPopupOpen(false);
+                    router.push('/login');
+                  }}
                   className="w-full px-3 py-2.5 rounded-xl text-xs font-extrabold text-left text-red-700 hover:bg-red-50 flex items-center gap-2.5"
                 >
                   <span>🚪</span> Keluar
