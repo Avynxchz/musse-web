@@ -1585,11 +1585,13 @@ function ArenaClient() {
                           selected ? 'bg-[#B6FF00]' : 'bg-white'
                         }`}
                       >
-                        <span
-                          className={`w-6 h-6 ${isComplex ? 'rounded-md' : 'rounded-full'} border-2 border-[#111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0 pointer-events-none`}
-                        >
-                          {isComplex && selected ? '✓' : opt.key}
-                        </span>
+                        {!(opt.image_url && !opt.text) && (
+                          <span
+                            className={`w-6 h-6 ${isComplex ? 'rounded-md' : 'rounded-full'} border-2 border-[#111] bg-white flex items-center justify-center font-extrabold text-[11px] shrink-0 pointer-events-none`}
+                          >
+                            {isComplex && selected ? '✓' : opt.key}
+                          </span>
+                        )}
                         {/* Prioritas render opsi seperti app lama:
                             1) HTML resmi CBT (gambar rumus inline),
                             2) gambar + teks, 3) teks/latex via KaTeX */}
@@ -1602,12 +1604,12 @@ function ArenaClient() {
                             ) : null}
                             {/* Gambar opsi: kecil inline di samping teks (seperti app lama, ~40px) */}
                             {opt.image_url && (
-                              <span className="shrink-0 border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white pointer-events-none">
+                              <span className={`${opt.text ? 'shrink-0' : 'flex-1 flex justify-center'} border-[1.5px] border-[#111] rounded-lg overflow-hidden bg-white pointer-events-none`}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={opt.image_url}
                                   alt={`Gambar opsi ${opt.key}`}
-                                  className="h-10 w-auto object-contain"
+                                  className={`${opt.text ? 'h-10' : 'h-24'} w-auto object-contain`}
                                   loading="lazy"
                                 />
                               </span>
