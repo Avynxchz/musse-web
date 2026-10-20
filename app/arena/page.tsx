@@ -1554,9 +1554,9 @@ function ArenaClient() {
                 ) : null}
                 {/* Pertanyaan: HTML asli bila ada gambar inline; selain itu pakai Latex */}
                 {q.pertanyaanHtml && /<img/i.test(q.pertanyaanHtml) ? (
-                  <div className="soal-html font-semibold leading-relaxed text-[0.95em]" dangerouslySetInnerHTML={{ __html: q.pertanyaanHtml }} />
+                  <div className="soal-html font-semibold leading-relaxed text-[1.1em]" dangerouslySetInnerHTML={{ __html: q.pertanyaanHtml }} />
                 ) : (
-                  <div className="font-semibold leading-relaxed text-[0.95em]"><Latex text={q.prompt} /></div>
+                  <div className="font-semibold leading-relaxed text-[1.1em]"><Latex text={q.prompt} /></div>
                 )}
               </div>
 
