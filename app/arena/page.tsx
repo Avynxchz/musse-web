@@ -1609,7 +1609,7 @@ function ArenaClient() {
                                 <img
                                   src={opt.image_url}
                                   alt={`Gambar opsi ${opt.key}`}
-                                  className={`${opt.text ? 'h-10' : 'h-24'} w-auto object-contain`}
+                                  className={`${opt.text ? 'h-10' : 'h-56 max-w-full'} w-auto object-contain`}
                                   loading="lazy"
                                 />
                               </span>
