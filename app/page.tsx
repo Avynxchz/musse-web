@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic'
 import Hero from '@/components/Hero'
+import AuthRedirect from '@/components/AuthRedirect'
 import LoginReasons from '@/components/LoginReasons'
 import Steps from '@/components/sections/Steps'
 import Testimonials from '@/components/sections/Testimonials'
@@ -29,6 +30,7 @@ export const metadata = {
 export default function Home() {
   return (
     <main className="min-h-dvh bg-[var(--musse-bg)] font-sans text-[var(--musse-text)] antialiased">
+      <AuthRedirect />
       <Hero />
       <LoginReasons />
       <div className="cv-auto">
