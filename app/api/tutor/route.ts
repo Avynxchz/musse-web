@@ -35,8 +35,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
+    // GROQ_API_KEY boleh berisi 1 key atau beberapa key dipisah koma (round-robin
+    // ala app lama: limit gabungan lebih gede). Spasi di sekitar koma diabaikan,
+    // entri kosong dibuang. 1 key tetap jalan seperti sebelumnya.
+    const apiKeys = (process.env.GROQ_API_KEY || '')
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
+    if (apiKeys.length === 0) {
       return NextResponse.json(
         { status: 'backend_unavailable', message: 'API key belum dikonfigurasi.' },
         { status: 503 }
@@ -60,65 +66,82 @@ PENTING: Jangan tampilkan tag HTML mentah seperti <b> atau <i>. Gunakan **bold**
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-      const res = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: message.trim() },
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        }),
-        signal: controller.signal,
-      });
+      // Mulai dari key acak tiap request (aman di serverless: tidak bergantung
+      // pada memori antar instance), lalu failover berurutan kalau key itu
+      // 401 (tidak valid) atau 429 (limit habis). Satu timeout 60 detik dipakai
+      // bersama untuk seluruh percobaan supaya tidak melewati batas platform.
+      const startIdx = Math.floor(Math.random() * apiKeys.length);
+      const orderedKeys = apiKeys.map((_, i) => apiKeys[(startIdx + i) % apiKeys.length]);
+      const failures: number[] = [];
 
-      if (res.status === 429) {
+      for (const apiKey of orderedKeys) {
+        const res = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: message.trim() },
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+          }),
+          signal: controller.signal,
+        });
+
+        // Key bermasalah -> catat statusnya, lanjut ke key berikutnya.
+        if (res.status === 401 || res.status === 429) {
+          failures.push(res.status);
+          continue;
+        }
+
+        if (!res.ok) {
+          // Bukan masalah key (model/request/hulu) -> langsung laporkan, tidak
+          // perlu coba key lain. Pesan ke klien dijaga generik (tidak
+          // meneruskan body mentah Groq).
+          console.error('[tutor] Groq error', res.status);
+          if (res.status === 400) {
+            return NextResponse.json(
+              { status: 'error', code: 'model_unavailable', message: 'Model AI sedang tidak tersedia.' },
+              { status: 502 }
+            );
+          }
+          return NextResponse.json(
+            { status: 'error', code: 'upstream_error', message: 'Gagal mendapatkan respons AI.' },
+            { status: 502 }
+          );
+        }
+
+        const data = await res.json();
+        const reply = data.choices?.[0]?.message?.content || '';
+
+        if (!reply) {
+          return NextResponse.json(
+            { status: 'error', code: 'empty_reply', message: 'Respons AI kosong.' },
+            { status: 502 }
+          );
+        }
+
+        return NextResponse.json({ status: 'success', reply });
+      }
+
+      // Sampai sini berarti semua key gagal (hanya 401 dan/atau 429).
+      // Hanya status yang di-log, bukan key-nya.
+      console.error('[tutor] all Groq keys failed', failures.join(','));
+      if (failures.every((s) => s === 429)) {
         return NextResponse.json(
           { status: 'rate_limited', message: 'AI sedang sibuk, coba lagi sebentar.' },
           { status: 429 }
         );
       }
-
-      if (!res.ok) {
-        // Bedakan penyebab gagalnya (bukan 502 generik) supaya bisa didiagnosis:
-        // 401 = key tidak valid, 400 = model tidak tersedia, sisanya = gangguan hulu.
-        // Pesan ke klien dijaga generik (tidak meneruskan body mentah Groq).
-        console.error('[tutor] Groq error', res.status);
-        if (res.status === 401) {
-          return NextResponse.json(
-            { status: 'error', code: 'invalid_key', message: 'API key AI tidak valid.' },
-            { status: 502 }
-          );
-        }
-        if (res.status === 400) {
-          return NextResponse.json(
-            { status: 'error', code: 'model_unavailable', message: 'Model AI sedang tidak tersedia.' },
-            { status: 502 }
-          );
-        }
-        return NextResponse.json(
-          { status: 'error', code: 'upstream_error', message: 'Gagal mendapatkan respons AI.' },
-          { status: 502 }
-        );
-      }
-
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || '';
-
-      if (!reply) {
-        return NextResponse.json(
-          { status: 'error', code: 'empty_reply', message: 'Respons AI kosong.' },
-          { status: 502 }
-        );
-      }
-
-      return NextResponse.json({ status: 'success', reply });
+      return NextResponse.json(
+        { status: 'error', code: 'invalid_key', message: 'API key AI tidak valid.' },
+        { status: 502 }
+      );
     } catch (fetchErr) {
       const isTimeout = fetchErr instanceof Error && fetchErr.name === 'AbortError';
       return NextResponse.json(
