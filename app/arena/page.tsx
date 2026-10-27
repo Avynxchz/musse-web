@@ -442,6 +442,8 @@ function ArenaTutorChatBody({
   onTogglePreviewSoal,
   messages,
   onSendChat,
+  tutorError,
+  onRetryTutor,
 }: {
   variant: 'desktop' | 'mobile';
   q: Question;
@@ -449,6 +451,8 @@ function ArenaTutorChatBody({
   onTogglePreviewSoal: () => void;
   messages: { from: 'user' | 'ai'; html: string }[];
   onSendChat: (text: string) => void;
+  tutorError: string | null;
+  onRetryTutor: () => void;
 }) {
   const isDesktop = variant === 'desktop';
   return (
@@ -484,6 +488,19 @@ function ArenaTutorChatBody({
           )
         )}
       </div>
+
+      {tutorError && (
+        <div className="px-3 py-2 bg-white border-t border-neutral-200 flex items-center gap-2 shrink-0">
+          <span className="text-[11px] font-bold text-red-600">⚠️ AI gagal terhubung</span>
+          <button
+            type="button"
+            onClick={onRetryTutor}
+            className="shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold"
+          >
+            🔄 Coba lagi
+          </button>
+        </div>
+      )}
 
       <div className="px-3 py-2 bg-white border-t border-neutral-200 flex gap-1.5 overflow-x-auto shrink-0">
         {TUTOR_QUICK_PROMPTS.map((qp) => (
@@ -527,6 +544,7 @@ function ArenaClient() {
   const [pilarExpanded, setPilarExpanded] = useState(false);
   const [fontScaleIdx, setFontScaleIdx] = useState(1);
   const [tutorQuota, setTutorQuota] = useState(24);
+  const [tutorError, setTutorError] = useState<string | null>(null);
   const [showPeta, setShowPeta] = useState(false);
   const [showTutor, setShowTutor] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -1162,6 +1180,12 @@ function ArenaClient() {
   };
 
   // --- AI tutor ---
+  // Error tutor hanya berlaku untuk soal saat ini; ganti soal -> bersihkan
+  // supaya tombol "Coba lagi" tidak mengirim pertanyaan soal lama ke soal baru.
+  useEffect(() => {
+    setTutorError(null);
+  }, [qIndex]);
+
   const openTutor = () => {
     setShowTutor(true);
     setChatMsgs([{ from: 'ai', html: buildTutorGreeting(mode, q) }]);
@@ -1177,7 +1201,7 @@ function ArenaClient() {
     const now = Date.now();
     if (lastChatRef.current.msg === msg && now - lastChatRef.current.ts < 500) return;
     lastChatRef.current = { msg, ts: now };
-    setTutorQuota((qt) => Math.max(0, qt - 1));
+    setTutorError(null);
 
     // Ambil 2-3 chat terakhir di soal ini (sebelum pesan baru ditambahkan) agar tanya lanjutan nyambung
     const recentTurns = chatMsgs
@@ -1206,25 +1230,9 @@ function ArenaClient() {
       [q.diketahui, q.ditanyakan].filter(Boolean).join(' ') ||
       q.pilar1 ||
       `Topik ${q.topik}`;
-    const intiRingkas = q.ringkas || q.pilar3 || konsepDasar;
-    const langkahInti =
-      q.pilar4 && q.pilar4.length > 0
-        ? `<br/><br/><b>Langkah Inti:</b><br/>${q.pilar4
-            .slice(0, 3)
-            .map((s, idx) => `${idx + 1}. ${s}`)
-            .join('<br/>')}`
-        : '';
     const trikAtauJebakan =
       q.pilar5 ||
       (q.commonMistakes && q.commonMistakes.length > 0 ? q.commonMistakes[0] : '');
-    const templateReply =
-      mode === 'simulasi'
-        ? `<b>Petunjuk konsep (${q.topik}):</b><br/>${konsepDasar}${
-            q.pilar3 ? `<br/><br/>🧭 <b>Arah berpikir:</b> ${q.pilar3}` : ''
-          }`
-        : `${intiRingkas}${langkahInti}${
-            trikAtauJebakan ? `<br/><br/>💡 <b>Trik & Catatan:</b> ${trikAtauJebakan}` : ''
-          }`;
 
     // Rekomendasi 1 & 2: Susun konteks lengkap (soal, opsi/pernyataan, gambar, jawaban siswa, 5 pilar, & riwayat chat)
     const curAns = answersRef.current[qIndex] ?? answers[qIndex];
@@ -1305,15 +1313,18 @@ function ArenaClient() {
           .replace(/\n\n/g, '<br/><br/>')
           .replace(/\n/g, '<br/>');
         replyHtml = `<b>🤖 AI Tutor:</b><br/>${escaped}`;
-        // Update kuota dari backend kalau ada
-        if (data.quota && typeof data.quota.remaining === 'number') {
-          setTutorQuota(data.quota.remaining);
-        }
+        // Kuota hanya kepotong kalau AI beneran jawab (bukan saat gagal)
+        setTutorQuota((qt) => Math.max(0, qt - 1));
       } else if (data.status === 'rate_limited') {
         replyHtml = `⏸️ <b>${data.message || 'Kuota habis, coba lagi nanti.'}</b>`;
       } else {
-        // Backend error -> fallback ke template
-        replyHtml = `${templateReply}<br/><br/><i class="text-neutral-500">(Mode template: AI penuh sedang tidak tersedia)</i>`;
+        // Backend error -> tampilkan error jujur, JANGAN jawaban template
+        const errMsg = String(data.message || 'Gagal mendapatkan respons AI.')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        replyHtml = `⚠️ <b>AI gagal terhubung.</b> ${errMsg} Tekan tombol "Coba lagi" di bawah untuk mengulang pertanyaanmu.`;
+        setTutorError(errMsg);
       }
 
       // Ganti pesan loading dengan jawaban asli
@@ -1325,16 +1336,22 @@ function ArenaClient() {
     } catch (e) {
       // Abort (request dibatalkan) -> jangan update UI, bukan error
       if (e instanceof Error && e.name === 'AbortError') return;
-      // Network error -> fallback ke template
+      // Network error -> tampilkan error jujur, JANGAN jawaban template
+      setTutorError('Koneksi AI gagal.');
       setChatMsgs((prev) => {
         const next = [...prev];
         next[next.length - 1] = {
           from: 'ai',
-          html: `${templateReply}<br/><br/><i class="text-neutral-500">(Mode template: koneksi AI gagal)</i>`,
+          html: `⚠️ <b>Koneksi AI gagal.</b> Periksa koneksimu lalu tekan tombol "Coba lagi" di bawah.`,
         };
         return next;
       });
     }
+  };
+
+  // Kirim ulang pertanyaan terakhir saat AI gagal (tombol "Coba lagi")
+  const retryTutor = () => {
+    if (lastChatRef.current.msg) sendChat(lastChatRef.current.msg);
   };
 
   // --- soal serupa ---
@@ -1967,7 +1984,11 @@ function ArenaClient() {
                     <span className="w-7 h-7 rounded-full bg-[#B6FF00] border border-[#111] flex items-center justify-center text-xs font-extrabold">✨</span>
                     <div>
                       <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
-                      <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                      {tutorError ? (
+                        <p className="text-[10px] text-red-600 font-bold">⚠️ AI tidak terhubung — jawaban terakhir gagal</p>
+                      ) : (
+                        <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                      )}
                     </div>
                     <span className="ml-auto bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded-full text-[10px] font-extrabold">{tutorQuota}/25</span>
                   </div>
@@ -1978,6 +1999,8 @@ function ArenaClient() {
                     onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
                     messages={desktopChatMsgs}
                     onSendChat={sendChat}
+                    tutorError={tutorError}
+                    onRetryTutor={retryTutor}
                   />
                 </div>
               )}
@@ -2132,7 +2155,11 @@ function ArenaClient() {
                   </span>
                   <div>
                     <h3 className="text-xs font-extrabold">AI Tutor {mapelShort}</h3>
-                    <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                    {tutorError ? (
+                      <p className="text-[10px] text-red-600 font-bold">⚠️ AI tidak terhubung — jawaban terakhir gagal</p>
+                    ) : (
+                      <p className="text-[10px] text-green-700 font-bold">✓ Paham konteks Soal #{q.nomor}</p>
+                    )}
                     <p className="text-[9px] text-neutral-400">AI beneran (Railway) + fallback template</p>
                   </div>
                 </div>
@@ -2153,6 +2180,8 @@ function ArenaClient() {
                 onTogglePreviewSoal={() => setPreviewSoalOpen((v) => !v)}
                 messages={chatMsgs}
                 onSendChat={sendChat}
+                tutorError={tutorError}
+                onRetryTutor={retryTutor}
               />
             </div>
           </div>

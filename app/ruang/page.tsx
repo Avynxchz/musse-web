@@ -53,6 +53,8 @@ const RuangCoachChatBody = memo(function RuangCoachChatBody({
   paketCoach,
   loading,
   onSend,
+  coachError,
+  onRetryCoach,
 }: {
   variant: 'desktop' | 'mobile';
   chatBoxRef?: React.RefObject<HTMLDivElement | null>;
@@ -61,6 +63,8 @@ const RuangCoachChatBody = memo(function RuangCoachChatBody({
   paketCoach: 1 | 2;
   loading?: boolean;
   onSend: (text: string) => void;
+  coachError: string | null;
+  onRetryCoach: () => void;
 }) {
   const isDesktop = variant === 'desktop';
   return (
@@ -103,6 +107,29 @@ const RuangCoachChatBody = memo(function RuangCoachChatBody({
           )
         )}
       </div>
+
+      {coachError && (
+        <div
+          className={
+            isDesktop
+              ? 'px-5 py-2.5 bg-white border-t border-neutral-200 flex items-center gap-2 shrink-0'
+              : 'px-3 py-2 bg-white border-t border-neutral-200 flex items-center gap-1.5 shrink-0'
+          }
+        >
+          <span className="text-[11px] font-bold text-red-600">⚠️ Coach gagal terhubung</span>
+          <button
+            type="button"
+            onClick={onRetryCoach}
+            className={
+              isDesktop
+                ? 'shrink-0 bg-[#FAFAF7] hover:bg-[#B6FF00] transition-colors border-2 border-[#111] shadow-[0_3px_0_#111] px-3 py-1.5 rounded-full text-xs font-bold'
+                : 'shrink-0 bg-[#FAFAF7] border-2 border-[#111] shadow-[0_3px_0_#111] px-2.5 py-1 rounded-full text-[11px] font-bold'
+            }
+          >
+            🔄 Coba lagi
+          </button>
+        </div>
+      )}
 
       <div
         className={
@@ -190,6 +217,7 @@ export default function RuangPage() {
   const [showCoach, setShowCoach] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
   const [coachQuota, setCoachQuota] = useState(24);
+  const [coachError, setCoachError] = useState<string | null>(null);
   const [coachLoading, setCoachLoading] = useState(false);
   const chatBoxRef = useRef<HTMLDivElement | null>(null);
   const greetedKeyRef = useRef<string>('');
@@ -238,26 +266,11 @@ export default function RuangPage() {
     }
   }, [ai1Insight?.pola, coachPesan, logEvent, mapelCoach, mapelLabel, paketCoach, statRuang.adaData, statRuang.totalSoal]);
 
-  const buildFallbackReply = useCallback((userQuestion: string): string => {
-    if (!statRuang.adaData) {
-      return `Belum ada data untuk <b>${mapelLabel} Paket ${paketCoach}</b>! Yuk kerjakan soal <b>${mapelLabel} Paket ${paketCoach}</b> terlebih dahulu supaya aku bisa membedah topik lemah dan pola belajarmu secara spesifik.`;
-    }
-    const lemahTxt = statRuang.topikLemah.join(', ') || 'soal yang masih salah';
-    const polaUtama = statRuang.polaAI1[0];
-    const rekTxt =
-      polaUtama?.rekomendasi ||
-      statRuang.rekomendasiAI1[0] ||
-      `Fokus ulangi soal yang salah pada ${mapelLabel} Paket ${paketCoach} dan baca 5 Pilar pembahasannya.`;
-    return (
-      `Berdasarkan evaluasi <b>${mapelLabel} Paket ${paketCoach}</b> (akurasi ${statRuang.akurasiPct}% dari ${statRuang.totalSoal} soal):<br/>` +
-      `• <b>Topik yang perlu dikejar:</b> ${lemahTxt}<br/>` +
-      (polaUtama
-        ? `• <b>Pola AI #1 (${polaUtama.nama}):</b> ${polaUtama.bukti}<br/>`
-        : `• <b>Pola AI #1:</b> Ritme pengerjaanmu sudah cukup terjaga.<br/>`) +
-      `• <b>Langkah Aksi:</b> ${rekTxt}<br/><br/>` +
-      `Terkait pertanyaanmu (<i>"${userQuestion}"</i>): pastikan kamu memetakan konsep dasar di Pilar 1 & alasan penggunaan rumus di Pilar 3 sebelum menghitung cepat.`
-    );
-  }, [mapelLabel, paketCoach, statRuang]);
+  // Error Coach hanya berlaku untuk konteks mapel/paket saat ini; ganti
+  // konteks -> bersihkan supaya "Coba lagi" tidak mengirim ke konteks baru.
+  useEffect(() => {
+    setCoachError(null);
+  }, [mapelCoach, paketCoach]);
 
   const sendCoachMsg = useCallback(async (text: string) => {
     const msg = text.trim();
@@ -272,8 +285,7 @@ export default function RuangPage() {
       return;
     }
 
-    const nextQuota = Math.max(0, coachQuota - 1);
-    setCoachQuota(nextQuota);
+    setCoachError(null);
     const safeUserHtml = msg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     setChatMsgs((prev) => [
       ...prev,
@@ -284,7 +296,7 @@ export default function RuangPage() {
       mapel: mapelCoach,
       paket: paketCoach,
       prompt: msg.slice(0, 60),
-      quota_remaining: nextQuota,
+      quota_remaining: coachQuota,
     });
 
     const polaContext =
@@ -345,13 +357,18 @@ export default function RuangPage() {
           .replace(/\n\n/g, '<br/><br/>')
           .replace(/\n/g, '<br/>');
         replyHtml = `<b>🤖 Coach ${mapelLabel} (P${paketCoach}):</b><br/>${escaped}`;
-        if (data.quota && typeof data.quota.remaining === 'number') {
-          setCoachQuota(data.quota.remaining);
-        }
+        // Kuota hanya kepotong kalau Coach beneran jawab
+        setCoachQuota((q) => Math.max(0, q - 1));
       } else if (data.status === 'rate_limited') {
         replyHtml = `⏸️ <b>${data.message || 'Kuota habis, coba lagi nanti.'}</b>`;
       } else {
-        replyHtml = buildFallbackReply(safeUserHtml);
+        // Backend error -> tampilkan error jujur, JANGAN jawaban fallback
+        const errMsg = String(data.message || 'Gagal mendapatkan respons AI.')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        replyHtml = `⚠️ <b>Coach gagal terhubung.</b> ${errMsg} Tekan tombol "Coba lagi" di bawah untuk mengulang pertanyaanmu.`;
+        setCoachError(errMsg);
       }
 
       setChatMsgs((prev) => {
@@ -361,15 +378,21 @@ export default function RuangPage() {
       });
     } catch (e) {
       if (e instanceof Error && e.name === 'AbortError') return;
+      setCoachError('Koneksi Coach gagal.');
       setChatMsgs((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { from: 'ai', html: buildFallbackReply(safeUserHtml) };
+        next[next.length - 1] = { from: 'ai', html: `⚠️ <b>Koneksi Coach gagal.</b> Periksa koneksimu lalu tekan tombol "Coba lagi" di bawah.` };
         return next;
       });
     } finally {
       setCoachLoading(false);
     }
-  }, [buildFallbackReply, coachQuota, logEvent, mapelCoach, mapelLabel, paketCoach, showToastMsg, statRuang]);
+  }, [coachQuota, logEvent, mapelCoach, mapelLabel, paketCoach, showToastMsg, statRuang]);
+
+  // Kirim ulang pertanyaan terakhir saat Coach gagal (tombol "Coba lagi")
+  const retryCoach = () => {
+    if (lastCoachMsgRef.current.msg) sendCoachMsg(lastCoachMsgRef.current.msg);
+  };
 
   useEffect(() => {
     const el = chatBoxRef.current;
@@ -554,6 +577,8 @@ export default function RuangPage() {
                 paketCoach={paketCoach}
                 loading={coachLoading}
                 onSend={sendCoachMsg}
+                coachError={coachError}
+                onRetryCoach={retryCoach}
               />
             </div>
           </div>
@@ -607,6 +632,8 @@ export default function RuangPage() {
                 paketCoach={paketCoach}
                 loading={coachLoading}
                 onSend={sendCoachMsg}
+                coachError={coachError}
+                onRetryCoach={retryCoach}
               />
             </div>
           </div>
