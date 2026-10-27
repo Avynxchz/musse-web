@@ -1264,11 +1264,16 @@ function ArenaClient() {
 
     const modeInstruction =
       mode === 'simulasi'
-        ? 'MODE SIMULASI UJIAN: JANGAN bocorkan huruf kunci jawaban secara langsung; berikan petunjuk konsep & arahkan langkah berpikir.'
-        : `MODE LATIHAN${checked[qIndex] ? ' (Sudah Cek Jawaban)' : ''}: Jelaskan dengan ramah dan mengacu pada pembahasan 5 Pilar. Kunci resmi: ${formatKunci(q)}`;
+        ? 'MODE SIMULASI UJIAN: JANGAN bocorkan huruf kunci jawaban secara langsung; berikan petunjuk konsep & arahkan langkah berpikir. (Aturan ini hanya berlaku kalau pertanyaan berkaitan dengan soal.)'
+        : `MODE LATIHAN${checked[qIndex] ? ' (Sudah Cek Jawaban)' : ''}: Kalau pertanyaan berkaitan dengan soal, jelaskan dengan ramah dan mengacu pada pembahasan 5 Pilar. Kunci resmi: ${formatKunci(q)} (kunci hanya dipakai untuk pembahasan soal, jangan disebut kalau pertanyaan tidak minta pembahasan soal).`;
 
+    // Pertanyaan siswa ditaruh PALING DEPAN + aturan prioritas eksplisit:
+    // konteks soal yang panjang di bawah ini sebelumnya "membajak" jawaban —
+    // model malah menjelaskan soal (format 5 Pilar) meski siswa bertanya hal lain.
     const contextualMessage =
-      `[KONTEKS SOAL AI TUTOR - ${mapel.name} (${mapelKey}) Paket ${paket} · Soal #${q.nomor}]\n` +
+      `Pertanyaan Siswa: ${msg}\n` +
+      `\nATURAN UTAMA: Jawab PERTANYAAN SISWA di atas. Konteks soal di bawah HANYA dipakai kalau pertanyaan berkaitan dengan soal itu. Kalau pertanyaan TIDAK berkaitan dengan soal (misalnya pertanyaan umum, pelajaran lain, atau hitungan lain), jawab pertanyaan itu saja secara langsung — JANGAN membahas soal, JANGAN menampilkan pembahasan 5 Pilar, dan JANGAN menyebut kunci jawaban.\n` +
+      `\n[KONTEKS SOAL AI TUTOR - ${mapel.name} (${mapelKey}) Paket ${paket} · Soal #${q.nomor}]\n` +
       `- Instruksi Mode: ${modeInstruction}\n` +
       `- Tipe & Topik: ${q.tipe} · ${q.topik}\n` +
       (q.stimulus ? `- Stimulus: ${q.stimulus.slice(0, 450)}\n` : '') +
