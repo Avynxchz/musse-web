@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DesktopSidebar } from '../components/DesktopSidebar';
+import { createClient } from '../../lib/supabase';
 import {
   BottomNav,
   LogCounter,
@@ -21,12 +22,25 @@ export default function AkunPage() {
   const [tanggalTKA, setTanggalTKA] = useState('26 Okt 2026');
   const [modalTanggalOpen, setModalTanggalOpen] = useState(false);
   const [inputTanggal, setInputTanggal] = useState('');
+  const [userName, setUserName] = useState('Pengguna');
+  const [userEmail, setUserEmail] = useState('');
   const { toast, showToastMsg } = useToast();
   const { logs, logEvent, showLogPanel, setShowLogPanel } = useBehaviorLog('akun');
 
   // Page view logging
   useEffect(() => {
     logEvent('page_view', { page: 'akun' });
+  }, []);
+
+  // Nama & email profil dari akun Google yang login (bukan hardcode)
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserName(user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Pengguna');
+        setUserEmail(user.email || '');
+      }
+    });
   }, []);
 
   const bukaModalTanggal = () => {
@@ -64,11 +78,11 @@ export default function AkunPage() {
           {/* Kartu profil */}
           <div className="border-2 border-[#111] shadow-[0_4px_0_#111] rounded-2xl p-4 flex items-center gap-3 bg-white">
             <div className="w-12 h-12 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-base shrink-0">
-              AG
+              {userName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?'}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-extrabold truncate">Agus Alfiansyah Putra</h3>
-              <p className="text-xs text-neutral-500">agus@gmail.com · Terhubung Google</p>
+              <h3 className="text-sm font-extrabold truncate">{userName}</h3>
+              <p className="text-xs text-neutral-500">{userEmail ? `${userEmail} · Terhubung Google` : 'Terhubung Google'}</p>
               <span className="inline-block mt-1 bg-[#E0E7FF] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold">
                 Kuota AI: 24 / 25 Tersisa Hari Ini
               </span>
