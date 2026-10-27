@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
-import { Chip, CheckIcon } from './ui'
+import { Chip, CheckIcon } from './landing-ui'
 import { useLoopAnimation } from '@/lib/useLoopAnimation'
 import { useGoogleLogin } from '@/lib/useGoogleLogin'
 import { useReducedMotion } from '@/lib/useReducedMotion'

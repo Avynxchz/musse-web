@@ -26,6 +26,7 @@ import {
   renderLatexToHtml,
   type LogStore,
 } from '../components/ui';
+import { ArenaPilarCards } from '../components/ArenaPilarCards';
 import { dbRowToQuestion, getSoal } from '../../lib/soal';
 import { saveAttempt } from '../../lib/analisis';
 
@@ -230,130 +231,6 @@ const ArenaStatementBody = memo(function ArenaStatementBody({
   );
 });
 
-/** Kartu Pembahasan 5 Pilar yang dipakai bersama di Mobile (inline) dan Desktop (modal lebar). */
-const ArenaPilarCards = memo(function ArenaPilarCards({ q }: { q: Question }) {
-  return (
-    <>
-      {/* ===== PILAR 1: Identifikasi Masalah (kartu mandiri) ===== */}
-      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 1</span>
-          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Identifikasi Masalah</h2>
-        </header>
-        <div className="p-3.5 flex flex-col gap-3">
-          {q.diketahui ? (
-            <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
-              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#E0E7FF]">📋 Diketahui</span>
-              <PilarText text={q.diketahui} />
-            </div>
-          ) : null}
-          {q.ditanyakan ? (
-            <div className="bg-[#FAFAF7] border-[1.5px] border-[#111] rounded-[14px] p-3">
-              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FDE68A]">🎯 Ditanyakan</span>
-              <PilarText text={q.ditanyakan} />
-            </div>
-          ) : null}
-          {!(q.diketahui || q.ditanyakan) ? (
-            <PilarText text={q.pilar1} />
-          ) : null}
-          {(q.conceptKunci?.length ?? 0) > 0 && (
-            <div>
-              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">🔑 Konsep & Rumus Utama</span>
-              <div className="flex flex-wrap gap-1.5">
-                {q.conceptKunci!.map((c, i) => (
-                  <span key={i} className="bg-[#B6FF00] border-[1.5px] border-[#111] shadow-[0_2px_0_#111] rounded-full px-2.5 py-1 text-xs font-extrabold"><Latex text={c} /></span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </article>
-      {/* ===== PILAR 2: Glosarium (kartu mandiri, tidak digabung dengan Pilar 3) ===== */}
-      {(q.glossary?.length ?? 0) > 0 && (
-        <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-          <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#E0E7FF]">Pilar 2</span>
-            <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Glosarium</h2>
-          </header>
-          <div className="p-3.5 flex flex-col gap-3">
-            {q.glossary!.map((g, i) => (
-              <div key={i} className="border-[1.5px] border-[#111] rounded-[14px] p-3 bg-[#FAFAF7]">
-                <div className="inline-block bg-[#E0E7FF] border-[1.5px] border-[#111] rounded-[7px] px-2 py-0.5 text-[12px] font-extrabold mb-1.5"><Latex text={g.term} /></div>
-                <p className="text-sm font-medium leading-relaxed"><Latex text={g.meaning} /></p>
-              </div>
-            ))}
-          </div>
-        </article>
-      )}
-      {/* ===== PILAR 3: Mengapa Rumus Ini Dipakai? (kartu mandiri) ===== */}
-      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 3</span>
-          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Mengapa Rumus Ini Dipakai?</h2>
-        </header>
-        <div className="p-3.5">
-          <div className="border-[1.5px] border-[#111] border-l-[5px] border-l-[#4F46E5] rounded-[14px] p-3 bg-[#F5F7FF]">
-            <PilarText text={q.pilar3} />
-          </div>
-        </div>
-      </article>
-      {/* ===== PILAR 4: Langkah-Langkah Pengerjaan (kartu mandiri) ===== */}
-      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#B6FF00]">Pilar 4</span>
-          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Langkah-Langkah Pengerjaan</h2>
-        </header>
-        <div className="p-3.5 flex flex-col gap-3">
-          {q.stepsDetailed?.length ? (
-            q.stepsDetailed.map((s, i, arr) => (
-              <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 flex flex-col gap-1.5 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
-                <div className="flex items-start gap-2">
-                  <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
-                  {s.title ? <h3 className="text-[13.5px] font-extrabold leading-snug"><Latex text={s.title} /></h3> : null}
-                </div>
-                <PilarText text={s.explanation} />
-              </div>
-            ))
-          ) : (
-            (q.pilar4 ?? []).map((s, i, arr) => (
-              <div key={i} className={`border-[1.5px] border-[#111] rounded-[14px] p-3 ${i === arr.length - 1 && arr.length > 1 ? 'bg-[#F4FFD6]' : 'bg-[#FAFAF7]'}`}>
-                <div className="flex items-start gap-2">
-                  <span className="bg-[#111] text-[#B6FF00] text-[10px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-[0.05em] shrink-0 mt-0.5">Langkah {String(i + 1).padStart(2, '0')}</span>
-                  <PilarText text={s} />
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </article>
-      {/* ===== PILAR 5: Trik Cepat & Jebakan Umum (kartu mandiri) ===== */}
-      <article className="pilar-cv bg-white border-2 border-[#111] shadow-[0_3px_0_#111] rounded-[18px] overflow-hidden w-full">
-        <header className="flex items-center justify-between px-3.5 py-2.5 border-b-2 border-[#111] bg-[#FAFAF7]">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-lg border-[1.5px] border-[#111] text-[11px] font-extrabold uppercase tracking-[0.06em] bg-[#FDE68A]">Pilar 5</span>
-          <h2 className="text-[12px] font-extrabold uppercase tracking-[0.05em]">Trik Cepat & Jebakan Umum</h2>
-        </header>
-        <div className="p-3.5 flex flex-col gap-3">
-          {q.pilar5 ? (
-            <div className="bg-[#DCFCE7] border-[1.5px] border-[#111] rounded-[14px] p-3">
-              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#B6FF00]">⚡ Trik Cepat</span>
-              <PilarText text={q.pilar5} />
-            </div>
-          ) : null}
-          {(q.commonMistakes?.length ?? 0) > 0 && (
-            <div className="bg-[#FEE2E2] border-[1.5px] border-[#111] rounded-[14px] p-3">
-              <span className="inline-block text-[10.5px] font-extrabold uppercase tracking-[0.07em] px-2 py-0.5 rounded-md border-[1.5px] border-[#111] mb-2 bg-[#FCA5A5]">⚠️ Jebakan Umum</span>
-              <div className="text-sm font-medium leading-relaxed space-y-1.5">
-                {q.commonMistakes!.map((m, i) => (
-                  <PilarText key={i} text={m} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </article>
-    </>
-  );
-});
 
 /** Isi Peta Nomor Soal (legenda + grid tombol nomor + tombol selesai) untuk Desktop & Mobile. */
 function ArenaPetaBody({
@@ -449,7 +326,7 @@ function ArenaTutorChatBody({
   q: Question;
   previewSoalOpen: boolean;
   onTogglePreviewSoal: () => void;
-  messages: { from: 'user' | 'ai'; html: string }[];
+  messages: { from: 'user' | 'ai'; html: string; id?: number }[];
   onSendChat: (text: string) => void;
   tutorError: string | null;
   onRetryTutor: () => void;
@@ -473,14 +350,14 @@ function ArenaTutorChatBody({
       <div className={`${isDesktop ? 'max-h-[260px]' : 'flex-1'} overflow-y-auto p-4 space-y-3 text-xs`}>
         {messages.map((m, i) =>
           m.from === 'user' ? (
-            <div key={i} className="flex justify-end">
+            <div key={m.id ?? i} className="flex justify-end">
               <div className="bg-[#111] text-white rounded-2xl rounded-br-sm px-3 py-2 max-w-[85%] font-semibold">
                 {m.html}
               </div>
             </div>
           ) : (
             <div
-              key={i}
+              key={m.id ?? i}
               className="bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-3 max-w-[92%]"
             >
               <p className="font-medium" dangerouslySetInnerHTML={{ __html: renderLatexToHtml(m.html) }} />
@@ -578,7 +455,7 @@ function ArenaClient() {
   const [previewSoalOpen, setPreviewSoalOpen] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<'peta' | 'ai' | 'pilar'>('peta');
   const [sidebarHidden, setSidebarHidden] = useState(false);
-  const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string }[]>([]);
+  const [chatMsgs, setChatMsgs] = useState<{ from: 'ai' | 'user'; html: string; id?: number }[]>([]);
 
   // --- soal dari Supabase (fallback ke dummy jika gagal) ---
   const [questions, setQuestions] = useState<Question[]>(QUESTIONS);
@@ -753,6 +630,7 @@ function ArenaClient() {
   // Guard anti double-submit / double-finish (race condition)
   const finishingRef = useRef(false);
   const lastChatRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
+  const chatIdRef = useRef(0);
   const chatAbortRef = useRef<AbortController | null>(null);
 
   // Cleanup: cegah setState / timer / fetch menggantung setelah unmount
@@ -959,11 +837,11 @@ function ArenaClient() {
     // Navigasi SELALU dijalankan walau save gagal — jangan kunci user di arena
     try {
       router.push(
-        `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
+        `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}${endedBy === 'timer' ? '&autosubmit=1' : ''}`
       );
     } catch {
       // Fallback: hard navigation bila router gagal
-      window.location.href = `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}&benar=${benar}&salah=${salah}&kosong=${kosong}&total=${questions.length}${endedBy === 'timer' ? '&autosubmit=1' : ''}`;
+      window.location.href = `/hasil?mode=${mode}&mapel=${mapel.key}&paket=${paket}${endedBy === 'timer' ? '&autosubmit=1' : ''}`;
     }
   };
 
@@ -1188,7 +1066,7 @@ function ArenaClient() {
 
   const openTutor = () => {
     setShowTutor(true);
-    setChatMsgs([{ from: 'ai', html: buildTutorGreeting(mode, q) }]);
+    setChatMsgs([{ from: 'ai', html: buildTutorGreeting(mode, q), id: ++chatIdRef.current }]);
     setPreviewSoalOpen(false);
     logEvent('ai_tutor_open', { soal_no: q.nomor, mode });
   };
@@ -1220,12 +1098,12 @@ function ArenaClient() {
     // Tampilkan pesan user + indikator loading
     setChatMsgs((prev) => [
       ...prev,
-      { from: 'user', html: msg },
-      { from: 'ai', html: '⏳ <i>AI sedang berpikir...</i>' },
+      { from: 'user', html: msg, id: ++chatIdRef.current },
+      { from: 'ai', html: '⏳ <i>AI sedang berpikir...</i>', id: ++chatIdRef.current },
     ]);
     logEvent('ai_tutor_ask', { soal_no: q.nomor, prompt: msg.slice(0, 60) });
 
-    // Rekomendasi 3: Fallback template berjenjang (anti kosong saat backend offline)
+    // Konteks soal untuk prompt tutor (dipakai kalau pertanyaan berkaitan dengan soal; lihat ATURAN UTAMA di contextualMessage).
     const konsepDasar =
       [q.diketahui, q.ditanyakan].filter(Boolean).join(' ') ||
       q.pilar1 ||
@@ -1335,7 +1213,7 @@ function ArenaClient() {
       // Ganti pesan loading dengan jawaban asli
       setChatMsgs((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { from: 'ai', html: replyHtml };
+        next[next.length - 1] = { ...next[next.length - 1], from: 'ai', html: replyHtml };
         return next;
       });
     } catch (e) {
@@ -1346,6 +1224,7 @@ function ArenaClient() {
       setChatMsgs((prev) => {
         const next = [...prev];
         next[next.length - 1] = {
+          ...next[next.length - 1],
           from: 'ai',
           html: `⚠️ <b>Koneksi AI gagal.</b> Periksa koneksimu lalu tekan tombol "Coba lagi" di bawah.`,
         };
@@ -1425,10 +1304,10 @@ function ArenaClient() {
   return (
     <div className="min-h-dvh bg-[#18181B] flex justify-center">
       <div className="relative w-full max-w-[430px] md:max-w-[1600px] 2xl:max-w-[1840px] min-h-dvh bg-[#FAFAF7] flex flex-col sm:border-x-2 sm:border-[#111] overflow-hidden md:overflow-visible">
-        {/* Badge sumber soal + error (tidak mengganggu tampilan utama) */}
-        {soalError && soalSource === 'dummy' && (
+        {/* Badge sumber soal dummy (tampil untuk SEMUA kasus dummy, bukan cuma saat fetch gagal) */}
+        {!soalLoading && soalSource === 'dummy' && (
           <div className="bg-amber-100 border-b-2 border-[#111] px-3 py-1.5 text-[11px] font-bold text-amber-900 text-center shrink-0">
-            ⚠️ {soalError}
+            ⚠️ {soalError || 'Soal dummy: bank soal Supabase kosong untuk mapel & paket ini.'}
           </div>
         )}
         {/* ===== TOP BAR ===== */}

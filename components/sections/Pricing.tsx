@@ -1,4 +1,4 @@
-import { Chip } from '../ui'
+import { Chip } from '../landing-ui'
 import { FREE_FEATURES, PRO_FEATURES } from '@/content/pricing'
 
 function FeatureList({ features, accentClass }: { features: string[]; accentClass: string }) {

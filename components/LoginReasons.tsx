@@ -1,4 +1,4 @@
-import { Chip } from './ui'
+import { Chip } from './landing-ui'
 import { REASONS } from '@/content/login-reasons'
 
 function ReasonCard({ number, title, desc, highlighted }: {

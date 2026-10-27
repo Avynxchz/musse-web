@@ -36,7 +36,6 @@ export function createLogStore(prefix: string, max = 200): LogStore {
       payload,
     };
     logs = [entry, ...logs].slice(0, max);
-    console.log(`[${prefix}]`, event, payload);
     emit();
   };
 

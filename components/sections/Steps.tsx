@@ -1,4 +1,4 @@
-import { Chip } from '../ui'
+import { Chip } from '../landing-ui'
 import { STEPS } from '@/content/steps'
 
 function StepCard({ n, title, desc }: { n: string; title: string; desc: string }) {

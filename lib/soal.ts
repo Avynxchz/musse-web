@@ -4,8 +4,10 @@
 // Dibuat untuk migrasi 10%: semua mapel, 5 soal per paket.
 
 import type { Question, TipeSoal } from '../app/arena/data';
+import { SUPABASE_URL } from './supabase';
 
-const SUPABASE_URL = 'https://auhqgzrrgvjbfvzvayzg.supabase.co';
+/** Satu langkah pembahasan: string polos atau objek berjudul. */
+export type PembahasanStep = string | { step?: number; title?: string; explanation?: string };
 
 /** Format 1 soal di file JSON Storage (sama dengan baris tabel `soal`) */
 export interface SoalRow {
@@ -24,7 +26,7 @@ export interface SoalRow {
     diketahui?: string;
     ditanyakan?: string;
     reasoning?: string;
-    steps?: Array<string | { step?: number; title?: string; explanation?: string }>;
+    steps?: Array<PembahasanStep>;
     tips?: string | string[];
     why_correct?: string;
     common_mistakes?: string | string[];
@@ -210,7 +212,7 @@ export function dbRowToQuestion(row: SoalRow): Question {
   const pilar1 = [diketahui, ditanyakan].filter(Boolean).join(' ').trim() || topik;
   const pilar3 = (p.reasoning ?? '').trim();
   const pilar4 = Array.isArray(p.steps)
-    ? p.steps.map((s: any) =>
+    ? p.steps.map((s: PembahasanStep) =>
         typeof s === 'string' ? s : `${s.title ?? ''}${s.explanation ? ': ' + s.explanation : ''}`.trim()
       ).filter(Boolean)
     : [];

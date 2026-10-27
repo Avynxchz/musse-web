@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Chip, CheckIcon } from '../../ui'
+import { Chip, CheckIcon } from '../../landing-ui'
 import { MAIN_CARDS, BALOKS, type MainCardVisual } from '@/content/features'
 import { PembahasanVisual, AiChatVisual, RuangAiVisual } from './FeatureVisuals'
 import { BalokIcon, BALOK_MINIS } from './BalokVisuals'

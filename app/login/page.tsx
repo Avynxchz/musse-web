@@ -12,9 +12,8 @@ export default function LoginPage() {
   const { toast, showToastMsg } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const logEvent = useCallback((event: string, payload: Record<string, unknown> = {}) => {
-    console.log('[login]', event, payload);
-  }, []);
+  // Log login dinonaktifkan (dulu console.log di sini).
+  const logEvent = useCallback((_event: string, _payload: Record<string, unknown> = {}) => {}, []);
 
   // Page view logging + cek sesi yang sudah ada
   useEffect(() => {
