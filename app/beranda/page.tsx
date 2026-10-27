@@ -10,6 +10,7 @@ import {
   type QuizAttempt,
 } from '../../lib/analisis';
 import { DesktopSidebar } from '../components/DesktopSidebar';
+import { createClient } from '../../lib/supabase';
 import {
   BottomNav,
   LogPanelLive,
@@ -241,6 +242,7 @@ export default function BerandaPage() {
   const [countdownText, setCountdownText] = useState('H-12 TKA');
   const [quizHistory, setQuizHistory] = useState<QuizAttempt[]>([]);
   const [lastAttempt, setLastAttempt] = useState<QuizAttempt | null>(null);
+  const [userName, setUserName] = useState('Pengguna');
   // Guard anti double-start quiz (double-click tombol Mulai)
   const startingRef = useRef(false);
   const startingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -263,6 +265,16 @@ export default function BerandaPage() {
       if (startingTimerRef.current) clearTimeout(startingTimerRef.current);
     };
   }, [logEvent]);
+
+  // Nama sapaan dari akun Google yang login (bukan hardcode)
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserName(user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Pengguna');
+      }
+    });
+  }, []);
 
   /* ---------- progres real per (mapel, paket) — MTK Paket 1 != MTK Paket 2 ---------- */
   const latestPerPaket = useMemo(() => {
@@ -479,14 +491,14 @@ export default function BerandaPage() {
             <div className="w-full max-w-[1200px] mx-auto flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs md:hidden">
-                  AG
+                  {userName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?'}
                 </div>
                 <div>
                   <p className="text-[11px] text-neutral-500 font-semibold leading-none">
                     Siap tempur hari ini,
                   </p>
                   <p className="text-sm md:text-base font-extrabold text-[#111] leading-tight">
-                    Agus Putra 👋
+                    {userName} 👋
                   </p>
                 </div>
               </div>
