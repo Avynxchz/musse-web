@@ -1,7 +1,8 @@
 'use client';
 
-import { memo, useState, type ReactNode } from 'react';
+import { memo, useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 
 export type DesktopNavKey = 'beranda' | 'ruang' | 'akun';
 
@@ -32,6 +33,22 @@ export const DesktopSidebar = memo(function DesktopSidebar({
 }) {
   const router = useRouter();
   const [akunPopupOpen, setAkunPopupOpen] = useState(false);
+  const [userName, setUserName] = useState('Pengguna');
+  const [userEmail, setUserEmail] = useState('');
+  const [userInitials, setUserInitials] = useState('?');
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Pengguna';
+        setUserName(fullName);
+        setUserEmail(user.email || '');
+        const initials = fullName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+        setUserInitials(initials || '?');
+      }
+    });
+  }, []);
   return (
     <aside className="hidden md:flex md:w-64 lg:w-72 shrink-0 bg-white border-r-2 border-[#111] flex-col justify-between md:sticky md:top-0 md:h-dvh z-30">
       <div className="p-5 space-y-6">
@@ -83,10 +100,10 @@ export const DesktopSidebar = memo(function DesktopSidebar({
           }`}
         >
           <div className="w-9 h-9 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-xs shrink-0">
-            AG
+            {userInitials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-extrabold text-[#111] truncate">Agus Putra 👋</p>
+            <p className="text-xs font-extrabold text-[#111] truncate">{userName} 👋</p>
             <p className="text-[11px] text-neutral-500 font-semibold truncate">Siap tempur hari ini</p>
           </div>
           <span className="text-neutral-400 text-xs">▲</span>
@@ -99,11 +116,11 @@ export const DesktopSidebar = memo(function DesktopSidebar({
               <div className="p-4 border-b-2 border-[#111] bg-[#FAFAF7]">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-[#B6FF00] border-2 border-[#111] flex items-center justify-center font-extrabold text-sm shrink-0">
-                    AG
+                    {userInitials}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-extrabold truncate">Agus Alfiansyah Putra</p>
-                    <p className="text-xs text-neutral-500 truncate">agus@gmail.com</p>
+                    <p className="text-sm font-extrabold truncate">{userName}</p>
+                    <p className="text-xs text-neutral-500 truncate">{userEmail}</p>
                     <span className="inline-block mt-1 bg-[#B6FF00] border border-[#111] px-2 py-0.5 rounded text-[10px] font-extrabold">
                       Kuota AI: 24/25
                     </span>
