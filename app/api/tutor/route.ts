@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'qwen/qwen3-32b';
+const GROQ_MODEL = 'openai/gpt-oss-120b';
 const TIMEOUT_MS = 60000;
 
 export async function POST(req: NextRequest) {
@@ -86,8 +86,24 @@ PENTING: Jangan tampilkan tag HTML mentah seperti <b> atau <i>. Gunakan **bold**
       }
 
       if (!res.ok) {
+        // Bedakan penyebab gagalnya (bukan 502 generik) supaya bisa didiagnosis:
+        // 401 = key tidak valid, 400 = model tidak tersedia, sisanya = gangguan hulu.
+        // Pesan ke klien dijaga generik (tidak meneruskan body mentah Groq).
+        console.error('[tutor] Groq error', res.status);
+        if (res.status === 401) {
+          return NextResponse.json(
+            { status: 'error', code: 'invalid_key', message: 'API key AI tidak valid.' },
+            { status: 502 }
+          );
+        }
+        if (res.status === 400) {
+          return NextResponse.json(
+            { status: 'error', code: 'model_unavailable', message: 'Model AI sedang tidak tersedia.' },
+            { status: 502 }
+          );
+        }
         return NextResponse.json(
-          { status: 'error', message: 'Gagal mendapatkan respons AI.' },
+          { status: 'error', code: 'upstream_error', message: 'Gagal mendapatkan respons AI.' },
           { status: 502 }
         );
       }
@@ -97,7 +113,7 @@ PENTING: Jangan tampilkan tag HTML mentah seperti <b> atau <i>. Gunakan **bold**
 
       if (!reply) {
         return NextResponse.json(
-          { status: 'error', message: 'Respons AI kosong.' },
+          { status: 'error', code: 'empty_reply', message: 'Respons AI kosong.' },
           { status: 502 }
         );
       }
