@@ -58,7 +58,7 @@ const RuangCoachChatBody = memo(function RuangCoachChatBody({
 }: {
   variant: 'desktop' | 'mobile';
   chatBoxRef?: React.RefObject<HTMLDivElement | null>;
-  messages: { from: 'user' | 'ai'; html: string }[];
+  messages: { from: 'user' | 'ai'; html: string; id?: number }[];
   mapelLabel: string;
   paketCoach: 1 | 2;
   loading?: boolean;
@@ -79,7 +79,7 @@ const RuangCoachChatBody = memo(function RuangCoachChatBody({
       >
         {messages.map((m, i) =>
           m.from === 'user' ? (
-            <div key={i} className="flex justify-end">
+            <div key={m.id ?? i} className="flex justify-end">
               <div
                 className={
                   isDesktop
@@ -92,7 +92,7 @@ const RuangCoachChatBody = memo(function RuangCoachChatBody({
             </div>
           ) : (
             <div
-              key={i}
+              key={m.id ?? i}
               className={
                 isDesktop
                   ? 'bg-[#F0FFB8] border-2 border-[#111] shadow-[0_3px_0_#111] rounded-2xl rounded-bl-sm p-4 max-w-[88%]'
@@ -215,7 +215,7 @@ export default function RuangPage() {
 
   /* ===== Chat Coach per mapel + paket ===== */
   const [showCoach, setShowCoach] = useState(false);
-  const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string }[]>([]);
+  const [chatMsgs, setChatMsgs] = useState<{ from: 'user' | 'ai'; html: string; id?: number }[]>([]);
   const [coachQuota, setCoachQuota] = useState(24);
   const [coachError, setCoachError] = useState<string | null>(null);
   const [coachLoading, setCoachLoading] = useState(false);
@@ -223,6 +223,7 @@ export default function RuangPage() {
   const greetedKeyRef = useRef<string>('');
   // Guard anti double-submit chat (<500ms, pesan sama)
   const lastCoachMsgRef = useRef<{ msg: string; ts: number }>({ msg: '', ts: 0 });
+  const coachIdRef = useRef(0);
   const coachAbortRef = useRef<AbortController | null>(null);
 
   // Page view logging + cleanup AbortController saat unmount
@@ -261,6 +262,7 @@ export default function RuangPage() {
         {
           from: 'ai',
           html: buildCoachGreeting(mapelLabel, paketCoach, coachPesan, ai1Insight?.pola),
+          id: ++coachIdRef.current,
         },
       ]);
     }
@@ -289,8 +291,8 @@ export default function RuangPage() {
     const safeUserHtml = msg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     setChatMsgs((prev) => [
       ...prev,
-      { from: 'user', html: safeUserHtml },
-      { from: 'ai', html: '⏳ <i>Coach sedang menganalisis datamu...</i>' },
+      { from: 'user', html: safeUserHtml, id: ++coachIdRef.current },
+      { from: 'ai', html: '⏳ <i>Coach sedang menganalisis datamu...</i>', id: ++coachIdRef.current },
     ]);
     logEvent('coach_chat_ask', {
       mapel: mapelCoach,
@@ -318,8 +320,13 @@ export default function RuangPage() {
         : 'Tidak ada';
     const nomorRef = statRuang.soalSalahNomor[0] || statRuang.polaAI1[0]?.soalContoh || 1;
 
+    // Pertanyaan siswa ditaruh PALING DEPAN + aturan prioritas eksplisit
+    // (pola yang sama seperti fix arena PR #9: konteks panjang di bawah ini
+    // sebelumnya bisa "membajak" jawaban kalau pertanyaan tidak berkaitan).
     const contextualMessage =
-      `[KONTEKS DISKUSI RUANG AI #3 - ${mapelLabel} Paket ${paketCoach}]\n` +
+      `Pertanyaan siswa: ${msg}\n` +
+      `\nATURAN UTAMA: Jawab PERTANYAAN SISWA di atas. Konteks statistik di bawah HANYA dipakai kalau pertanyaan berkaitan dengan progres belajar mapel ini. Kalau pertanyaan TIDAK berkaitan dengan progres tersebut (misalnya pertanyaan umum, pelajaran lain, atau hitungan lain), jawab pertanyaan itu saja secara langsung — JANGAN membahas statistik, dan JANGAN menampilkan insight/pola yang tidak ditanyakan.\n` +
+      `\n[KONTEKS DISKUSI RUANG AI #3 - ${mapelLabel} Paket ${paketCoach}]\n` +
       `- Status Data: ${statRuang.adaData ? `Akurasi ${statRuang.akurasiPct}% (${statRuang.totalBenar}/${statRuang.totalSoal} soal benar)` : `Belum ada data pengerjaan untuk ${mapelLabel} Paket ${paketCoach}`}\n` +
       `- Topik Lemah (${mapelLabel} Paket ${paketCoach}): ${lemahContext}\n` +
       `- Topik Kuat (${mapelLabel} Paket ${paketCoach}): ${kuatContext}\n` +
@@ -373,7 +380,7 @@ export default function RuangPage() {
 
       setChatMsgs((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { from: 'ai', html: replyHtml };
+        next[next.length - 1] = { ...next[next.length - 1], from: 'ai', html: replyHtml };
         return next;
       });
     } catch (e) {
@@ -381,7 +388,7 @@ export default function RuangPage() {
       setCoachError('Koneksi Coach gagal.');
       setChatMsgs((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { from: 'ai', html: `⚠️ <b>Koneksi Coach gagal.</b> Periksa koneksimu lalu tekan tombol "Coba lagi" di bawah.` };
+        next[next.length - 1] = { ...next[next.length - 1], from: 'ai', html: `⚠️ <b>Koneksi Coach gagal.</b> Periksa koneksimu lalu tekan tombol "Coba lagi" di bawah.` };
         return next;
       });
     } finally {

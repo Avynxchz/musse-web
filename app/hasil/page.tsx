@@ -357,13 +357,11 @@ function HasilContent() {
   const searchParams = useSearchParams();
 
   /* ---------- baca URL params ---------- */
+  // Hanya selektor (mode/mapel/paket) + flag autosubmit. Skor TIDAK lagi
+  // dibaca dari URL (rawan dikarang) — skor hanya dari attempt tersimpan.
   const mode = searchParams.get('mode') === 'simulasi' ? 'simulasi' : 'latihan';
   const mapelKey = searchParams.get('mapel') || 'matematika';
   const paket = searchParams.get('paket') === '2' ? 2 : 1;
-  const benarParam = parseInt(searchParams.get('benar') || '', 10);
-  const salahParam = parseInt(searchParams.get('salah') || '', 10);
-  const kosongParam = parseInt(searchParams.get('kosong') || '', 10);
-  const totalParam = parseInt(searchParams.get('total') || '', 10);
   const autoSubmit = searchParams.get('autosubmit') === '1';
 
   // Soal dari Supabase (fallback ke dummy)
@@ -410,30 +408,18 @@ function HasilContent() {
     matchedAttempt && Array.isArray(matchedAttempt.perSoal) && matchedAttempt.perSoal.length > 0
   );
 
+  // Skor HANYA dari attempt tersimpan yang cocok. Tanpa attempt, halaman
+  // menampilkan empty state di bawah (bukan skor karangan dari URL).
   const total =
-    hasPerSoal && matchedAttempt
-      ? matchedAttempt.total || matchedAttempt.perSoal.length
-      : Number.isFinite(totalParam) && totalParam > 0
-        ? totalParam
-        : questions.length;
+    hasPerSoal && matchedAttempt ? matchedAttempt.total || matchedAttempt.perSoal.length : questions.length;
   const benar =
-    hasPerSoal && matchedAttempt
-      ? matchedAttempt.perSoal.filter((s) => s.status === 'benar').length
-      : Number.isFinite(benarParam) && benarParam >= 0
-        ? Math.min(benarParam, total)
-        : 0;
+    hasPerSoal && matchedAttempt ? matchedAttempt.perSoal.filter((s) => s.status === 'benar').length : 0;
   const salah =
-    hasPerSoal && matchedAttempt
-      ? matchedAttempt.perSoal.filter((s) => s.status === 'salah').length
-      : Number.isFinite(salahParam) && salahParam >= 0
-        ? Math.min(salahParam, total - benar)
-        : 0;
+    hasPerSoal && matchedAttempt ? matchedAttempt.perSoal.filter((s) => s.status === 'salah').length : 0;
   const kosong =
     hasPerSoal && matchedAttempt
       ? matchedAttempt.perSoal.filter((s) => s.status === 'kosong').length
-      : Number.isFinite(kosongParam) && kosongParam >= 0
-        ? Math.min(kosongParam, total - benar - salah)
-        : Math.max(0, total - benar - salah);
+      : Math.max(0, total - benar - salah);
   const skor = total > 0 ? Math.round((benar / total) * 100) : 0;
 
   const mapel = getMapel(mapelKey);
@@ -449,18 +435,15 @@ function HasilContent() {
     logEvent('page_view', { page: 'hasil' });
   }, []);
 
-  /* ---------- status per soal (real dari attempt, fallback URL params) ---------- */
+  /* ---------- status per soal (real dari attempt; tanpa attempt = kosong semua,
+     tidak pernah dirender karena empty state di bawah) ---------- */
   const statusPerSoal: ('benar' | 'salah' | 'kosong')[] = useMemo(() => {
     if (hasPerSoal && matchedAttempt) {
       const byNomor = new Map(matchedAttempt.perSoal.map((ps) => [ps.nomor, ps.status]));
       return questions.map((q, i) => byNomor.get(q.nomor) ?? matchedAttempt.perSoal[i]?.status ?? 'kosong');
     }
-    return questions.map((_, i) => {
-      if (i < benar) return 'benar';
-      if (i < benar + salah) return 'salah';
-      return 'kosong';
-    });
-  }, [questions, matchedAttempt, hasPerSoal, benar, salah]);
+    return questions.map(() => 'kosong' as const);
+  }, [questions, matchedAttempt, hasPerSoal]);
 
   const openStrategi = useCallback(() => {
     setStrategiOpen(true);
@@ -477,6 +460,33 @@ function HasilContent() {
   const pctBenar = total > 0 ? Math.round((benar / total) * 100) : 0;
   const pctSalah = total > 0 ? Math.round((salah / total) * 100) : 0;
   const pctKosong = Math.max(0, 100 - pctBenar - pctSalah);
+
+  // Tanpa attempt tersimpan yang cocok, jangan tampilkan skor apa pun.
+  if (!hasPerSoal || !matchedAttempt) {
+    return (
+      <div className="min-h-dvh bg-[#18181B] md:bg-[#FAFAF7] flex justify-center md:justify-start">
+        <DesktopSidebar active="beranda" />
+        <div className="relative w-full max-w-[430px] md:max-w-none md:flex-1 min-h-dvh bg-[#FAFAF7] flex flex-col items-center justify-center p-6 text-center sm:border-x-2 sm:border-[#111] md:border-x-0">
+          <p className="text-4xl">🔍</p>
+          <h2 className="mt-4 text-lg font-extrabold">Hasil tidak ditemukan</h2>
+          <p className="mt-2 text-sm font-medium text-neutral-600">
+            Buka halaman ini lewat arena setelah menyelesaikan latihan. Skor tidak bisa dibuka dari tautan.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <NeoBtn onClick={() => router.push('/beranda')} className="bg-[#B6FF00] px-4 py-2.5 rounded-xl text-xs">
+              Ke Beranda →
+            </NeoBtn>
+            <NeoBtn
+              onClick={() => router.push(`/arena?mapel=${mapelKey}&paket=${paket}&mode=${mode}`)}
+              className="bg-white px-4 py-2.5 rounded-xl text-xs"
+            >
+              Latihan Lagi
+            </NeoBtn>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh bg-[#18181B] md:bg-[#FAFAF7] flex justify-center md:justify-start">

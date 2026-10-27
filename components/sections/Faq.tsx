@@ -1,4 +1,4 @@
-import { Chip } from '../ui'
+import { Chip } from '../landing-ui'
 import { FAQS } from '@/content/faq'
 
 function FaqItem({ q, a }: { q: string; a: string }) {

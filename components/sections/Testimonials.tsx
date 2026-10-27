@@ -1,4 +1,4 @@
-import { Chip } from '../ui'
+import { Chip } from '../landing-ui'
 import { TESTIMONIALS } from '@/content/testimonials'
 
 function TestimonialCard({ text, name, detail }: {
