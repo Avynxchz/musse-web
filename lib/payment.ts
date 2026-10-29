@@ -7,6 +7,17 @@
 // route create selalu pakai nilai ini.
 export const PASS_PRICE_IDR = 5000;
 
+// Konstanta Supabase untuk route payment — sengaja di sini, bukan di
+// lib/supabase.ts: di main, file itu hanya mengekspor createClient (konstanta
+// terpusat baru ada di PR #10 yang belum merge). Setelah PR #10 merge, route
+// payment bisa pindah ke impor terpusat dari lib/supabase.ts.
+// Nilai fallback = nilai production saat ini (anon key ini kunci publik,
+// sama seperti yang sudah hardcode di kode main).
+export const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://auhqgzrrgvjbfvzvayzg.supabase.co';
+export const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1aHFnenJyZ3ZqYmZ2enZheXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyNzUwNDgsImV4cCI6MjEwNjg1MTA0OH0.lthMo0A1QcAGOnp4NJ65-FDsP7yOCpA-OikA-Ei1gqY';
+
 // Gerbang utama: selama false, route payment menolak membuat order baru.
 // Diubah jadi true hanya saat go-live (setelah kunci produksi terpasang).
 export const PAYMENT_ENABLED = process.env.PAYMENT_ENABLED === 'true';

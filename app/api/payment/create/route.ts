@@ -1,8 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase';
-import { PASS_PRICE_IDR, PAYMENT_ENABLED, todayWibYmd } from '@/lib/payment';
+import {
+  PASS_PRICE_IDR,
+  PAYMENT_ENABLED,
+  SUPABASE_ANON_KEY,
+  SUPABASE_URL,
+  todayWibYmd,
+} from '@/lib/payment';
 import { createCheckoutPayment, getDokuConfig } from '@/lib/doku';
 
 /**

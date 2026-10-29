@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { SUPABASE_URL } from '@/lib/supabase';
-import { PASS_PRICE_IDR } from '@/lib/payment';
+import { PASS_PRICE_IDR, SUPABASE_URL } from '@/lib/payment';
 import { verifyNotificationSignature } from '@/lib/doku';
 
 /**
